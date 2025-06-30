@@ -14,6 +14,7 @@ export interface User {
   dob: string;
   email: string;
   photo: string;
+  image?: string;
   workLocation: string;
   kycStatus: 'pending' | 'approved' | 'rejected' | null;
   govIdName: string;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../config/axios';
 import type { Company } from '../../types';
 import { FiTrash2, FiEdit, FiRefreshCw, FiPlus } from 'react-icons/fi';
@@ -7,7 +7,7 @@ import StatusBadge from '../common/StatusBadge';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ConfirmationModal from '../common/ConfirmationModal';
 import { toast } from 'react-toastify';
-import { AuthContext } from '../../context/AuthContext';
+// import { AuthContext } from '../context/AuthContext';
 
 const ManageCompany: React.FC = () => {
   const [companies, setCompanies] = useState<Company[]>([]);

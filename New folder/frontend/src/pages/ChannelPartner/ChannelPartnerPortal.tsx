@@ -11,7 +11,7 @@ import Clients from './Clients';
 import HelpLinePage from './HelpLinePage';
 
 const ChannelPartnerPortal: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);

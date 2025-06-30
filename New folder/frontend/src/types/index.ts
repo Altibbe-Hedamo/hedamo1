@@ -1,11 +1,4 @@
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  image?: string;
-  type: 'admin' | 'agent' | 'company' | 'user';
-}
+export type { User } from '../types';
 
 export interface Product {
   id: number;

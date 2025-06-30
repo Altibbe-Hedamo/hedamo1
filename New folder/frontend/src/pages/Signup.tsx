@@ -1,11 +1,13 @@
-import { useState, type FormEvent, useEffect, useContext } from 'react';
+import { useContext, useState, type FormEvent, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import api from '../config/axios';
+import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Footer from '../components/Footer';
-import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
+import type { User } from '../types';
 
 interface FormData {
   name: string;
@@ -163,7 +165,7 @@ const Signup: React.FC = () => {
 
     try {
       console.log('Sending OTP request for email:', formData.email);
-      const response = await api.post(
+      const response = await axios.post(
         '/api/send-otp',
         {
           email: formData.email,
@@ -387,7 +389,7 @@ const Signup: React.FC = () => {
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       try {
-        const response = await api.post('/api/signup', signupData, {
+        const response = await axios.post('/api/signup', signupData, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -419,30 +421,33 @@ const Signup: React.FC = () => {
           setOtpSent(false);
           
           // Create user object for AuthContext
-          const userData = {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            role: formData.signupType,
-            type: formData.signupType,
-            kycStatus: 'pending' as const,
-            signup_type: formData.signupType,
-            // Add other required fields from User type
-            position: '',
-            joinDate: new Date(),
-            dob: '',
-            photo: '',
-            workLocation: '',
-            govIdName: '',
-            govIdNumber: '',
-            department: '',
-            address: formData.address || ''
-          };
-
-          // Store token and user data
           const token = response.data.token;
-          if (token) {
-            login(userData, token);
+          const userFromResponse = response.data.user;
+
+          if (token && userFromResponse) {
+            // const userData: User = {
+            //   ...userFromResponse, // Start with the user object from the server
+            //   // Ensure all fields from the User type are present, falling back to defaults
+            //   id: userFromResponse.id,
+            //   name: userFromResponse.name || formData.name,
+            //   email: userFromResponse.email || formData.email,
+            //   phone: userFromResponse.phone || formData.phone,
+            //   type: userFromResponse.type || formData.signupType,
+            //   signup_type: userFromResponse.signup_type || formData.signupType,
+            //   role: userFromResponse.role || formData.signupType,
+            //   kycStatus: userFromResponse.kycStatus || 'pending',
+            //   position: userFromResponse.position || '',
+            //   joinDate: userFromResponse.joinDate || new Date(),
+            //   dob: userFromResponse.dob || '',
+            //   photo: userFromResponse.photo || '',
+            //   workLocation: userFromResponse.workLocation || '',
+            //   govIdName: userFromResponse.govIdName || '',
+            //   govIdNumber: userFromResponse.govIdNumber || '',
+            //   department: userFromResponse.department || '',
+            //   address: userFromResponse.address || formData.address || '',
+            //   image: userFromResponse.image || ''
+            // };
+            // login(userData, token);
           }
           
           // Redirect based on signup type
@@ -718,7 +723,7 @@ const Signup: React.FC = () => {
                     id="address"
                     name="address"
                     value={formData.address}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                     required
                     rows={3}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import axiosInstance from '../../config/axios';
+import toast from 'react-hot-toast';
 
 declare global {
   interface Window {
@@ -113,7 +114,7 @@ const Payment: React.FC = () => {
       try {
         const token = sessionStorage.getItem('token');
         if (token) {
-          const response = await api.get('/api/wallet/balance', {
+          const response = await axiosInstance.get('/api/wallet/balance', {
             headers: { Authorization: `Bearer ${token}` }
           });
 

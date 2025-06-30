@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const EditProfile: React.FC = () => {
+  // const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -20,10 +23,12 @@ const EditProfile: React.FC = () => {
     yearOfCompletion: '',
     yearsOfExperience: '',
     currentOccupation: '',
+    photo: null,
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,6 +63,7 @@ const EditProfile: React.FC = () => {
             yearOfCompletion: response.data.profile.year_of_completion || '',
             yearsOfExperience: response.data.profile.years_of_experience || '',
             currentOccupation: response.data.profile.current_occupation || '',
+            photo: response.data.profile.photo || null,
           });
         } else {
           setError('Failed to load profile');

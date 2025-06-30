@@ -139,7 +139,13 @@ const ProductsMap: React.FC = () => {
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}
-          zoom={4}
+          zoom={13}
+          options={{
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            // height: '400px'
+          }}
           onClick={handleMapClick}
         >
           {filteredMarkers.map((marker, index) => (
