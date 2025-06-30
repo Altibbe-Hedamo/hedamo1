@@ -5,7 +5,6 @@
       "src": "Newfolder/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "workDirectory": "Newfolder/frontend",
         "outputDirectory": "dist"
       }
     },
