@@ -2,16 +2,16 @@
   "version": 2,
   "builds": [
     {
-      "src": "Newfolder/backend/server.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "Newfolder/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
         "workDirectory": "Newfolder/frontend",
         "outputDirectory": "dist"
       }
+    },
+    {
+      "src": "Newfolder/backend/server.js",
+      "use": "@vercel/node"
     }
   ],
   "rewrites": [
