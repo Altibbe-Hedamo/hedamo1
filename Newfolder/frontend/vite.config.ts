@@ -12,9 +12,6 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),react()
 
     ],
-    define: {
-      'process.env': env
-    },
     build: {
     outDir: 'dist'
   },
