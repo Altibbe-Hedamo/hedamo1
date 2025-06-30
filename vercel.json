@@ -18,6 +18,10 @@
     {
       "source": "/api/(.*)",
       "destination": "/Newfolder/backend/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 } 
