@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "New folder/frontend/vite.config.ts",
+      "src": "New folder/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
         "workDirectory": "New folder/frontend",
