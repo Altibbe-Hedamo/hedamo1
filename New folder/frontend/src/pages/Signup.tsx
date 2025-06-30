@@ -2,12 +2,10 @@ import { useContext, useState, type FormEvent, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Footer from '../components/Footer';
 import { AuthContext } from '../context/AuthContext';
-import type { User } from '../types';
 
 interface FormData {
   name: string;
@@ -66,7 +64,7 @@ const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   // Add state for referral code
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -122,10 +120,7 @@ const Signup: React.FC = () => {
   };
 
   const handlePhoneChange = (phone: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      phone,
-    }));
+    setFormData({ ...formData, phone });
   };
 
   const togglePasswordVisibility = () => {
@@ -419,36 +414,6 @@ const Signup: React.FC = () => {
             address: '',
           });
           setOtpSent(false);
-          
-          // Create user object for AuthContext
-          const token = response.data.token;
-          const userFromResponse = response.data.user;
-
-          if (token && userFromResponse) {
-            // const userData: User = {
-            //   ...userFromResponse, // Start with the user object from the server
-            //   // Ensure all fields from the User type are present, falling back to defaults
-            //   id: userFromResponse.id,
-            //   name: userFromResponse.name || formData.name,
-            //   email: userFromResponse.email || formData.email,
-            //   phone: userFromResponse.phone || formData.phone,
-            //   type: userFromResponse.type || formData.signupType,
-            //   signup_type: userFromResponse.signup_type || formData.signupType,
-            //   role: userFromResponse.role || formData.signupType,
-            //   kycStatus: userFromResponse.kycStatus || 'pending',
-            //   position: userFromResponse.position || '',
-            //   joinDate: userFromResponse.joinDate || new Date(),
-            //   dob: userFromResponse.dob || '',
-            //   photo: userFromResponse.photo || '',
-            //   workLocation: userFromResponse.workLocation || '',
-            //   govIdName: userFromResponse.govIdName || '',
-            //   govIdNumber: userFromResponse.govIdNumber || '',
-            //   department: userFromResponse.department || '',
-            //   address: userFromResponse.address || formData.address || '',
-            //   image: userFromResponse.image || ''
-            // };
-            // login(userData, token);
-          }
           
           // Redirect based on signup type
           if (formData.signupType === 'agent') {

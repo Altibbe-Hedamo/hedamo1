@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/axios';
-import toast from 'react-hot-toast';
 
 declare global {
   interface Window {

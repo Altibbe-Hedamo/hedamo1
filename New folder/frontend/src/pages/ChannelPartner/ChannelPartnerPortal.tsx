@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { FaBook, FaSignOutAlt, FaIdCard, FaMoneyBillWave, FaLink, FaUsers, FaHeadset } from 'react-icons/fa';
 import { useContext } from 'react';
@@ -11,7 +11,6 @@ import Clients from './Clients';
 import HelpLinePage from './HelpLinePage';
 
 const ChannelPartnerPortal: React.FC = () => {
-  // const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
@@ -37,8 +36,7 @@ const ChannelPartnerPortal: React.FC = () => {
   return (
     <div className="flex h-screen bg-[#F5F7FA]">
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 z-20 h-min-screen w-64 bg-[#1A3C34] text-white p-4 flex flex-col relative transition-all duration-300 ease-in-out overflow-y-auto
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:w-64 md:min-h-screen`}>
+      <div className={`fixed left-0 top-0 z-20 h-min-screen w-64 bg-[#1A3C34] text-white p-4 flex flex-col relative transition-all duration-300 ease-in-out overflow-y-auto md:translate-x-0 md:w-64 md:min-h-screen`}>
         
         {/* Logo/Dashboard Header */}
         <div className="flex items-center justify-between mb-8 p-2 rounded-lg bg-[#2A5C54]">

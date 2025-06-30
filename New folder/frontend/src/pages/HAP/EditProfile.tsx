@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
 
 const EditProfile: React.FC = () => {
-  // const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -28,7 +24,6 @@ const EditProfile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +41,6 @@ const EditProfile: React.FC = () => {
         });
 
         if (response.data.success) {
-          setProfile(response.data.profile);
           setFormData({
             fullName: response.data.profile.full_name || '',
             dateOfBirth: response.data.profile.date_of_birth || '',

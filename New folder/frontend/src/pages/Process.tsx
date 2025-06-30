@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Building2, Package, ShieldCheck, UserCheck, AlertCircle, ArrowRight, BarChart2, FileText, ClipboardCheck, Clock, PlayCircle, Leaf, Globe, Award, Users } from 'lucide-react';
 import Footer from '../components/Footer';
-import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
 const Process: React.FC = () => {
-  // const authContext = useAuth();
   const navigate = useNavigate();
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [showMessage, setShowMessage] = useState<boolean>(false);

@@ -144,7 +144,6 @@ const ProductsMap: React.FC = () => {
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
-            // height: '400px'
           }}
           onClick={handleMapClick}
         >
