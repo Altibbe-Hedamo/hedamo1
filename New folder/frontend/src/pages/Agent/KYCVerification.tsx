@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaIdCard, FaCreditCard, FaUniversity } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useNavigate } from 'react-router-dom';
 
 declare global {
@@ -64,7 +63,7 @@ const KYCVerification: React.FC = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:3001/api/agent/verification-status', {
+        const response = await api.get('/agent/verification-status', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -118,8 +117,8 @@ const KYCVerification: React.FC = () => {
       }
 
       // Create Razorpay order
-      const orderResponse = await axios.post(
-        'http://localhost:3001/api/create-razorpay-order',
+      const orderResponse = await api.post(
+        '/create-razorpay-order',
         {
           amount: planType === 'trial' ? 1 : 499,
           plan_type: planType
@@ -143,7 +142,7 @@ const KYCVerification: React.FC = () => {
         name: 'KYC Verification',
         description: `KYC Verification - ${planType === 'trial' ? 'Trial' : 'Full'} Plan`,
         order_id: orderId,
-        handler: function (response: any) {
+        handler: function () {
           // Navigate directly to process page after payment
           navigate('/process');
         },
@@ -179,8 +178,8 @@ const KYCVerification: React.FC = () => {
       }
 
       // Submit Aadhar details
-      const aadharResponse = await axios.post(
-        'http://localhost:3001/api/save-aadhar-details',
+      const aadharResponse = await api.post(
+        '/save-aadhar-details',
         {
           fullName: formData.aadharName,
           aadharNumber: formData.aadharNumber,
@@ -192,8 +191,8 @@ const KYCVerification: React.FC = () => {
       );
 
       // Submit PAN details
-      const panResponse = await axios.post(
-        'http://localhost:3001/api/save-pan-details',
+      const panResponse = await api.post(
+        '/save-pan-details',
         {
           fullName: formData.panName,
           panNumber: formData.panNumber,
@@ -205,8 +204,8 @@ const KYCVerification: React.FC = () => {
       );
 
       // Submit Bank details
-      const bankResponse = await axios.post(
-        'http://localhost:3001/api/save-bank-details',
+      const bankResponse = await api.post(
+        '/save-bank-details',
         {
           accountHolderName: formData.accountHolderName,
           bankName: formData.bankName,

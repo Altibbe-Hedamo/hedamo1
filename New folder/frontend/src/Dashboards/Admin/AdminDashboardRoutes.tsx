@@ -60,20 +60,20 @@ const AdminDashboardRoutes = () => {
           
           <Route
             path="/hvp"
-            element={<ProtectedRoute><UsersSection subSection="Agents" /></ProtectedRoute>}
+            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
           
           <Route
             path="/users/agents"
-            element={<ProtectedRoute><UsersSection subSection="Agents" /></ProtectedRoute>}
+            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
           <Route
             path="/users/companies"
-            element={<ProtectedRoute><UsersSection subSection="Companies" /></ProtectedRoute>}
+            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
           <Route
             path="/users/users"
-            element={<ProtectedRoute><UsersSection subSection="Users" /></ProtectedRoute>}
+            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
           
           <Route

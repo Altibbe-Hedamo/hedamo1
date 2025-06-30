@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { User, Building, Package } from 'lucide-react';
-import axios from 'axios';
 import api from '../../config/axios';  // Import the configured axios instance
 
 interface Company {
@@ -36,11 +35,7 @@ interface Agent {
   linkedin_url?: string;
 }
 
-interface UsersSectionProps {
-  subSection: string;
-}
-
-const UsersSection: React.FC<UsersSectionProps> = ({ subSection }) => {
+const UsersSection: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,80 +141,6 @@ const UsersSection: React.FC<UsersSectionProps> = ({ subSection }) => {
     } catch (error: any) {
       console.error('Error updating agent status:', error);
       alert(error.response?.data?.error || 'Failed to update agent status');
-    }
-  };
-
-  const handleReject = async (id: number) => {
-    console.log('handleReject called with id:', id);
-    
-    // Find the agent to verify the ID exists
-    const agent = agents.find(a => a.id === id);
-    if (!agent) {
-      console.error('Agent not found for id:', id);
-      setError('Agent not found');
-      return;
-    }
-
-    const rejectionReason = prompt('Please enter rejection reason:');
-    if (!rejectionReason) return;
-
-    try {
-      setError(null);
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        setError('Authentication token missing');
-        return;
-      }
-
-      // Ensure id is a number and positive
-      const numericId = Number(id);
-      if (isNaN(numericId) || numericId <= 0) {
-        console.error('Invalid ID:', {
-          id,
-          numericId,
-          isNaN: isNaN(numericId),
-          isPositive: numericId > 0
-        });
-        setError('Invalid ID. Must be a positive number.');
-        return;
-      }
-
-      // If the agent has a profile, use the profile approval endpoint
-      // Otherwise, use the user approval endpoint
-      const endpoint = agent.hasProfile ? 
-        `/api/admin/profiles/${numericId}/approve` :
-        `/api/admin/users/${numericId}/approve`;
-
-      const response = await api.post(endpoint, 
-        { 
-          status: 'rejected',
-          rejectionReason
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.data.success) {
-        setAgents(prevAgents => 
-          prevAgents.map(agent => 
-            agent.id === numericId ? { ...agent, status: 'rejected' } : agent
-          )
-        );
-      } else {
-        throw new Error(response.data.error || 'Failed to reject agent');
-      }
-    } catch (error: any) {
-      console.error('Error rejecting agent:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-        setError(error.response.data.error || 'Failed to reject agent');
-      } else {
-        setError(error.message || 'Failed to reject agent');
-      }
     }
   };
 

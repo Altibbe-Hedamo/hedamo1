@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
 
 const EditProfile: React.FC = () => {
-  const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -41,7 +40,6 @@ const EditProfile: React.FC = () => {
         });
 
         if (response.data.success) {
-          setProfile(response.data.profile);
           setFormData({
             fullName: response.data.profile.full_name || '',
             dateOfBirth: response.data.profile.date_of_birth || '',

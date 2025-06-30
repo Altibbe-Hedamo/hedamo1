@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, UserCheck, PackageCheck, FileCheck, DollarSign } from 'lucide-react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import api from '../../config/axios';
 
 interface Stat {

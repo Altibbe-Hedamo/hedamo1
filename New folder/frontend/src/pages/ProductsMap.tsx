@@ -164,7 +164,7 @@ const ProductsMap: React.FC = () => {
               <OverlayView
                 position={{ lat: marker.lat, lng: marker.lng }}
                 mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-                getPixelPositionOffset={(width, height) => ({
+                getPixelPositionOffset={(width) => ({
                   x: -(width / 2),
                   y: -45, // Position the label above the marker pin
                 })}

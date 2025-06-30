@@ -1,11 +1,10 @@
-import { useContext, useState, type FormEvent, useEffect } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Footer from '../components/Footer';
-import { AuthContext } from '../context/AuthContext';
+import api from '../config/axios';
 
 interface FormData {
   name: string;
@@ -61,10 +60,8 @@ const Signup: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [otpSent, setOtpSent] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useContext(AuthContext);
 
   // Add state for referral code
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -123,10 +120,6 @@ const Signup: React.FC = () => {
     setFormData({ ...formData, phone });
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   const validatePassword = (password: string): boolean => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -160,8 +153,8 @@ const Signup: React.FC = () => {
 
     try {
       console.log('Sending OTP request for email:', formData.email);
-      const response = await axios.post(
-        '/api/send-otp',
+      const response = await api.post(
+        '/send-otp',
         {
           email: formData.email,
           csrf_token: csrfToken
@@ -384,7 +377,7 @@ const Signup: React.FC = () => {
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       try {
-        const response = await axios.post('/api/signup', signupData, {
+        const response = await api.post('/signup', signupData, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);

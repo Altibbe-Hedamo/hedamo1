@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaBullhorn, FaBell, FaEnvelope, FaCalendarAlt, FaTimes, FaUsers, FaChartLine } from 'react-icons/fa';
+import { FaBullhorn, FaBell, FaTimes, FaChartLine } from 'react-icons/fa';
 import api from '../../config/axios';
 
 interface Announcement {

@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useContext, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import Dashboard from '../../pages/Agent/Dashboard';
 import Profile from '../../pages/Agent/Profile';
@@ -12,7 +12,6 @@ import Wallet from '../../pages/Agent/Wallet';
 import Payments from '../../pages/Agent/Payments';
 import WaitingApproval from '../../pages/Agent/WaitingApproval';
 import AgentDashboard from '../../pages/Agent/Dashboard';
-import RestrictedRoute from '../../components/RestrictedRoute';
 import Sidebar from '../../components/slider';
 import EditProfile from '../../pages/Agent/EditProfile';
 import EditCompany from '../../pages/Agent/EditCompany';

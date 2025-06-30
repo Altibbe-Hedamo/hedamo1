@@ -65,7 +65,7 @@ const ProductsSection: React.FC = () => {
     fetchProducts();
   }, []);
 
-  const handleVerifyProduct = async (productId: number, agentId: number) => {
+  const handleVerifyProduct = async (productId: number) => {
     try {
       await api.post(`/api/products/${productId}/verify`);
       await fetchProducts(); // Refresh the list
@@ -75,7 +75,7 @@ const ProductsSection: React.FC = () => {
     }
   };
 
-  const handleRequestProductInfo = async (productId: number, agentId: number) => {
+  const handleRequestProductInfo = async (productId: number) => {
     try {
       await api.post(`/api/products/${productId}/request-info`);
       await fetchProducts(); // Refresh the list
@@ -171,13 +171,13 @@ const ProductsSection: React.FC = () => {
               {product.product_status === 'pending' && (
                 <div className="flex space-x-2 mt-2">
                   <button
-                    onClick={() => handleVerifyProduct(product.product_id, product.agent.id)}
+                    onClick={() => handleVerifyProduct(product.product_id)}
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
                   >
                     Verify
                   </button>
                   <button
-                    onClick={() => handleRequestProductInfo(product.product_id, product.agent.id)}
+                    onClick={() => handleRequestProductInfo(product.product_id)}
                     className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
                   >
                     Request Info

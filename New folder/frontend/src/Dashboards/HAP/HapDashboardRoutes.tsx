@@ -1,24 +1,21 @@
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useContext, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import Dashboard from '../../pages/Hap/Dashboard';
-import Profile from '../../pages/Hap/Profile';
-import CreateCompany from '../../pages/Hap/CreateCompany';
-import ManageCompany from '../../pages/Hap/ManageCompany';
-import CreateProduct from '../../pages/Hap/CreateProduct';
-import ManageProduct from '../../pages/Hap/ManageProduct';
-import OrdersPage from '../../pages/Hap/OrdersPage';
-import CommunicationCentrePage from '../../pages/Hap/CommunicationCentrePage';
-import HelpLinePage from '../../pages/Hap/HelpLinePage';
-import RestrictedRoute from '../../components/RestrictedRoute';
+import Dashboard from '../../pages/HAP/Dashboard';
+import Profile from '../../pages/HAP/Profile';
+import CreateCompany from '../../pages/HAP/CreateCompany';
+import ManageCompany from '../../pages/HAP/ManageCompany';
+// import CreateProduct from '../../pages/Hap/CreateProduct';
+// import ManageProduct from '../../pages/Hap/ManageProduct';
+// import OrdersPage from '../../pages/Hap/OrdersPage';
+import CommunicationCentrePage from '../../pages/HAP/CommunicationCentrePage';
+import HelpLinePage from '../../pages/HAP/HelpLinePage';
 import Sidebar from '../../components/slider';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
 
 const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -60,7 +57,7 @@ const HapDashboardRoutes = () => {
             path="/manage-company"
             element={<ProtectedRoute><ManageCompany /></ProtectedRoute>}
           />
-          <Route
+          {/* <Route
             path="/create-product"
             element={<ProtectedRoute><CreateProduct /></ProtectedRoute>}
           />
@@ -71,7 +68,7 @@ const HapDashboardRoutes = () => {
           <Route
             path="/orders"
             element={<ProtectedRoute><OrdersPage /></ProtectedRoute>}
-          />
+          /> */}
           <Route
             path="/communication"
             element={<ProtectedRoute><CommunicationCentrePage /></ProtectedRoute>}

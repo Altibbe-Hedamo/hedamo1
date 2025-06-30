@@ -15,13 +15,12 @@ import {
   BookOpen,
   MessageSquare,
 } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import {  FaFileContract, FaHeadset } from 'react-icons/fa';
 
 
 const Sidebar: React.FC = () => {
-  const location = useLocation();
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin-dashboard/dashboard' },
     { name: 'Users', icon: Users, path: '/admin-dashboard/users' },

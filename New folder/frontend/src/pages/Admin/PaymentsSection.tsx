@@ -1,6 +1,6 @@
 import React, { useState, useEffect, type JSX } from 'react';
 import { CreditCard, CheckCircle, Clock, AlertCircle, Download } from 'lucide-react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import api from '../../config/axios';
 
 interface Payment {
@@ -47,7 +47,7 @@ const PaymentsSection: React.FC = () => {
     try {
       await api.post(`/api/payments/${id}/process`, {});
       setPayments(payments.map(payment =>
-        payment.id === id ? { ...payment, status: 'processed' } : payment
+        parseInt(payment.id, 10) === id ? { ...payment, status: 'processed' } : payment
       ));
     } catch (error) {
       console.error('Failed to process payment:', (error as AxiosError).message);

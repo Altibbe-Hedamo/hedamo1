@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FaBullhorn, FaBook, FaQuestionCircle, FaExclamationTriangle, FaCalendarAlt, FaEnvelope, FaPhone } from 'react-icons/fa';
-import axios from 'axios';
-
-// Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:3001';
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+import { FaBullhorn, FaBook, FaQuestionCircle, FaCalendarAlt } from 'react-icons/fa';
+import api from '../../config/axios';
 
 interface Announcement {
   id: number;
@@ -32,7 +28,7 @@ const CommunicationCentrePage: React.FC = () => {
           throw new Error('No authentication token found');
         }
 
-        const response = await axios.get('/api/agent/announcements', {
+        const response = await api.get('/api/agent/announcements', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -76,17 +76,19 @@ const HapSidebar: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <Link
-                    to={item.path}
-                    className={`flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors ${
-                      location.pathname === item.path
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="mr-3">{item.icon}</span>
-                    {item.label}
-                  </Link>
+                  item.path && (
+                    <Link
+                      to={item.path}
+                      className={`flex items-center px-4 py-3 text-gray-700 rounded-lg transition-colors ${
+                        location.pathname === item.path
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="mr-3">{item.icon}</span>
+                      {item.label}
+                    </Link>
+                  )
                 )}
               </li>
             ))}

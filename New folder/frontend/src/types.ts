@@ -175,6 +175,9 @@ export interface Stat {
   icon: string;
   color: string;
   trend: 'up' | 'down' | 'neutral';
+  name?: string;
+  change?: string;
+  changeType?: 'positive' | 'negative';
 }
 
 export interface Activity {

@@ -2,19 +2,9 @@ import { useState, useEffect, useContext } from 'react';
 import { 
   FaTachometerAlt, FaUser, FaBuilding, FaBox, FaSignOutAlt, 
   FaWallet, FaChevronDown, FaChevronUp, FaPlus, 
-  FaCog, FaHome, FaFileAlt, FaShieldAlt, FaBook, FaHeadset,
-  FaFileInvoiceDollar, FaClipboardList, FaComments, FaChevronLeft, FaChevronRight
+  FaCog, FaHome, FaFileAlt, FaBook, FaHeadset,
+  FaFileInvoiceDollar, FaClipboardList, FaComments
 } from 'react-icons/fa';
-import { 
-  LayoutDashboard, 
-  User, 
-  Building2, 
-  Package, 
-  FileText, 
-  CreditCard, 
-  Shield,
-  BookOpen
-} from 'lucide-react';
 import api from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -29,13 +19,9 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen }) => {
   const [productMenuOpen, setProductMenuOpen] = useState<boolean>(true);
   const [companyMenuOpen, setCompanyMenuOpen] = useState<boolean>(true);
-  const [profileCompletion, setProfileCompletion] = useState<number>(0);
   const [user, setUser] = useState<any>(null);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const { profileStatus, logout } = useContext(AuthContext);
+  const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isActive = (section: string) => activeSection === section;
 
@@ -43,15 +29,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
     const fetchProfileAndUser = async () => {
       try {
         const token = sessionStorage.getItem('token');
-        const [profileResponse, userResponse, companiesResponse, productsResponse] = await Promise.all([
-          api.get('/api/profiles/user', { headers: { Authorization: `Bearer ${token}` } }),
+        const [userResponse] = await Promise.all([
           api.get('/api/users/profile', { headers: { Authorization: `Bearer ${token}` } }),
-          api.get('/api/companies', { headers: { Authorization: `Bearer ${token}` } }),
-          api.get('/api/products', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        setProfileCompletion(profileResponse.data.profile.completion_percentage || 0);
-        setCompanies(companiesResponse.data.companies || []);
-        setProducts(productsResponse.data.products || []);
         setUser(userResponse.data.user);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -59,12 +39,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
     };
     fetchProfileAndUser();
   }, []);
-
-  const toggleSidebar = () => {
-    if (setIsSidebarOpen) {
-      setIsSidebarOpen(!isSidebarOpen);
-    }
-  };
 
   const handleRestrictedClick = (section: string, path: string) => {
     setActiveSection(section);

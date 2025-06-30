@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
 import type { Stat, Activity } from '../../types';
 
@@ -8,7 +7,6 @@ const Dashboard: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const motivationalQuotes = [
     "Every small step counts towards big achievements!",

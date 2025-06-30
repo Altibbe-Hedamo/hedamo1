@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../config/axios';
-import { Building2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 interface Company {
   company_id: number;
@@ -53,7 +53,7 @@ const CompaniesSection: React.FC = () => {
     fetchCompanies();
   }, []);
 
-  const handleApproveCompany = async (companyId: number, agentId: number) => {
+  const handleApproveCompany = async (companyId: number) => {
     try {
       await api.post(`/api/companies/${companyId}/approve`);
       await fetchCompanies(); // Refresh the list
@@ -63,7 +63,7 @@ const CompaniesSection: React.FC = () => {
     }
   };
 
-  const handleReviewCompany = async (companyId: number, agentId: number) => {
+  const handleReviewCompany = async (companyId: number) => {
     try {
       await api.post(`/api/companies/${companyId}/review`);
       await fetchCompanies(); // Refresh the list
@@ -143,13 +143,13 @@ const CompaniesSection: React.FC = () => {
               {company.company_status === 'pending' && (
                 <div className="flex space-x-2 mt-2">
                   <button
-                    onClick={() => handleApproveCompany(company.company_id, company.agent.id)}
+                    onClick={() => handleApproveCompany(company.company_id)}
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
                   >
                     Approve
                   </button>
                   <button
-                    onClick={() => handleReviewCompany(company.company_id, company.agent.id)}
+                    onClick={() => handleReviewCompany(company.company_id)}
                     className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
                   >
                     Review
