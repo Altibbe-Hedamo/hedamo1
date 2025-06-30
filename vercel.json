@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "New folder/backend/server.js",
+      "src": "Newfolder/backend/server.js",
       "use": "@vercel/node"
     },
     {
-      "src": "New folder/frontend/package.json",
+      "src": "Newfolder/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "workDirectory": "New folder/frontend",
+        "workDirectory": "Newfolder/frontend",
         "outputDirectory": "dist"
       }
     }
@@ -17,7 +17,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/New folder/backend/server.js"
+      "destination": "/Newfolder/backend/server.js"
     }
   ]
 } 
