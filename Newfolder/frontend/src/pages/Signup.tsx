@@ -385,6 +385,7 @@ const Signup: React.FC = () => {
         console.log('Signup response:', response.data);
 
         if (response.data.success) {
+          const redirectType = response.data.user?.signupType || formData.signupType;
           setSuccess(response.data.message || 'Registration successful');
           setFormData({
             name: '',
@@ -409,11 +410,11 @@ const Signup: React.FC = () => {
           setOtpSent(false);
           
           // Redirect based on signup type
-          if (formData.signupType === 'agent') {
+          if (redirectType === 'agent') {
             navigate('/kyc-verification');
-          } else if (formData.signupType === 'hap') {
+          } else if (redirectType === 'hap') {
             navigate('/login');
-          } else if (formData.signupType === 'channel_partner') {
+          } else if (redirectType === 'channel_partner') {
             navigate('/channel-partner-portal');
           } else {
             navigate('/login');
