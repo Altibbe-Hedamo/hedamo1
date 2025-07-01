@@ -415,16 +415,18 @@ const Signup: React.FC = () => {
           // Store token & user in session to keep user authenticated
           authLogin(response.data.user, response.data.token);
           
-          // Redirect based on signup type
-          if (redirectType === 'agent') {
-            navigate('/kyc-verification');
-          } else if (redirectType === 'hap') {
-            navigate('/login');
-          } else if (redirectType === 'channel_partner') {
-            navigate('/channel-partner-portal');
-          } else {
-            navigate('/login');
-          }
+          // Defer navigation to next tick to ensure AuthContext state updates
+          Promise.resolve().then(() => {
+            if (redirectType === 'agent') {
+              navigate('/kyc-verification', { replace: true });
+            } else if (redirectType === 'channel_partner') {
+              navigate('/channel-partner-portal', { replace: true });
+            } else if (redirectType === 'hap') {
+              navigate('/login', { replace: true });
+            } else {
+              navigate('/login', { replace: true });
+            }
+          });
         } else {
           const errorMessage = response.data.error || 'Failed to register user';
           console.error('Registration failed:', errorMessage);
