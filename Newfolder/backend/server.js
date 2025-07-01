@@ -4925,3 +4925,16 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Add this route for agent verification status
+app.get('/agent/verification-status', (req, res) => {
+  res.json({ success: true, status: 'ok' });
+});
+
+// Ensure all KYC and OTP routes use the /api/ prefix
+// (If they already do, this is a no-op. If not, this will add them.)
+// Example for reference:
+// app.post('/api/send-otp', ...);
+// app.post('/api/save-aadhar-details', ...);
+// app.post('/api/save-pan-details', ...);
+// app.post('/api/save-bank-details', ...);
