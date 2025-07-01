@@ -63,7 +63,7 @@ const KYCVerification: React.FC = () => {
           return;
         }
 
-        const response = await api.get('/agent/verification-status', {
+        const response = await api.get('/api/agent/verification-status', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
