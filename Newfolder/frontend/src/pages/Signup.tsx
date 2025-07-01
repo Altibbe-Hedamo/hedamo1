@@ -1,10 +1,11 @@
-import { useState, type FormEvent, useEffect } from 'react';
+import { useState, type FormEvent, useEffect, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Footer from '../components/Footer';
 import api from '../config/axios';
+import { AuthContext } from '../context/AuthContext';
 
 interface FormData {
   name: string;
@@ -69,6 +70,8 @@ const Signup: React.FC = () => {
   const query = new URLSearchParams(location.search);
   const queryError = query.get('error');
   const querySuccess = query.get('success');
+
+  const { login: authLogin } = useContext(AuthContext);
 
   const generateCsrfToken = (): string => {
     const token = Array(32)
@@ -408,6 +411,9 @@ const Signup: React.FC = () => {
             address: '',
           });
           setOtpSent(false);
+          
+          // Store token & user in session to keep user authenticated
+          authLogin(response.data.user, response.data.token);
           
           // Redirect based on signup type
           if (redirectType === 'agent') {
