@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../config/axios';
 
 interface ReferralClient {
   id: number;
@@ -26,7 +26,7 @@ const Clients: React.FC = () => {
           setError('User not authenticated.');
           return;
         }
-        const response = await axios.get('http://localhost:3001/api/channel-partner/referrals', {
+        const response = await api.get('/api/channel-partner/referrals', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setClients(response.data.referrals.map((referral: any) => ({

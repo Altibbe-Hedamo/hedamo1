@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../config/axios';
+import api from '../../config/axios';
 
 declare global {
   interface Window {
@@ -38,8 +37,8 @@ const Payment: React.FC = () => {
       }
 
       // Create Razorpay order
-      const orderResponse = await axios.post(
-        'http://localhost:3001/api/create-razorpay-order',
+      const orderResponse = await api.post(
+        '/api/create-razorpay-order',
         {
           amount: planType === 'trial' ? 1 : 499,
           plan_type: planType
@@ -66,8 +65,8 @@ const Payment: React.FC = () => {
         handler: async function (response: any) {
           try {
             // Verify payment
-            const verifyResponse = await axios.post(
-              'http://localhost:3001/api/verify-razorpay-payment',
+            const verifyResponse = await api.post(
+              '/api/verify-razorpay-payment',
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -113,7 +112,7 @@ const Payment: React.FC = () => {
       try {
         const token = sessionStorage.getItem('token');
         if (token) {
-          const response = await axiosInstance.get('/api/wallet/balance', {
+          const response = await api.get('/api/wallet/balance', {
             headers: { Authorization: `Bearer ${token}` }
           });
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 
 const AgentProfile: React.FC = () => {
@@ -71,7 +71,7 @@ const AgentProfile: React.FC = () => {
         setError('User not authenticated.');
         return;
       }
-      await axios.post('http://localhost:3001/api/profiles', data, {
+      await api.post('/api/profiles', data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

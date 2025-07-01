@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaIdCard, FaCreditCard, FaUniversity } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../../config/axios';
 
 interface FormData {
   aadharNumber: string;
@@ -51,8 +51,8 @@ const ChannelKYC: React.FC = () => {
         return;
       }
       try {
-        const response = await axios.post(
-          'http://localhost:3001/api/channel-partner/kyc',
+        const response = await api.post(
+          '/api/channel-partner/save-aadhar-details',
           formData,
           {
             headers: {
@@ -77,8 +77,8 @@ const ChannelKYC: React.FC = () => {
         return;
       }
       try {
-        const response = await axios.post(
-          'http://localhost:3001/api/channel-partner/kyc',
+        const response = await api.post(
+          '/api/channel-partner/save-pan-details',
           formData,
           {
             headers: {
@@ -103,8 +103,8 @@ const ChannelKYC: React.FC = () => {
         return;
       }
       try {
-        const response = await axios.post(
-          'http://localhost:3001/api/channel-partner/kyc',
+        const response = await api.post(
+          '/api/channel-partner/save-bank-details',
           formData,
           {
             headers: {

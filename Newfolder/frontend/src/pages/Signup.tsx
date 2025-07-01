@@ -154,7 +154,7 @@ const Signup: React.FC = () => {
     try {
       console.log('Sending OTP request for email:', formData.email);
       const response = await api.post(
-        '/send-otp',
+        '/api/send-otp',
         {
           email: formData.email,
           csrf_token: csrfToken
@@ -377,7 +377,7 @@ const Signup: React.FC = () => {
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       try {
-        const response = await api.post('/signup', signupData, {
+        const response = await api.post('/api/signup', signupData, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);

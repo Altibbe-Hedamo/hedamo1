@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 import Footer from '../components/Footer';
+import api from '../config/axios';
 
 interface Report {
   id: string;
@@ -28,13 +29,10 @@ const QRReports: React.FC = () => {
     const fetchReports = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/reports');
-        const data: ApiResponse<Report> = await response.json();
-        
-        if (!response.ok || !data.success) {
+        const { data } = await api.get<ApiResponse<Report>>('/api/reports');
+        if (!data.success) {
           throw new Error(data.error || 'Failed to fetch reports');
         }
-        
         if (data.reports) {
           setReports(data.reports.slice(0, 3));
         }
