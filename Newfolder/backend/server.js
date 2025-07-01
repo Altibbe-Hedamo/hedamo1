@@ -4631,6 +4631,10 @@ app.post('/api/save-pan-details', authenticateToken, async (req, res) => {
     }
   } catch (error) {
     console.error('Error saving PAN details:', error);
+    if (error.code === '23505') {
+      // Unique violation (e.g., duplicate PAN number)
+      return res.status(400).json({ error: 'PAN number already registered' });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
