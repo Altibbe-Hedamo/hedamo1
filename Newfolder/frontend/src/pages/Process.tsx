@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Building2, Package, ShieldCheck, UserCheck, AlertCircle, ArrowRight, BarChart2, FileText, ClipboardCheck, Clock, PlayCircle, Leaf, Globe, Award, Users } from 'lucide-react';
 import Footer from '../components/Footer';
-import axios from 'axios';
+import api from '../config/axios';
 import { motion } from 'framer-motion';
 
 const Process: React.FC = () => {
@@ -20,7 +20,7 @@ const Process: React.FC = () => {
     }
 
     try {
-      const response = await axios.get('http://localhost:3001/api/verify-token', {
+      const response = await api.get('/api/verify-token', {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Verify token response:', response.data);

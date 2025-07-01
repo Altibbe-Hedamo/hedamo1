@@ -24,11 +24,13 @@ const Producers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+
   useEffect(() => {
     const fetchProducers = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/producers');
+        const response = await fetch(`${API_URL}/api/producers`);
         const data: ApiResponse<Producer> = await response.json();
         
         if (!response.ok || !data.success) {
@@ -195,7 +197,7 @@ const Producers: React.FC = () => {
                   >
                     <div className="relative h-48 w-full mb-4 overflow-hidden rounded-lg">
                       <img
-                        src={`http://localhost:3001/uploads/producers/${producer.image}`}
+                        src={`${API_URL}/uploads/producers/${producer.image}`}
                         alt={producer.name}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         loading="lazy" />

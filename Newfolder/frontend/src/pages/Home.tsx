@@ -23,9 +23,10 @@ interface ApiResponse<T> {
 
 function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/products?sort=recent')
+    fetch(`${API_URL}/api/products?sort=recent`)
       .then((res) => res.json())
       .then((data: ApiResponse<Product>) => {
         if (data.success && data.products) {
@@ -126,7 +127,7 @@ function Home() {
                 >
                   <div className="relative h-48 sm:h-64 overflow-hidden">
                     <img
-                      src={`http://localhost:3001/uploads/products/${product.image}`}
+                      src={`${API_URL}/uploads/products/${product.image}`}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       loading="lazy"

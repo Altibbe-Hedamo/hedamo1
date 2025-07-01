@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../config/axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
 
 interface Hap {
   id: number;

@@ -117,11 +117,12 @@ function Navbar() {
         setQuestions([]);
 
         try {
+            const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
             const payload = {
                 ...eligibilityForm,
                 certifications: selectedCerts,
             };
-            const response = await fetch('http://localhost:3001/api/eligibility/check', {
+            const response = await fetch(`${API_URL}/api/eligibility/check`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -154,7 +155,8 @@ function Navbar() {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:3001/api/eligibility/respond', {
+            const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+            const response = await fetch(`${API_URL}/api/eligibility/respond`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
