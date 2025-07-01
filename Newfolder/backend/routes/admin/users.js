@@ -249,7 +249,8 @@ router.get('/referral-link', (req, res, next) => {
       console.log('Generated and saved new referral code:', referralCode);
     }
     
-    const referralLink = `${process.env.FRONTEND_URL || 'https://hedamo.com'}/signup?ref=${referralCode}`;
+    const baseUrl = (process.env.FRONTEND_URL || 'https://hedamo.com').replace(/\/+$/, '');
+    const referralLink = `${baseUrl}/signup?ref=${referralCode}`;
     console.log('Generated referral link:', referralLink);
     
     console.log('Sending successful response');
