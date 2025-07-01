@@ -118,7 +118,7 @@ const KYCVerification: React.FC = () => {
 
       // Create Razorpay order
       const orderResponse = await api.post(
-        '/create-razorpay-order',
+        '/api/create-razorpay-order',
         {
           amount: planType === 'trial' ? 1 : 499,
           plan_type: planType
@@ -179,7 +179,7 @@ const KYCVerification: React.FC = () => {
 
       // Submit Aadhar details
       const aadharResponse = await api.post(
-        '/save-aadhar-details',
+        '/api/save-aadhar-details',
         {
           fullName: formData.aadharName,
           aadharNumber: formData.aadharNumber,
@@ -192,7 +192,7 @@ const KYCVerification: React.FC = () => {
 
       // Submit PAN details
       const panResponse = await api.post(
-        '/save-pan-details',
+        '/api/save-pan-details',
         {
           fullName: formData.panName,
           panNumber: formData.panNumber,
@@ -205,7 +205,7 @@ const KYCVerification: React.FC = () => {
 
       // Submit Bank details
       const bankResponse = await api.post(
-        '/save-bank-details',
+        '/api/save-bank-details',
         {
           accountHolderName: formData.accountHolderName,
           bankName: formData.bankName,
