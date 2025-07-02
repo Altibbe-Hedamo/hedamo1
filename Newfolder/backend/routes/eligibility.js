@@ -185,4 +185,29 @@ router.post('/respond', async (req, res) => {
     }
 });
 
+router.get('/accepted-products/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        
+        const query = `
+            SELECT * FROM accepted_products 
+            WHERE email = $1 
+            ORDER BY created_at DESC
+        `;
+        
+        const result = await pool.query(query, [email]);
+        
+        res.json({
+            success: true,
+            products: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching accepted products:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch accepted products.' 
+        });
+    }
+});
+
 module.exports = router; 
