@@ -3913,16 +3913,16 @@ app.post('/api/signup', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    // For agents, hap users, users and channel partners, verify password
-    if (signup_type === 'agent' || signup_type === 'hap' || signup_type === 'user' || signup_type === 'channel_partner') {
-      console.log('Processing agent/hap/user/channel partner registration');
+    // For agents, hap users, users, channel partners, and employees, verify password
+    if (signup_type === 'agent' || signup_type === 'hap' || signup_type === 'user' || signup_type === 'channel_partner' || signup_type === 'employee') {
+      console.log('Processing agent/hap/user/channel partner/employee registration');
       if (!password || !otp) {
-        console.log('Missing password or OTP for agent/hap/user/channel partner');
+        console.log('Missing password or OTP for agent/hap/user/channel partner/employee');
         client.release();
         return res.status(400).json({ success: false, error: 'Password and OTP are required for registration' });
       }
 
-      // Verify OTP for agents, hap users, users, and channel partners
+      // Verify OTP for agents, hap users, users, channel partners, and employees
       const otpResult = await client.query(
         'SELECT * FROM otps WHERE email = $1 AND otp = $2 AND expiry > NOW() AND used = FALSE ORDER BY created_at DESC LIMIT 1',
         [email, otp]
@@ -3956,7 +3956,7 @@ app.post('/api/signup', async (req, res) => {
       const last_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
       const middle_name = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
 
-      // Map 'user' from frontend to 'client' for the database
+      // Map 'user' from frontend to 'client' for the database, leave 'employee' as is
       const dbSignupType = signup_type === 'user' ? 'client' : signup_type;
 
       // Create user with appropriate fields based on signup type

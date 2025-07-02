@@ -271,7 +271,7 @@ const Signup: React.FC = () => {
       }
 
       // Validate password for agents
-      if (formData.signupType === 'agent' || formData.signupType === 'hap') {
+      if (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'company') {
         if (!formData.password || !formData.confirmPassword) {
           setError('Please enter and confirm your password');
           setIsSubmitting(false);
@@ -319,7 +319,7 @@ const Signup: React.FC = () => {
       }
 
       // Update the handleSubmit function to handle channel partner password
-      if (formData.signupType === 'agent' || formData.signupType === 'channel_partner') {
+      if (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') {
         if (!formData.password || !formData.confirmPassword) {
           setError('Please enter and confirm your password');
           setIsSubmitting(false);
@@ -359,18 +359,18 @@ const Signup: React.FC = () => {
         ...formData,
         referred_by: referralCode,
         csrf_token: csrfToken,
-        signup_type: formData.signupType,
-        password: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'user') ? formData.password : undefined,
-        otp: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'user') ? formData.otp : undefined,
+        signup_type: formData.signupType === 'company' ? 'employee' : formData.signupType,
+        password: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.password : undefined,
+        otp: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.otp : undefined,
         linkedin_url: formData.signupType === 'agent' ? formData.linkedinUrl : undefined,
-        pincode: formData.signupType === 'agent' || formData.signupType === 'channel_partner' ? formData.pincode : undefined,
-        city: formData.signupType === 'agent' || formData.signupType === 'channel_partner' ? formData.city : undefined,
-        state: formData.signupType === 'agent' || formData.signupType === 'channel_partner' ? formData.state : undefined,
+        pincode: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.pincode : undefined,
+        city: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.city : undefined,
+        state: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.state : undefined,
         referral_id: formData.signupType === 'agent' ? formData.referralId : undefined,
         experience_years: formData.signupType === 'agent' ? formData.experienceYears : undefined,
-        company_name: formData.signupType === 'channel_partner' ? formData.companyName : undefined,
-        website: formData.signupType === 'channel_partner' ? formData.website : undefined,
-        address: formData.signupType === 'channel_partner' ? formData.address : undefined,
+        company_name: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.companyName : undefined,
+        website: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.website : undefined,
+        address: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.address : undefined,
       };
 
       console.log('Sending signup request with data:', signupData);
@@ -533,7 +533,7 @@ const Signup: React.FC = () => {
                     required
                     className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   />
-                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner') && !otpSent && (
+                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && !otpSent && (
                     <button
                       type="button"
                       onClick={handleSendOtp}
@@ -589,7 +589,7 @@ const Signup: React.FC = () => {
               </select>
             </div>
 
-            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner') && (
+            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && (
               <>
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
