@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/slider';
+import CompanySidebar from '../components/CompanySidebar';
 import {
   FaUser, FaDatabase, FaBox, FaBook, FaCalculator, FaWallet, FaBell, FaHeadset, FaGavel, FaFileInvoiceDollar, FaComments, FaUsers
 } from 'react-icons/fa';
@@ -23,7 +23,7 @@ const CompanyPortal: React.FC = () => {
   const [activeSection, setActiveSection] = useState('');
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} sidebarItems={companySidebarItems} />
+      <CompanySidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-6">Company</h1>
         {/* Main content for the company portal will go here */}

@@ -22,6 +22,7 @@ interface SidebarProps {
   isSidebarOpen?: boolean;
   setIsSidebarOpen?: (open: boolean) => void;
   sidebarItems?: SidebarItem[];
+  header?: string;
 }
 
 const defaultSidebarItems: SidebarItem[] = [
@@ -30,7 +31,7 @@ const defaultSidebarItems: SidebarItem[] = [
   // ... rest of agent items ...
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen, sidebarItems }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen, sidebarItems, header }) => {
   const [productMenuOpen, setProductMenuOpen] = useState<boolean>(true);
   const [companyMenuOpen, setCompanyMenuOpen] = useState<boolean>(true);
   const [user, setUser] = useState<any>(null);
@@ -110,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
         <h1 className="text-xl font-bold flex items-center">
           <FaHome className="mr-2 text-blue-300" />
           <span className="bg-gradient-to-r from-blue-300 to-green-300 bg-clip-text text-transparent">
-            Agent Portal
+            {header || 'Agent Portal'}
           </span>
         </h1>
         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" aria-label="Active Now"></div>
