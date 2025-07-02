@@ -60,6 +60,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     '/admin-dashboard',
     '/hr-dashboard',
     '/channel-partner-portal',
+    '/company-portal',
     '/user-profile'
   ];
   const showNavbar = !portalPaths.some(path => location.pathname.startsWith(path));
@@ -201,7 +202,7 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
-        path="/company-portal"
+        path="/company-portal/*"
         element={
           <ProtectedRoute>
             <CompanyPortal />
