@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
-  FaUser, FaDatabase, FaBox, FaBook, FaCalculator, FaWallet, FaBell, FaHeadset, FaGavel, FaFileInvoiceDollar, FaComments, FaUsers
+  FaUser, FaDatabase, FaBox, FaBook, FaCalculator, FaWallet, FaBell, FaHeadset, FaGavel, FaFileInvoiceDollar, FaComments, FaUsers, FaSignOutAlt
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const companySidebarItems = [
   { section: 'profile', path: '/company-portal/profile', icon: FaUser, label: 'Profile' },
@@ -21,7 +22,13 @@ const companySidebarItems = [
 
 const CompanySidebar: React.FC<{ activeSection: string; setActiveSection: (section: string) => void }> = ({ activeSection, setActiveSection }) => {
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
   const isActive = (section: string) => activeSection === section;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="fixed left-0 top-0 z-20 h-min-screen w-64 bg-[#1A3C34] text-white p-4 flex flex-col relative transition-all duration-300 ease-in-out overflow-y-auto md:translate-x-0 md:w-64 md:min-h-screen">
@@ -49,6 +56,34 @@ const CompanySidebar: React.FC<{ activeSection: string; setActiveSection: (secti
           ))}
         </ul>
       </nav>
+
+      {/* Bottom Navigation */}
+      <div className="mt-auto">
+        <ul className="space-y-1">
+          <li
+            className="p-3 hover:bg-[#2A5C54] cursor-pointer rounded-lg flex items-center transition-colors text-red-300 hover:text-red-200"
+            onClick={handleLogout}
+          >
+            <FaSignOutAlt className="mr-3" />
+            <span>Logout</span>
+          </li>
+        </ul>
+
+        {/* User Profile Mini */}
+        <div className="mt-6 p-3 bg-[#2A5C54] rounded-lg flex items-center">
+          <div className="w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center mr-3">
+            <span className="text-xs font-bold text-[#1A3C34]">
+              {user ? `${user.name?.[0] || 'C'}` : 'C'}
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-medium">
+              {user ? user.name : 'Company User'}
+            </p>
+            <p className="text-xs text-gray-400">Company</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
