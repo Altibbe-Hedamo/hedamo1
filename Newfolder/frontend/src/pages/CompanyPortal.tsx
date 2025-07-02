@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import CompanySidebar from '../components/CompanySidebar';
 import CompanyProfilePage from './CompanyProfilePage';
 import CompanyHorizonDataPage from './CompanyHorizonDataPage';
@@ -39,7 +39,7 @@ const CompanyPortal: React.FC = () => {
           <Route path="orders" element={<CompanyOrdersPage />} />
           <Route path="client-invoicing" element={<CompanyClientInvoicingPage />} />
           <Route path="hvp-ledger" element={<CompanyHvpLedgerPage />} />
-          <Route path="*" element={<Navigate to="profile" replace />} />
+          <Route path="*" element={<div className="text-2xl font-bold">Welcome to the Company Portal</div>} />
         </Routes>
       </div>
     </div>
