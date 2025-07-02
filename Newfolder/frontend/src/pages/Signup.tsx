@@ -363,9 +363,9 @@ const Signup: React.FC = () => {
         password: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.password : undefined,
         otp: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.otp : undefined,
         linkedin_url: formData.signupType === 'agent' ? formData.linkedinUrl : undefined,
-        pincode: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.pincode : undefined,
-        city: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.city : undefined,
-        state: formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.state : undefined,
+        pincode: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.pincode : undefined,
+        city: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.city : undefined,
+        state: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.state : undefined,
         referral_id: formData.signupType === 'agent' ? formData.referralId : undefined,
         experience_years: formData.signupType === 'agent' ? formData.experienceYears : undefined,
         company_name: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.companyName : undefined,
@@ -423,9 +423,9 @@ const Signup: React.FC = () => {
               navigate('/channel-partner-portal', { replace: true });
             } else if (redirectType === 'hap') {
               navigate('/login', { replace: true });
-            } else {
+          } else {
               navigate('/login', { replace: true });
-            }
+          }
           });
         } else {
           const errorMessage = response.data.error || 'Failed to register user';
