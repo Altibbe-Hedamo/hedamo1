@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 
 interface AcceptedProduct {
     id: number;
@@ -16,7 +16,7 @@ interface AcceptedProduct {
 }
 
 const CompanyProductPage: React.FC = () => {
-    const { user } = useAuth();
+    const { user } = useContext(AuthContext);
     const [products, setProducts] = useState<AcceptedProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
