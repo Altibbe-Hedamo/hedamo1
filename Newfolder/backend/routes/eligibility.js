@@ -9,12 +9,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Function to store accepted product in database
 const storeAcceptedProduct = async (formData, decision, reason) => {
   try {
-    const { category, subCategory, productName, companyName, location, certifications } = formData;
+    const { category, subCategory, productName, companyName, location, email, certifications } = formData;
     
     const query = `
       INSERT INTO accepted_products 
-      (category, sub_categories, product_name, company_name, location, certifications, decision, reason)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      (category, sub_categories, product_name, company_name, location, email, certifications, decision, reason)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id
     `;
     
@@ -24,6 +24,7 @@ const storeAcceptedProduct = async (formData, decision, reason) => {
       productName,
       companyName,
       location,
+      email,
       certifications || [],
       decision,
       reason
