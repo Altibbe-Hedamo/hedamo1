@@ -10,8 +10,7 @@ export default defineConfig({
     react(),
     viteStaticCopy({
       targets: [
-        { src: 'public/_redirects', dest: '.' },
-        { src: 'public/static.json', dest: '.' }
+        { src: 'public/_redirects', dest: '.' }
       ]
     })
   ],
