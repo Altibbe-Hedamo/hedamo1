@@ -10,6 +10,7 @@ interface EligibilityForm {
     productName: string;
     companyName: string;
     location: string;
+    email: string;
 }
 
 interface FinalResponse {
@@ -26,7 +27,8 @@ function Navbar() {
         subCategory: [],
         productName: '',
         companyName: '',
-        location: ''
+        location: '',
+        email: ''
     });
 
     const [questions, setQuestions] = useState<string[]>([]);
@@ -195,7 +197,8 @@ function Navbar() {
             subCategory: [],
             productName: '',
             companyName: '',
-            location: ''
+            location: '',
+            email: ''
         });
         setQuestions([]);
         setAnswers({});
@@ -471,6 +474,18 @@ function Navbar() {
                                             type="text"
                                             value={eligibilityForm.location}
                                             onChange={(e) => setEligibilityForm(prev => ({ ...prev, location: e.target.value }))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={eligibilityForm.email}
+                                            onChange={(e) => setEligibilityForm(prev => ({ ...prev, email: e.target.value }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                                             required
                                         />
