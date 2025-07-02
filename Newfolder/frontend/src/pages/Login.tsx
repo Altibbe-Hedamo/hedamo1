@@ -64,7 +64,7 @@ const Login: React.FC = () => {
               navigate('/admin-dashboard');
               break;
             case 'employee':
-              navigate('/employee-dashboard');
+              navigate('/company-portal');
               break;
             case 'hr':
               navigate('/hr-dashboard');

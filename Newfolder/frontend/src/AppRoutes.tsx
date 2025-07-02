@@ -39,6 +39,7 @@ import ProductsMap from './pages/ProductsMap';
 import Wishlist from './pages/Wishlist';
 import Directories from './pages/Directories';
 import LoadingSpinner from './pages/common/LoadingSpinner';
+import CompanyPortal from './pages/CompanyPortal';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
@@ -196,6 +197,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <ChannelPartnerPortal />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/company-portal"
+        element={
+          <ProtectedRoute>
+            <CompanyPortal />
           </ProtectedRoute>
         }
       />
