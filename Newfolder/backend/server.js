@@ -473,8 +473,8 @@ app.post('/api/login', async (req, res) => {
     const client = await pool.connect();
     // Modify query to allow pending status for agents and hap users
     const user = await client.query(
-      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5) AND status = $6))',
-      [email, 'active', 'agent', 'hap', 'channel_partner', 'pending']
+      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5, $6) AND status = $7))',
+      [email, 'active', 'agent', 'hap', 'channel_partner', 'employee', 'pending']
     );
     console.log('User found:', user.rows.length > 0);
     console.log('User details:', {
