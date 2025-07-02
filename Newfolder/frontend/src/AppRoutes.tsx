@@ -39,7 +39,7 @@ import ProductsMap from './pages/ProductsMap';
 import Wishlist from './pages/Wishlist';
 import Directories from './pages/Directories';
 import LoadingSpinner from './pages/common/LoadingSpinner';
-import CompanyPortal from './pages/CompanyPortal';
+import CompanyPortal from './pages/Company/CompanyPortal';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
