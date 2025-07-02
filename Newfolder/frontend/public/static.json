@@ -1,9 +1,10 @@
 {
-  "routes": [
-    {
-      "path": "/**",
-      "serve": "/index.html",
-      "status": 200
+  "headers": {
+    "/**": {
+      "Cache-Control": "public, max-age=0, must-revalidate"
     }
-  ]
+  },
+  "routes": {
+    "/**": "index.html"
+  }
 } 
