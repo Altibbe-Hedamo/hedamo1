@@ -162,12 +162,7 @@ const CompanyProductPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mb-4">
-                                <h4 className="font-medium text-gray-900 mb-2">Acceptance Reason</h4>
-                                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                                    {product.reason}
-                                </p>
-                            </div>
+
 
                             <div className="text-xs text-gray-500 border-t pt-3">
                                 Submitted on: {formatDate(product.created_at)}
