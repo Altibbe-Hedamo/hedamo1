@@ -9,14 +9,28 @@ import api from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
+interface SidebarItem {
+  section: string;
+  path: string;
+  icon: React.ElementType;
+  label: string;
+}
+
 interface SidebarProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
   isSidebarOpen?: boolean;
   setIsSidebarOpen?: (open: boolean) => void;
+  sidebarItems?: SidebarItem[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen }) => {
+const defaultSidebarItems: SidebarItem[] = [
+  { section: 'dashboard', path: '/agent-dashboard/dashboard', icon: FaTachometerAlt, label: 'Dashboard' },
+  { section: 'profile', path: '/agent-dashboard/profile', icon: FaUser, label: 'Profile' },
+  // ... rest of agent items ...
+];
+
+const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen, sidebarItems }) => {
   const [productMenuOpen, setProductMenuOpen] = useState<boolean>(true);
   const [companyMenuOpen, setCompanyMenuOpen] = useState<boolean>(true);
   const [user, setUser] = useState<any>(null);
@@ -53,10 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
     navigate('/login');
   };
 
-  const restrictedSections = [
-    { section: 'dashboard', path: '/agent-dashboard/dashboard', icon: FaTachometerAlt, label: 'Dashboard' },
-    { section: 'profile', path: '/agent-dashboard/profile', icon: FaUser, label: 'Profile' },
-  ];
+  const items = sidebarItems || defaultSidebarItems;
 
   const companySubItems = [
     {
@@ -108,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
       {/* Main Navigation */}
       <nav className="flex-1">
         <ul role="navigation" aria-label="Main navigation" className="space-y-1">
-          {restrictedSections.map(({ section, path, icon: Icon, label }) => (
+          {items.map(({ section, path, icon: Icon, label }) => (
             <li
               key={section}
               className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
