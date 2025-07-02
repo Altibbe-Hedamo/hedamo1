@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import CompanySidebar from '../components/CompanySidebar';
+import CompanySidebar from '../../components/CompanySidebar';
 import CompanyProfilePage from './CompanyProfilePage';
 import CompanyHorizonDataPage from './CompanyHorizonDataPage';
 import CompanyProductPage from './CompanyProductPage';
