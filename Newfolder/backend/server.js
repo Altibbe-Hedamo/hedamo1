@@ -3956,8 +3956,9 @@ app.post('/api/signup', async (req, res) => {
       const last_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
       const middle_name = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
 
-      // Map 'user' from frontend to 'client' for the database, leave 'employee' as is
-      const dbSignupType = signup_type === 'user' ? 'client' : signup_type;
+      // Normalize signup_type: map 'company' to 'employee' for backend logic and DB insert
+      const normalizedSignupType = signup_type === 'company' ? 'employee' : signup_type;
+      const dbSignupType = normalizedSignupType === 'user' ? 'client' : normalizedSignupType;
 
       // Create user with appropriate fields based on signup type
       const userStatus = dbSignupType === 'client' ? 'active' : 'pending';
