@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import api from '../../config/axios';
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 interface AcceptedProduct {
     id: number;
@@ -23,6 +30,12 @@ const CompanyProductPage: React.FC = () => {
     const [paymentLoading, setPaymentLoading] = useState<{ [key: number]: boolean }>({});
 
     useEffect(() => {
+        // Load Razorpay script
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+
         const fetchAcceptedProducts = async () => {
             if (!user?.email) {
                 setError('User email not found');
@@ -57,27 +70,99 @@ const CompanyProductPage: React.FC = () => {
         };
 
         fetchAcceptedProducts();
+
+        // Cleanup script on unmount
+        return () => {
+            const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+            if (existingScript) {
+                document.body.removeChild(existingScript);
+            }
+        };
     }, [user?.email]);
 
     const handlePayment = async (product: AcceptedProduct) => {
         setPaymentLoading(prev => ({ ...prev, [product.id]: true }));
         
         try {
-            // Simulate payment processing
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Here you would typically integrate with a payment gateway
-            // For now, we'll show a success message
-            alert(`Payment initiated for ${product.product_name}. You will be redirected to the payment gateway.`);
-            
-            // In a real implementation, you would:
-            // 1. Create a payment order via API
-            // 2. Redirect to payment gateway
-            // 3. Handle payment success/failure callbacks
+            const token = sessionStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Create Razorpay order for ₹10,000
+            const orderResponse = await api.post(
+                '/api/create-razorpay-order',
+                {
+                    amount: 10000, // ₹10,000
+                    plan_type: 'product_payment',
+                    product_id: product.id,
+                    product_name: product.product_name
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            if (!orderResponse.data.success) {
+                throw new Error(orderResponse.data.error || 'Failed to create payment order');
+            }
+
+            const { orderId, amount, currency } = orderResponse.data;
+
+            // Initialize Razorpay payment
+            const options = {
+                key: 'rzp_live_1GFDo8lemzf1gj', // Using existing key from project
+                amount: amount,
+                currency: currency,
+                name: 'Product Payment',
+                description: `Payment for ${product.product_name}`,
+                order_id: orderId,
+                handler: async function (response: any) {
+                    try {
+                        // Verify payment
+                        const verifyResponse = await api.post(
+                            '/api/verify-razorpay-payment',
+                            {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                plan_type: 'product_payment',
+                                product_id: product.id
+                            },
+                            {
+                                headers: { Authorization: `Bearer ${token}` }
+                            }
+                        );
+
+                        if (verifyResponse.data.success) {
+                            alert(`Payment successful for ${product.product_name}! Transaction ID: ${response.razorpay_payment_id}`);
+                        } else {
+                            throw new Error(verifyResponse.data.error || 'Payment verification failed');
+                        }
+                    } catch (error: any) {
+                        alert(`Payment verification failed: ${error.response?.data?.error || error.message}`);
+                    }
+                },
+                prefill: {
+                    name: user?.name || 'Company User',
+                    email: user?.email || '',
+                    contact: user?.phone || '9999999999'
+                },
+                theme: {
+                    color: '#2563eb' // Blue theme to match the button
+                },
+                modal: {
+                    ondismiss: function() {
+                        setPaymentLoading(prev => ({ ...prev, [product.id]: false }));
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
             
         } catch (err: any) {
-            alert(`Payment failed: ${err.message}`);
-        } finally {
+            alert(`Payment failed: ${err.response?.data?.error || err.message}`);
             setPaymentLoading(prev => ({ ...prev, [product.id]: false }));
         }
     };
@@ -190,8 +275,9 @@ const CompanyProductPage: React.FC = () => {
                             <div className="border-t pt-4 mb-4">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <h4 className="font-medium text-gray-900 mb-1">Payment Options</h4>
-                                        <p className="text-sm text-gray-600">Process payment for this product</p>
+                                        <h4 className="font-medium text-gray-900 mb-1">Payment Required</h4>
+                                        <p className="text-sm text-gray-600">Process payment to activate this product</p>
+                                        <p className="text-lg font-bold text-blue-600 mt-1">₹10,000</p>
                                     </div>
                                     <button
                                         onClick={() => handlePayment(product)}
@@ -211,7 +297,7 @@ const CompanyProductPage: React.FC = () => {
                                                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
                                                 </svg>
-                                                Make Payment
+                                                Pay ₹10,000
                                             </>
                                         )}
                                     </button>

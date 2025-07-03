@@ -4048,18 +4048,36 @@ app.post('/api/create-razorpay-order', authenticateToken, async (req, res) => {
     console.log('Creating Razorpay order - Request body:', req.body);
     console.log('User ID:', req.user.id);
 
-    const { amount, plan_type } = req.body;
-    const validatedAmount = amount === 1 ? 1 : 499; // Ensure amount is either 1 or 499
+    const { amount, plan_type, product_id, product_name } = req.body;
+    
+    let validatedAmount;
+    let receipt;
+    let purpose;
+    
+    if (plan_type === 'product_payment') {
+      // For product payments, use the exact amount
+      validatedAmount = amount;
+      receipt = `product_payment_${Date.now()}`;
+      purpose = 'Product Payment';
+    } else {
+      // For KYC verification, use the original logic
+      validatedAmount = amount === 1 ? 1 : 499;
+      receipt = `kyc_verification_${Date.now()}`;
+      purpose = 'KYC Verification';
+    }
+    
     console.log('Validated amount:', validatedAmount);
 
     const options = {
       amount: validatedAmount * 100, // Convert to paise
       currency: 'INR',
-      receipt: `kyc_verification_${Date.now()}`,
+      receipt: receipt,
       notes: {
         userId: req.user.id,
-        purpose: 'KYC Verification',
-        plan: plan_type
+        purpose: purpose,
+        plan: plan_type,
+        ...(product_id && { productId: product_id }),
+        ...(product_name && { productName: product_name })
       }
     };
 
@@ -4090,7 +4108,7 @@ app.post('/api/verify-razorpay-payment', authenticateToken, async (req, res) => 
     console.log('Verifying payment - Request body:', req.body);
     console.log('User ID:', req.user.id);
     
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan_type } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan_type, product_id } = req.body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       console.error('Missing required payment details:', { razorpay_order_id, razorpay_payment_id, razorpay_signature });
@@ -4116,55 +4134,83 @@ app.post('/api/verify-razorpay-payment', authenticateToken, async (req, res) => 
       });
     }
 
-    // Update user's payment status
     client = await pool.connect();
-    const paymentStatusResult = await client.query(
-      'UPDATE users SET payment_status = $1 WHERE id = $2 RETURNING id, payment_status',
-      ['active', req.user.id]
-    );
-    console.log(`User ID ${req.user.id} payment_status changed to active after successful payment. Result:`, paymentStatusResult.rows[0]);
 
-    // Create payment record
-    await client.query(
-      `INSERT INTO payments (
-        user_id, order_id, payment_id, amount, currency, status, plan_type, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)`,
-      [
-        req.user.id,
-        razorpay_order_id,
-        razorpay_payment_id,
-        plan_type === 'trial' ? 1 : 499,
-        'INR',
-        'completed',
-        plan_type
-      ]
-    );
+    if (plan_type === 'product_payment') {
+      // Handle product payment
+      const amount = 10000; // ₹10,000 for product payment
+      
+      // Create payment record for product
+      await client.query(
+        `INSERT INTO payments (
+          user_id, order_id, payment_id, amount, currency, status, plan_type, product_id, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)`,
+        [
+          req.user.id,
+          razorpay_order_id,
+          razorpay_payment_id,
+          amount,
+          'INR',
+          'completed',
+          plan_type,
+          product_id
+        ]
+      );
 
-    // Update payment history with completed status
-    await client.query(
-      `UPDATE payment_history 
-       SET status = $1, 
-           payment_id = $2, 
-           order_id = $3 
-       WHERE user_id = $4 
-       AND status = 'pending' 
-       ORDER BY created_at DESC 
-       LIMIT 1`,
-      ['completed', razorpay_payment_id, razorpay_order_id, req.user.id]
-    );
+      console.log(`Product payment of ₹${amount} recorded for user ${req.user.id}, product ${product_id}`);
+      
+    } else {
+      // Handle KYC payment (existing logic)
+      
+      // Update user's payment status
+      const paymentStatusResult = await client.query(
+        'UPDATE users SET payment_status = $1 WHERE id = $2 RETURNING id, payment_status',
+        ['active', req.user.id]
+      );
+      console.log(`User ID ${req.user.id} payment_status changed to active after successful payment. Result:`, paymentStatusResult.rows[0]);
 
-    // Update agent's KYC status
-    await client.query(
-      'UPDATE agents SET kyc_payment_status = $1, kyc_plan_type = $2 WHERE user_id = $3',
-      ['paid', plan_type, req.user.id]
-    );
+      // Create payment record
+      await client.query(
+        `INSERT INTO payments (
+          user_id, order_id, payment_id, amount, currency, status, plan_type, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)`,
+        [
+          req.user.id,
+          razorpay_order_id,
+          razorpay_payment_id,
+          plan_type === 'trial' ? 1 : 499,
+          'INR',
+          'completed',
+          plan_type
+        ]
+      );
 
-    // Set user status to active after successful payment
-    const userStatusResult = await client.query(
-      'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, status',
-      ['active', req.user.id]
-    );
-    console.log(`User ID ${req.user.id} status changed to active after successful payment. Result:`, userStatusResult.rows[0]);
+      // Update payment history with completed status
+      await client.query(
+        `UPDATE payment_history 
+         SET status = $1, 
+             payment_id = $2, 
+             order_id = $3 
+         WHERE user_id = $4 
+         AND status = 'pending' 
+         ORDER BY created_at DESC 
+         LIMIT 1`,
+        ['completed', razorpay_payment_id, razorpay_order_id, req.user.id]
+      );
+
+      // Update agent's KYC status
+      await client.query(
+        'UPDATE agents SET kyc_payment_status = $1, kyc_plan_type = $2 WHERE user_id = $3',
+        ['paid', plan_type, req.user.id]
+      );
+
+      // Set user status to active after successful payment
+      const userStatusResult = await client.query(
+        'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, status',
+        ['active', req.user.id]
+      );
+      console.log(`User ID ${req.user.id} status changed to active after successful payment. Result:`, userStatusResult.rows[0]);
+    }
 
     client.release();
     res.json({
