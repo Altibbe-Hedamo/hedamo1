@@ -1,0 +1,9 @@
+{
+  "routes": [
+    {
+      "path": "/**",
+      "serve": "/index.html",
+      "status": 200
+    }
+  ]
+} 
