@@ -20,6 +20,7 @@ const CompanyProductPage: React.FC = () => {
     const [products, setProducts] = useState<AcceptedProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [paymentLoading, setPaymentLoading] = useState<{ [key: number]: boolean }>({});
 
     useEffect(() => {
         const fetchAcceptedProducts = async () => {
@@ -57,6 +58,29 @@ const CompanyProductPage: React.FC = () => {
 
         fetchAcceptedProducts();
     }, [user?.email]);
+
+    const handlePayment = async (product: AcceptedProduct) => {
+        setPaymentLoading(prev => ({ ...prev, [product.id]: true }));
+        
+        try {
+            // Simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Here you would typically integrate with a payment gateway
+            // For now, we'll show a success message
+            alert(`Payment initiated for ${product.product_name}. You will be redirected to the payment gateway.`);
+            
+            // In a real implementation, you would:
+            // 1. Create a payment order via API
+            // 2. Redirect to payment gateway
+            // 3. Handle payment success/failure callbacks
+            
+        } catch (err: any) {
+            alert(`Payment failed: ${err.message}`);
+        } finally {
+            setPaymentLoading(prev => ({ ...prev, [product.id]: false }));
+        }
+    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -122,7 +146,7 @@ const CompanyProductPage: React.FC = () => {
                                         <span className="font-medium">Location:</span> {product.location}
                                     </p>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center space-x-3">
                                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -162,7 +186,37 @@ const CompanyProductPage: React.FC = () => {
                                 </div>
                             </div>
 
-
+                            {/* Payment Section */}
+                            <div className="border-t pt-4 mb-4">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-medium text-gray-900 mb-1">Payment Options</h4>
+                                        <p className="text-sm text-gray-600">Process payment for this product</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handlePayment(product)}
+                                        disabled={paymentLoading[product.id]}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {paymentLoading[product.id] ? (
+                                            <>
+                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                                                </svg>
+                                                Make Payment
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
                             <div className="text-xs text-gray-500 border-t pt-3">
                                 Submitted on: {formatDate(product.created_at)}
