@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 interface Payment {
   id: number;
@@ -11,11 +12,40 @@ interface Payment {
   method: string;
 }
 
+interface AcceptedProduct {
+  id: number;
+  category: string;
+  sub_categories: string[];
+  product_name: string;
+  company_name: string;
+  location: string;
+  email: string;
+  certifications: string[];
+  decision: string;
+  reason: string;
+  created_at: string;
+}
+
 const CompanyPaymentsPage: React.FC = () => {
+  const location = useLocation();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [filter, setFilter] = useState('all');
   const [totalIncoming, setTotalIncoming] = useState(0);
   const [totalOutgoing, setTotalOutgoing] = useState(0);
+  const [showProductPayment, setShowProductPayment] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<AcceptedProduct | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('credit_card');
+
+  useEffect(() => {
+    // Check if we have product information from navigation
+    if (location.state?.selectedProduct && location.state?.paymentType === 'product_payment') {
+      setSelectedProduct(location.state.selectedProduct);
+      setShowProductPayment(true);
+      // Set default payment amount based on product (you can customize this logic)
+      setPaymentAmount('500'); // Default amount, you can make this dynamic
+    }
+  }, [location.state]);
 
   useEffect(() => {
     // Dummy payment data
@@ -95,6 +125,28 @@ const CompanyPaymentsPage: React.FC = () => {
     setTotalOutgoing(outgoing);
   }, []);
 
+  const handleProductPaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduct || !paymentAmount) return;
+
+    // Here you would typically make an API call to process the payment
+    console.log('Processing payment for product:', selectedProduct.product_name);
+    console.log('Amount:', paymentAmount);
+    console.log('Method:', paymentMethod);
+
+    // For now, we'll just show a success message and hide the form
+    alert(`Payment of $${paymentAmount} for ${selectedProduct.product_name} has been processed successfully!`);
+    setShowProductPayment(false);
+    setSelectedProduct(null);
+    setPaymentAmount('');
+  };
+
+  const handleCancelPayment = () => {
+    setShowProductPayment(false);
+    setSelectedProduct(null);
+    setPaymentAmount('');
+  };
+
   const filteredPayments = filter === 'all' 
     ? payments 
     : payments.filter(payment => payment.type === filter);
@@ -111,6 +163,105 @@ const CompanyPaymentsPage: React.FC = () => {
   const getTypeColor = (type: string) => {
     return type === 'incoming' ? 'text-green-600' : 'text-red-600';
   };
+
+  // Show product payment form if a product is selected
+  if (showProductPayment && selectedProduct) {
+    return (
+      <div className="p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Product Payment</h1>
+            <button
+              onClick={handleCancelPayment}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Product Details */}
+          <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+            <h2 className="text-lg font-semibold mb-4">Product Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Product Name</p>
+                <p className="font-medium">{selectedProduct.product_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Company</p>
+                <p className="font-medium">{selectedProduct.company_name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Category</p>
+                <p className="font-medium">{selectedProduct.category}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Location</p>
+                <p className="font-medium">{selectedProduct.location}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Form */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Payment Information</h2>
+            <form onSubmit={handleProductPaymentSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Amount ($)
+                </label>
+                <input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter amount"
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Method
+                </label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="credit_card">Credit Card</option>
+                  <option value="debit_card">Debit Card</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="upi">UPI</option>
+                  <option value="net_banking">Net Banking</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Process Payment
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelPayment}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
