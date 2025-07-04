@@ -1552,8 +1552,7 @@ app.post('/api/admin/profiles/:id/approve', authenticateToken, checkAccess(['adm
       // Update the profile status
       const updateQuery = `
         UPDATE profiles
-        SET status = $1, 
-            updated_at = CURRENT_TIMESTAMP
+        SET status = $1
         WHERE id = $2
         RETURNING id, status, user_id
       `;
