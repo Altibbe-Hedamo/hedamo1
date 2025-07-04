@@ -2087,6 +2087,32 @@ app.get('/api/agent/companies', authenticateToken, checkAccess(['agent']), async
   }
 });
 
+// Test endpoint to check user profiles
+app.get('/api/test/user-profile/:userId', authenticateToken, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    console.log('Testing profile for user ID:', userId);
+    
+    // Check user details
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    console.log('User details:', userResult.rows[0]);
+    
+    // Check if profile exists
+    const profileResult = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
+    console.log('Profile exists:', profileResult.rows.length > 0);
+    
+    res.json({
+      success: true,
+      user: userResult.rows[0],
+      profileExists: profileResult.rows.length > 0,
+      profileData: profileResult.rows[0] || null
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Company Profile Management
 app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employee']), async (req, res) => {
   try {
@@ -4099,6 +4125,12 @@ app.post('/api/signup', async (req, res) => {
       const normalizedSignupType = signup_type === 'company' ? 'employee' : signup_type;
       const dbSignupType = normalizedSignupType === 'user' ? 'client' : normalizedSignupType;
 
+      console.log('Signup type conversion:', {
+        original: signup_type,
+        normalized: normalizedSignupType,
+        db: dbSignupType
+      });
+
       // Create user with appropriate fields based on signup type
       const userStatus = dbSignupType === 'client' ? 'active' : 'pending';
       const result = await client.query(
@@ -4202,6 +4234,12 @@ app.post('/api/signup', async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
+
+      console.log('JWT token created with:', {
+        id: result.rows[0].id,
+        signup_type: dbSignupType,
+        stored_signup_type: result.rows[0].signup_type
+      });
 
       client.release();
       res.json({ 
