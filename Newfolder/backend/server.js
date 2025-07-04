@@ -2305,8 +2305,7 @@ app.put('/api/company/profile/:profileId', authenticateToken, async (req, res) =
         mobile_number = $6,
         current_address = $7,
         permanent_address = $7,
-        completion_percentage = $8,
-        updated_at = CURRENT_TIMESTAMP
+        completion_percentage = $8
       WHERE id = $9 RETURNING *`,
       [
         name || profile.full_name,

@@ -5,21 +5,48 @@ import api from '../../config/axios';
 
 interface CompanyProfile {
   id: number;
-  name: string;
-  industry: string;
-  size: string;
-  website: string;
-  description: string;
-  contact_email: string;
-  contact_phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  country: string;
+  full_name: string;
+  date_of_birth: string;
+  gender: string;
+  mobile_number: string;
+  email_address: string;
+  current_address: string;
+  permanent_address: string;
+  photo_path: string;
+  selfie_path: string;
+  id_number: string;
+  bank_account_number: string;
+  ifsc_code: string;
+  cancelled_cheque_path: string;
+  highest_qualification: string;
+  institution: string;
+  year_of_completion: string;
+  certifications: string;
+  years_of_experience: string;
+  current_occupation: string;
+  reference_details: string;
+  primary_sectors: string;
+  regions_covered: string;
+  languages_spoken: string;
+  client_base_size: string;
+  expected_audit_volume: string;
+  devices_available: string;
+  internet_quality: string;
+  digital_tool_comfort: string;
+  criminal_record: string;
+  criminal_details: string;
+  conflict_of_interest: string;
+  accept_code_of_conduct: boolean;
+  training_willingness: string;
+  training_mode: string;
+  availability: string;
+  additional_skills: string;
+  comments: string;
+  resume_path: string;
+  other_documents: string;
+  completion_percentage: number;
   status: string;
   created_at: string;
-  updated_at: string;
 }
 
 const CompanyProfilePage: React.FC = () => {
@@ -57,7 +84,8 @@ const CompanyProfilePage: React.FC = () => {
           console.error('Test endpoint error:', testErr);
         }
         
-        const response = await api.get(`/api/company/profile/${user.id}`, {
+        // Get the full profile data directly from profiles table
+        const response = await api.get(`/api/profiles/user`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -71,7 +99,6 @@ const CompanyProfilePage: React.FC = () => {
         console.error('Company profile fetch error:', err);
         console.error('Error response:', err.response);
         if (err.response?.status === 404) {
-          // Profile not found - this shouldn't happen for company users since we create it during signup
           setError('Company profile not found. Please contact support.');
         } else if (err.response?.status === 403) {
           setError('Access denied. Please ensure you are logged in as a company user.');
@@ -96,8 +123,10 @@ const CompanyProfilePage: React.FC = () => {
     setEditData(profile || {});
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setEditData({ ...editData, [name]: fieldValue });
   };
 
   const handleSave = async () => {
@@ -106,12 +135,21 @@ const CompanyProfilePage: React.FC = () => {
     setSaving(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await api.put(`/api/company/profile/${profile.id}`, editData, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await api.put(`/api/profiles/${profile.id}`, editData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.data.success) {
-        setProfile(response.data.profile);
+        // Fetch updated profile
+        const updatedResponse = await api.get(`/api/profiles/user`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (updatedResponse.data.success) {
+          setProfile(updatedResponse.data.profile);
+        }
         setIsEditing(false);
       }
     } catch (err: any) {
@@ -122,27 +160,33 @@ const CompanyProfilePage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString || dateString === '1900-01-01') return 'Not specified';
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? 'Not specified'
+      : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z"></path>
+        </svg>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-600">{error}</p>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          {error}
+        </div>
       </div>
     );
   }
@@ -156,13 +200,10 @@ const CompanyProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 max-w-4xl mx-auto min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Company Profile</h1>
-          <p className="text-gray-600 mt-1">Manage your company information</p>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Company Profile</h1>
         {!isEditing ? (
           <button
             onClick={handleEdit}
@@ -189,114 +230,456 @@ const CompanyProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/* Profile Content */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        {/* Profile Header */}
-        <div className="p-6 border-b">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-blue-600">{profile.name?.charAt(0)}</span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900">{profile.name}</h2>
-              <p className="text-gray-600">{profile.industry}</p>
-              <p className="text-sm text-gray-500">Created: {formatDate(profile.created_at)}</p>
-            </div>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        {/* Profile Header with Image */}
+        <div className="flex items-center mb-8">
+          <img
+            src={profile.photo_path && profile.photo_path !== 'default-photo.jpg' 
+              ? `/Uploads/profiles/${profile.photo_path}` 
+              : 'https://via.placeholder.com/150?text=Profile'}
+            alt="Profile"
+            className="w-24 h-24 rounded-full object-cover mr-4 border-2 border-blue-500"
+            onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150?text=Profile')}
+          />
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800">{profile.full_name || 'Company Name'}</h2>
+            <p className="text-gray-600">{profile.email_address || 'Email not specified'}</p>
+            <p className="text-sm text-gray-500">Status: {profile.status}</p>
           </div>
         </div>
 
-        {/* Profile Sections */}
-        <div className="p-6 space-y-6">
-          <Section title="Company Information" icon="🏢">
-            <Field label="Company Name" value={isEditing ? editData.name : profile.name} name="name" onChange={handleChange} editing={isEditing} />
-            <Field label="Industry" value={isEditing ? editData.industry : profile.industry} name="industry" onChange={handleChange} editing={isEditing} />
-            <Field label="Company Size" value={isEditing ? editData.size : profile.size} name="size" onChange={handleChange} editing={isEditing} />
-            <Field label="Website" value={isEditing ? editData.website : profile.website} name="website" onChange={handleChange} editing={isEditing} disabled={true} />
-          </Section>
+        <Section title="Personal & Contact Details" icon="👤">
+          <EditableField 
+            label="Full Name" 
+            value={profile.full_name || 'Not specified'} 
+            name="full_name"
+            editing={isEditing}
+            editValue={editData.full_name || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Date of Birth" 
+            value={formatDate(profile.date_of_birth)} 
+            name="date_of_birth"
+            type="date"
+            editing={isEditing}
+            editValue={editData.date_of_birth || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Gender" 
+            value={profile.gender || 'Not specified'} 
+            name="gender"
+            editing={isEditing}
+            editValue={editData.gender || ''}
+            onChange={handleChange}
+            options={['Not specified', 'Male', 'Female', 'Other']}
+          />
+          <EditableField 
+            label="Mobile Number" 
+            value={profile.mobile_number || 'Not specified'} 
+            name="mobile_number"
+            editing={isEditing}
+            editValue={editData.mobile_number || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Email Address" 
+            value={profile.email_address || 'Not specified'} 
+            name="email_address"
+            editing={isEditing}
+            editValue={editData.email_address || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Current Address" 
+            value={profile.current_address || 'Not specified'} 
+            name="current_address"
+            editing={isEditing}
+            editValue={editData.current_address || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <EditableField 
+            label="Permanent Address" 
+            value={profile.permanent_address || 'Not specified'} 
+            name="permanent_address"
+            editing={isEditing}
+            editValue={editData.permanent_address || ''}
+            onChange={handleChange}
+            textarea
+          />
+        </Section>
 
-          <Section title="Contact Information" icon="📞">
-            <Field label="Contact Email" value={isEditing ? editData.contact_email : profile.contact_email} name="contact_email" onChange={handleChange} editing={isEditing} />
-            <Field label="Contact Phone" value={isEditing ? editData.contact_phone : profile.contact_phone} name="contact_phone" onChange={handleChange} editing={isEditing} />
-          </Section>
-
-          <Section title="Address Information" icon="📍">
-            <Field label="Address" value={isEditing ? editData.address : profile.address} name="address" onChange={handleChange} editing={isEditing} />
-            <Field label="City" value={isEditing ? editData.city : profile.city} name="city" onChange={handleChange} editing={isEditing} disabled={true} />
-            <Field label="State" value={isEditing ? editData.state : profile.state} name="state" onChange={handleChange} editing={isEditing} disabled={true} />
-            <Field label="Zip Code" value={isEditing ? editData.zip_code : profile.zip_code} name="zip_code" onChange={handleChange} editing={isEditing} disabled={true} />
-            <Field label="Country" value={isEditing ? editData.country : profile.country} name="country" onChange={handleChange} editing={isEditing} disabled={true} />
-          </Section>
-
-          <Section title="About the Company" icon="ℹ️">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              {isEditing ? (
-                <textarea
-                  name="description"
-                  value={editData.description || ''}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+        <Section title="Identity Verification (KYC) & Financial Details" icon="🔍">
+          <EditableField 
+            label="ID Number" 
+            value={profile.id_number || 'Not specified'} 
+            name="id_number"
+            editing={isEditing}
+            editValue={editData.id_number || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Bank Account Number" 
+            value={profile.bank_account_number || 'Not specified'} 
+            name="bank_account_number"
+            editing={isEditing}
+            editValue={editData.bank_account_number || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="IFSC Code" 
+            value={profile.ifsc_code || 'Not specified'} 
+            name="ifsc_code"
+            editing={isEditing}
+            editValue={editData.ifsc_code || ''}
+            onChange={handleChange}
+          />
+          <Field
+            label="Photo ID"
+            value={
+              profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? (
+                <a href={`/Uploads/profiles/${profile.photo_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  View
+                </a>
               ) : (
-                <p className="text-gray-900">{profile.description || 'No description provided'}</p>
-              )}
-            </div>
-          </Section>
+                'Not uploaded'
+              )
+            }
+          />
+          <Field
+            label="Selfie with ID"
+            value={
+              profile.selfie_path && profile.selfie_path !== 'default-selfie.jpg' ? (
+                <a href={`/Uploads/profiles/${profile.selfie_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  View
+                </a>
+              ) : (
+                'Not uploaded'
+              )
+            }
+          />
+          <Field
+            label="Cancelled Cheque"
+            value={
+              profile.cancelled_cheque_path && profile.cancelled_cheque_path !== 'default-cheque.jpg' ? (
+                <a href={`/Uploads/profiles/${profile.cancelled_cheque_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  View
+                </a>
+              ) : (
+                'Not uploaded'
+              )
+            }
+          />
+        </Section>
 
-          <Section title="Profile Status" icon="📊">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                profile.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {profile.status === 'active' ? 'Active' : 'Pending'}
-              </span>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Last Updated</label>
-              <p className="text-gray-900">{formatDate(profile.updated_at)}</p>
-            </div>
-          </Section>
-        </div>
+        <Section title="Professional & Educational Background" icon="🎓">
+          <EditableField 
+            label="Highest Qualification" 
+            value={profile.highest_qualification || 'Not specified'} 
+            name="highest_qualification"
+            editing={isEditing}
+            editValue={editData.highest_qualification || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Institution" 
+            value={profile.institution || 'Not specified'} 
+            name="institution"
+            editing={isEditing}
+            editValue={editData.institution || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Year of Completion" 
+            value={profile.year_of_completion || 'Not specified'} 
+            name="year_of_completion"
+            editing={isEditing}
+            editValue={editData.year_of_completion || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Certifications" 
+            value={profile.certifications || 'None'} 
+            name="certifications"
+            editing={isEditing}
+            editValue={editData.certifications || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <EditableField 
+            label="Years of Experience" 
+            value={profile.years_of_experience || 'Not specified'} 
+            name="years_of_experience"
+            editing={isEditing}
+            editValue={editData.years_of_experience || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Current Occupation" 
+            value={profile.current_occupation || 'Not specified'} 
+            name="current_occupation"
+            editing={isEditing}
+            editValue={editData.current_occupation || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="References" 
+            value={profile.reference_details || 'None'} 
+            name="reference_details"
+            editing={isEditing}
+            editValue={editData.reference_details || ''}
+            onChange={handleChange}
+            textarea
+          />
+        </Section>
+
+        <Section title="Business Information" icon="🏢">
+          <EditableField 
+            label="Primary Sectors" 
+            value={profile.primary_sectors || 'Not specified'} 
+            name="primary_sectors"
+            editing={isEditing}
+            editValue={editData.primary_sectors || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Regions Covered" 
+            value={profile.regions_covered || 'Not specified'} 
+            name="regions_covered"
+            editing={isEditing}
+            editValue={editData.regions_covered || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Languages Spoken" 
+            value={profile.languages_spoken || 'Not specified'} 
+            name="languages_spoken"
+            editing={isEditing}
+            editValue={editData.languages_spoken || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Client Base Size" 
+            value={profile.client_base_size || 'Not specified'} 
+            name="client_base_size"
+            editing={isEditing}
+            editValue={editData.client_base_size || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Expected Audit Volume" 
+            value={profile.expected_audit_volume || 'Not specified'} 
+            name="expected_audit_volume"
+            editing={isEditing}
+            editValue={editData.expected_audit_volume || ''}
+            onChange={handleChange}
+          />
+        </Section>
+
+        <Section title="Technology & Availability" icon="💻">
+          <EditableField 
+            label="Devices Available" 
+            value={profile.devices_available || 'Not specified'} 
+            name="devices_available"
+            editing={isEditing}
+            editValue={editData.devices_available || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Internet Quality" 
+            value={profile.internet_quality || 'Not specified'} 
+            name="internet_quality"
+            editing={isEditing}
+            editValue={editData.internet_quality || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Digital Tool Comfort" 
+            value={profile.digital_tool_comfort || 'Not specified'} 
+            name="digital_tool_comfort"
+            editing={isEditing}
+            editValue={editData.digital_tool_comfort || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Training Willingness" 
+            value={profile.training_willingness || 'Not specified'} 
+            name="training_willingness"
+            editing={isEditing}
+            editValue={editData.training_willingness || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Training Mode" 
+            value={profile.training_mode || 'Not specified'} 
+            name="training_mode"
+            editing={isEditing}
+            editValue={editData.training_mode || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Availability" 
+            value={profile.availability || 'Not specified'} 
+            name="availability"
+            editing={isEditing}
+            editValue={editData.availability || ''}
+            onChange={handleChange}
+          />
+        </Section>
+
+        <Section title="Compliance & Declarations" icon="📜">
+          <EditableField 
+            label="Criminal Record" 
+            value={profile.criminal_record || 'Not specified'} 
+            name="criminal_record"
+            editing={isEditing}
+            editValue={editData.criminal_record || ''}
+            onChange={handleChange}
+            options={['Not specified', 'Yes', 'No']}
+          />
+          {(profile.criminal_record === 'Yes' || editData.criminal_record === 'Yes') && (
+            <EditableField 
+              label="Criminal Details" 
+              value={profile.criminal_details || 'None'} 
+              name="criminal_details"
+              editing={isEditing}
+              editValue={editData.criminal_details || ''}
+              onChange={handleChange}
+              textarea
+            />
+          )}
+          <EditableField 
+            label="Conflict of Interest" 
+            value={profile.conflict_of_interest || 'None'} 
+            name="conflict_of_interest"
+            editing={isEditing}
+            editValue={editData.conflict_of_interest || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <Field label="Code of Conduct Accepted" value={profile.accept_code_of_conduct ? 'Yes' : 'No'} />
+        </Section>
+
+        <Section title="Additional Information" icon="ℹ️">
+          <EditableField 
+            label="Additional Skills" 
+            value={profile.additional_skills || 'None'} 
+            name="additional_skills"
+            editing={isEditing}
+            editValue={editData.additional_skills || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <EditableField 
+            label="Comments" 
+            value={profile.comments || 'None'} 
+            name="comments"
+            editing={isEditing}
+            editValue={editData.comments || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <Field
+            label="Resume"
+            value={
+              profile.resume_path && profile.resume_path !== 'default-resume.pdf' ? (
+                <a href={`/Uploads/profiles/${profile.resume_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  View
+                </a>
+              ) : (
+                'Not uploaded'
+              )
+            }
+          />
+          <Field
+            label="Other Documents"
+            value={
+              profile.other_documents && profile.other_documents !== '' ? (
+                profile.other_documents.split(',').map((doc: string, index: number) => (
+                  <a
+                    key={index}
+                    href={`/Uploads/profiles/${doc.trim()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-blue-600 hover:underline"
+                  >
+                    Document {index + 1}
+                  </a>
+                ))
+              ) : (
+                'None'
+              )
+            }
+          />
+        </Section>
       </div>
     </div>
   );
 };
 
 const Section: React.FC<{ title: string; icon: string; children: React.ReactNode }> = ({ title, icon, children }) => (
-  <div className="border-t pt-6 first:border-t-0">
-    <div className="flex items-center mb-4">
-      <span className="text-xl mr-2">{icon}</span>
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-    </div>
+  <div className="mb-8">
+    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+      <span className="mr-2">{icon}</span>
+      {title}
+    </h3>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
   </div>
 );
 
-const Field: React.FC<{ 
-  label: string; 
-  value: string | undefined; 
-  name?: string; 
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; 
-  editing?: boolean;
-  disabled?: boolean;
-}> = ({ label, value, name, onChange, editing, disabled }) => (
+const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <p className="text-sm text-gray-500 mb-1">{label}</p>
+    <p className="text-gray-800">{value}</p>
+  </div>
+);
+
+const EditableField: React.FC<{
+  label: string;
+  value: string;
+  name: string;
+  editing: boolean;
+  editValue: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  type?: string;
+  textarea?: boolean;
+  options?: string[];
+}> = ({ label, value, name, editing, editValue, onChange, type = 'text', textarea = false, options }) => (
+  <div>
+    <p className="text-sm text-gray-500 mb-1">{label}</p>
     {editing ? (
-      <input
-        type="text"
-        name={name}
-        value={value || ''}
-        onChange={onChange}
-        disabled={disabled}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
-        }`}
-      />
+      options ? (
+        <select
+          name={name}
+          value={editValue}
+          onChange={onChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {options.map(option => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      ) : textarea ? (
+        <textarea
+          name={name}
+          value={editValue}
+          onChange={onChange}
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={editValue}
+          onChange={onChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      )
     ) : (
-      <p className="text-gray-900">{value || 'Not specified'}</p>
+      <p className="text-gray-800">{value}</p>
     )}
   </div>
 );
