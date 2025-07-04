@@ -1042,7 +1042,7 @@ app.post(
 
 
 // Get Agent Profile by User
-app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client', 'employee']), async (req, res) => {
+app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client']), async (req, res) => {
   console.log(`GET /api/profiles/user - req.user: ${JSON.stringify(req.user)}`);
   
   try {
@@ -1120,7 +1120,7 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 app.put(
   '/api/profiles/:id',
   authenticateToken,
-  checkAccess(['agent', 'employee']),
+  checkAccess(['agent']),
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -1285,7 +1285,7 @@ app.put(
 );
 
 // Get Agent Profile by ID
-app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee']), async (req, res) => {
+app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent']), async (req, res) => {
   try {
     const { id } = req.params;
     const profileId = parseInt(id, 10);
@@ -2117,249 +2117,7 @@ app.get('/api/test/user-profile/:userId', authenticateToken, async (req, res) =>
   }
 });
 
-// Company Profile Management
-app.get('/api/company/profile/:userId', authenticateToken, async (req, res) => {
-  try {
-    const userId = parseInt(req.params.userId, 10);
-    console.log('Fetching company profile for user ID:', userId);
-    console.log('Request user ID:', req.user.id, 'Request user type:', req.user.signup_type);
-    
-    // Check user details from database to understand signup type
-    const userResult = await pool.query('SELECT id, signup_type, status FROM users WHERE id = $1', [userId]);
-    console.log('User from database:', userResult.rows[0]);
-    
-    // Check if user is accessing their own profile or has admin access
-    if (parseInt(req.user.id, 10) !== userId && req.user.signup_type !== 'admin') {
-      console.log('Access denied - user ID mismatch or not admin');
-      return res.status(403).json({ success: false, error: 'Access denied' });
-    }
 
-    const result = await pool.query(
-      'SELECT * FROM profiles WHERE user_id = $1',
-      [userId]
-    );
-
-    console.log('Profile query result:', result.rows.length, 'profiles found');
-
-    if (result.rows.length === 0) {
-      console.log('No profile found for user ID:', userId, 'attempting to create one...');
-      
-      // Get user details to create a profile
-      const userDetails = userResult.rows[0];
-      if (!userDetails) {
-        return res.status(404).json({ success: false, error: 'User not found' });
-      }
-      
-      // Check if this is a company user (employee signup type)
-      if (userDetails.signup_type === 'employee') {
-        try {
-          console.log('Creating missing profile for company user:', userId);
-          
-          // Get user name for profile creation
-          const userNameResult = await pool.query(
-            'SELECT first_name, middle_name, last_name, email, phone FROM users WHERE id = $1',
-            [userId]
-          );
-          
-          if (userNameResult.rows.length > 0) {
-            const userData = userNameResult.rows[0];
-            const fullName = `${userData.first_name} ${userData.middle_name || ''} ${userData.last_name}`.trim();
-            
-            const createProfileResult = await pool.query(
-              `INSERT INTO profiles (
-                user_id, full_name, date_of_birth, gender, mobile_number, email_address,
-                current_address, permanent_address, photo_path, selfie_path, id_number,
-                bank_account_number, ifsc_code, cancelled_cheque_path, highest_qualification,
-                institution, year_of_completion, years_of_experience, current_occupation,
-                primary_sectors, regions_covered, languages_spoken, client_base_size,
-                expected_audit_volume, devices_available, internet_quality, digital_tool_comfort,
-                criminal_record, conflict_of_interest, accept_code_of_conduct, training_willingness,
-                availability, resume_path, completion_percentage, status
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
-              RETURNING *`,
-              [
-                userId, // user_id
-                fullName, // full_name
-                '1900-01-01', // date_of_birth (placeholder)
-                'Not specified', // gender
-                userData.phone, // mobile_number
-                userData.email, // email_address
-                'Not specified', // current_address
-                'Not specified', // permanent_address
-                'default-photo.jpg', // photo_path (placeholder)
-                'default-selfie.jpg', // selfie_path (placeholder)
-                'Not specified', // id_number
-                'Not specified', // bank_account_number
-                'Not specified', // ifsc_code
-                'default-cheque.jpg', // cancelled_cheque_path (placeholder)
-                'Not specified', // highest_qualification
-                'Not specified', // institution
-                'Not specified', // year_of_completion
-                '0', // years_of_experience
-                'Company Representative', // current_occupation
-                'Business/Corporate', // primary_sectors
-                'All India', // regions_covered
-                'English, Hindi', // languages_spoken
-                'Not specified', // client_base_size
-                'Not specified', // expected_audit_volume
-                'Not specified', // devices_available
-                'Not specified', // internet_quality
-                'Not specified', // digital_tool_comfort
-                'No', // criminal_record
-                'No', // conflict_of_interest
-                true, // accept_code_of_conduct
-                'Yes', // training_willingness
-                'Not specified', // availability
-                'default-resume.pdf', // resume_path (placeholder)
-                10, // completion_percentage (low since most fields are placeholders)
-                'pending' // status
-              ]
-            );
-            
-            console.log('Successfully created profile for user:', userId);
-            
-            // Now use the newly created profile
-            const newProfile = createProfileResult.rows[0];
-            const companyProfile = {
-              id: newProfile.id,
-              name: newProfile.full_name,
-              industry: newProfile.primary_sectors,
-              size: newProfile.client_base_size,
-              website: 'Not specified',
-              description: newProfile.current_occupation,
-              contact_email: newProfile.email_address,
-              contact_phone: newProfile.mobile_number,
-              address: newProfile.current_address,
-              city: 'Not specified',
-              state: 'Not specified',
-              zip_code: 'Not specified',
-              country: 'India',
-              status: newProfile.status,
-              created_at: newProfile.created_at,
-              updated_at: newProfile.created_at
-            };
-            
-            return res.json({ success: true, profile: companyProfile });
-          }
-        } catch (createError) {
-          console.error('Error creating profile for user:', userId, createError);
-        }
-      }
-      
-      return res.status(404).json({ success: false, error: 'Company profile not found' });
-    }
-
-    const profile = result.rows[0];
-    
-    // Transform profile data to company format
-    const companyProfile = {
-      id: profile.id,
-      name: profile.full_name,
-      industry: profile.primary_sectors,
-      size: profile.client_base_size,
-      website: 'Not specified', // Not in profiles table
-      description: profile.current_occupation,
-      contact_email: profile.email_address,
-      contact_phone: profile.mobile_number,
-      address: profile.current_address,
-      city: 'Not specified', // Not in profiles table
-      state: 'Not specified', // Not in profiles table
-      zip_code: 'Not specified', // Not in profiles table
-      country: 'India',
-      status: profile.status,
-      created_at: profile.created_at,
-      updated_at: profile.created_at // profiles table doesn't have updated_at
-    };
-
-    res.json({ success: true, profile: companyProfile });
-  } catch (error) {
-    console.error('Error fetching company profile:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch company profile' });
-  }
-});
-
-app.put('/api/company/profile/:profileId', authenticateToken, async (req, res) => {
-  try {
-    const profileId = parseInt(req.params.profileId, 10);
-    const { name, industry, size, website, description, contact_email, contact_phone, address, city, state, zip_code, country } = req.body;
-
-    // Check if profile exists and user has access
-    const profileCheck = await pool.query(
-      'SELECT p.*, u.signup_type FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.id = $1',
-      [profileId]
-    );
-
-    if (profileCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Profile not found' });
-    }
-
-    const profile = profileCheck.rows[0];
-    if (parseInt(req.user.id, 10) !== profile.user_id && req.user.signup_type !== 'admin') {
-      return res.status(403).json({ success: false, error: 'Access denied' });
-    }
-
-    // Update profile with company data
-    const result = await pool.query(
-      `UPDATE profiles SET 
-        full_name = $1,
-        primary_sectors = $2,
-        client_base_size = $3,
-        current_occupation = $4,
-        email_address = $5,
-        mobile_number = $6,
-        current_address = $7,
-        permanent_address = $7,
-        completion_percentage = $8
-      WHERE id = $9 RETURNING *`,
-      [
-        name || profile.full_name,
-        industry || profile.primary_sectors,
-        size || profile.client_base_size,
-        description || profile.current_occupation,
-        contact_email || profile.email_address,
-        contact_phone || profile.mobile_number,
-        address || profile.current_address,
-        calculateCompletionPercentage({
-          full_name: name || profile.full_name,
-          primary_sectors: industry || profile.primary_sectors,
-          client_base_size: size || profile.client_base_size,
-          current_occupation: description || profile.current_occupation,
-          email_address: contact_email || profile.email_address,
-          mobile_number: contact_phone || profile.mobile_number,
-          current_address: address || profile.current_address
-        }),
-        profileId
-      ]
-    );
-
-    const updatedProfile = result.rows[0];
-    
-    // Transform back to company format
-    const companyProfile = {
-      id: updatedProfile.id,
-      name: updatedProfile.full_name,
-      industry: updatedProfile.primary_sectors,
-      size: updatedProfile.client_base_size,
-      website: 'Not specified',
-      description: updatedProfile.current_occupation,
-      contact_email: updatedProfile.email_address,
-      contact_phone: updatedProfile.mobile_number,
-      address: updatedProfile.current_address,
-      city: 'Not specified',
-      state: 'Not specified',
-      zip_code: 'Not specified',
-      country: 'India',
-      status: updatedProfile.status,
-      created_at: updatedProfile.created_at,
-      updated_at: updatedProfile.created_at
-    };
-
-    res.json({ success: true, profile: companyProfile });
-  } catch (error) {
-    console.error('Error updating company profile:', error);
-    res.status(500).json({ success: false, error: 'Failed to update company profile' });
-  }
-});
 
 // Add Company
 app.post('/api/agent/companies', authenticateToken, checkAccess(['agent']), async (req, res) => {
@@ -4275,65 +4033,7 @@ app.post('/api/signup', async (req, res) => {
         status: result.rows[0].status
       });
 
-      // Create basic profile for company users
-      if (signup_type === 'company') {
-        try {
-          console.log('Creating profile for company user with ID:', result.rows[0].id);
-          await client.query(
-            `INSERT INTO profiles (
-              user_id, full_name, date_of_birth, gender, mobile_number, email_address,
-              current_address, permanent_address, photo_path, selfie_path, id_number,
-              bank_account_number, ifsc_code, cancelled_cheque_path, highest_qualification,
-              institution, year_of_completion, years_of_experience, current_occupation,
-              primary_sectors, regions_covered, languages_spoken, client_base_size,
-              expected_audit_volume, devices_available, internet_quality, digital_tool_comfort,
-              criminal_record, conflict_of_interest, accept_code_of_conduct, training_willingness,
-              availability, resume_path, completion_percentage, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)`,
-            [
-              result.rows[0].id, // user_id
-              name, // full_name
-              '1900-01-01', // date_of_birth (placeholder)
-              'Not specified', // gender
-              phone, // mobile_number
-              email, // email_address
-              company_name || 'Not specified', // current_address (using company name as address)
-              company_name || 'Not specified', // permanent_address
-              'default-photo.jpg', // photo_path (placeholder)
-              'default-selfie.jpg', // selfie_path (placeholder)
-              'Not specified', // id_number
-              'Not specified', // bank_account_number
-              'Not specified', // ifsc_code
-              'default-cheque.jpg', // cancelled_cheque_path (placeholder)
-              'Not specified', // highest_qualification
-              'Not specified', // institution
-              'Not specified', // year_of_completion
-              '0', // years_of_experience
-              'Company Representative', // current_occupation
-              'Business/Corporate', // primary_sectors
-              'All India', // regions_covered
-              'English, Hindi', // languages_spoken
-              'Not specified', // client_base_size
-              'Not specified', // expected_audit_volume
-              'Not specified', // devices_available
-              'Not specified', // internet_quality
-              'Not specified', // digital_tool_comfort
-              'No', // criminal_record
-              'No', // conflict_of_interest
-              true, // accept_code_of_conduct
-              'Yes', // training_willingness
-              'Not specified', // availability
-              'default-resume.pdf', // resume_path (placeholder)
-              10, // completion_percentage (low since most fields are placeholders)
-              'pending' // status
-            ]
-          );
-          console.log('Basic company profile created successfully for user ID:', result.rows[0].id);
-        } catch (profileError) {
-          console.error('Error creating company profile:', profileError);
-          // Don't fail the signup if profile creation fails
-        }
-      }
+
 
       // Generate JWT token
       const token = jwt.sign(

@@ -129,7 +129,11 @@ CREATE TABLE profiles (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Profiles table doesn't have updated_at column, so no trigger needed
+-- Create trigger for profiles table
+CREATE TRIGGER set_profiles_timestamp
+BEFORE UPDATE ON profiles
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
 
 -- Create categories table
 CREATE TABLE categories (
