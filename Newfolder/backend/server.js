@@ -1114,6 +1114,27 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
   }
 });
 
+// Get Company Profile by User
+app.get('/api/company/profile/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (req.user.id.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const result = await pool.query('SELECT * FROM company WHERE created_by = $1', [userId]);
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, profile: result.rows[0] });
+    } else {
+      res.status(404).json({ success: false, message: 'Company profile not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching company profile:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
 
 // Update Agent Profile
 app.put(
