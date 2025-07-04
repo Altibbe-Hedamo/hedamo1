@@ -1042,7 +1042,7 @@ app.post(
 
 
 // Get Agent Profile by User
-app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client']), async (req, res) => {
+app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client', 'employee']), async (req, res) => {
   console.log(`GET /api/profiles/user - req.user: ${JSON.stringify(req.user)}`);
   
   try {
@@ -1120,7 +1120,7 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 app.put(
   '/api/profiles/:id',
   authenticateToken,
-  checkAccess(['agent']),
+  checkAccess(['agent', 'employee']),
   upload.fields([
     { name: 'photo', maxCount: 1 },
     { name: 'selfie', maxCount: 1 },
@@ -1280,7 +1280,7 @@ app.put(
 );
 
 // Get Agent Profile by ID
-app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent']), async (req, res) => {
+app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee']), async (req, res) => {
   try {
     const { id } = req.params;
     const profileId = parseInt(id, 10);
