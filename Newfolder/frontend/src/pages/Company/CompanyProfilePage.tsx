@@ -143,13 +143,7 @@ const CompanyProfilePage: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === '1900-01-01') return 'Not specified';
-    const date = new Date(dateString);
-    return isNaN(date.getTime())
-      ? 'Not specified'
-      : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
+
 
   if (loading) {
     return (
