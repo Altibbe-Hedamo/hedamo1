@@ -16,7 +16,6 @@ import CompanyCustomerCarePage from './CompanyCustomerCarePage';
 import CompanyOrdersPage from './CompanyOrdersPage';
 import CompanyClientInvoicingPage from './CompanyClientInvoicingPage';
 import CompanyHvpLedgerPage from './CompanyHvpLedgerPage';
-
 const CompanyPortal: React.FC = () => {
   const [activeSection, setActiveSection] = useState('');
   return (

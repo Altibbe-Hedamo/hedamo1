@@ -2107,6 +2107,138 @@ app.get('/api/agent/companies', authenticateToken, checkAccess(['agent']), async
   }
 });
 
+// Company Profile Management
+app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employee']), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    
+    // Check if user is accessing their own profile or has admin access
+    if (parseInt(req.user.id, 10) !== userId && req.user.signup_type !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM profiles WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Company profile not found' });
+    }
+
+    const profile = result.rows[0];
+    
+    // Transform profile data to company format
+    const companyProfile = {
+      id: profile.id,
+      name: profile.full_name,
+      industry: profile.primary_sectors,
+      size: profile.client_base_size,
+      website: 'Not specified', // Not in profiles table
+      description: profile.current_occupation,
+      contact_email: profile.email_address,
+      contact_phone: profile.mobile_number,
+      address: profile.current_address,
+      city: 'Not specified', // Not in profiles table
+      state: 'Not specified', // Not in profiles table
+      zip_code: 'Not specified', // Not in profiles table
+      country: 'India',
+      status: profile.status,
+      created_at: profile.created_at,
+      updated_at: profile.created_at // profiles table doesn't have updated_at
+    };
+
+    res.json({ success: true, profile: companyProfile });
+  } catch (error) {
+    console.error('Error fetching company profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch company profile' });
+  }
+});
+
+app.put('/api/company/profile/:profileId', authenticateToken, checkAccess(['employee']), async (req, res) => {
+  try {
+    const profileId = parseInt(req.params.profileId, 10);
+    const { name, industry, size, website, description, contact_email, contact_phone, address, city, state, zip_code, country } = req.body;
+
+    // Check if profile exists and user has access
+    const profileCheck = await pool.query(
+      'SELECT p.*, u.signup_type FROM profiles p JOIN users u ON p.user_id = u.id WHERE p.id = $1',
+      [profileId]
+    );
+
+    if (profileCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    }
+
+    const profile = profileCheck.rows[0];
+    if (parseInt(req.user.id, 10) !== profile.user_id && req.user.signup_type !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // Update profile with company data
+    const result = await pool.query(
+      `UPDATE profiles SET 
+        full_name = $1,
+        primary_sectors = $2,
+        client_base_size = $3,
+        current_occupation = $4,
+        email_address = $5,
+        mobile_number = $6,
+        current_address = $7,
+        permanent_address = $7,
+        completion_percentage = $8,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9 RETURNING *`,
+      [
+        name || profile.full_name,
+        industry || profile.primary_sectors,
+        size || profile.client_base_size,
+        description || profile.current_occupation,
+        contact_email || profile.email_address,
+        contact_phone || profile.mobile_number,
+        address || profile.current_address,
+        calculateCompletionPercentage({
+          full_name: name || profile.full_name,
+          primary_sectors: industry || profile.primary_sectors,
+          client_base_size: size || profile.client_base_size,
+          current_occupation: description || profile.current_occupation,
+          email_address: contact_email || profile.email_address,
+          mobile_number: contact_phone || profile.mobile_number,
+          current_address: address || profile.current_address
+        }),
+        profileId
+      ]
+    );
+
+    const updatedProfile = result.rows[0];
+    
+    // Transform back to company format
+    const companyProfile = {
+      id: updatedProfile.id,
+      name: updatedProfile.full_name,
+      industry: updatedProfile.primary_sectors,
+      size: updatedProfile.client_base_size,
+      website: 'Not specified',
+      description: updatedProfile.current_occupation,
+      contact_email: updatedProfile.email_address,
+      contact_phone: updatedProfile.mobile_number,
+      address: updatedProfile.current_address,
+      city: 'Not specified',
+      state: 'Not specified',
+      zip_code: 'Not specified',
+      country: 'India',
+      status: updatedProfile.status,
+      created_at: updatedProfile.created_at,
+      updated_at: updatedProfile.created_at
+    };
+
+    res.json({ success: true, profile: companyProfile });
+  } catch (error) {
+    console.error('Error updating company profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to update company profile' });
+  }
+});
+
 // Add Company
 app.post('/api/agent/companies', authenticateToken, checkAccess(['agent']), async (req, res) => {
   const userId = parseInt(req.user.id, 10);
@@ -4014,6 +4146,65 @@ app.post('/api/signup', async (req, res) => {
         signup_type: result.rows[0].signup_type,
         status: result.rows[0].status
       });
+
+      // Create basic profile for company users
+      if (signup_type === 'company') {
+        try {
+          await client.query(
+            `INSERT INTO profiles (
+              user_id, full_name, date_of_birth, gender, mobile_number, email_address,
+              current_address, permanent_address, photo_path, selfie_path, id_number,
+              bank_account_number, ifsc_code, cancelled_cheque_path, highest_qualification,
+              institution, year_of_completion, years_of_experience, current_occupation,
+              primary_sectors, regions_covered, languages_spoken, client_base_size,
+              expected_audit_volume, devices_available, internet_quality, digital_tool_comfort,
+              criminal_record, conflict_of_interest, accept_code_of_conduct, training_willingness,
+              availability, resume_path, completion_percentage, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)`,
+            [
+              result.rows[0].id, // user_id
+              name, // full_name
+              '1900-01-01', // date_of_birth (placeholder)
+              'Not specified', // gender
+              phone, // mobile_number
+              email, // email_address
+              company_name || 'Not specified', // current_address (using company name as address)
+              company_name || 'Not specified', // permanent_address
+              'default-photo.jpg', // photo_path (placeholder)
+              'default-selfie.jpg', // selfie_path (placeholder)
+              'Not specified', // id_number
+              'Not specified', // bank_account_number
+              'Not specified', // ifsc_code
+              'default-cheque.jpg', // cancelled_cheque_path (placeholder)
+              'Not specified', // highest_qualification
+              'Not specified', // institution
+              'Not specified', // year_of_completion
+              '0', // years_of_experience
+              'Company Representative', // current_occupation
+              'Business/Corporate', // primary_sectors
+              'All India', // regions_covered
+              'English, Hindi', // languages_spoken
+              'Not specified', // client_base_size
+              'Not specified', // expected_audit_volume
+              'Not specified', // devices_available
+              'Not specified', // internet_quality
+              'Not specified', // digital_tool_comfort
+              'No', // criminal_record
+              'No', // conflict_of_interest
+              true, // accept_code_of_conduct
+              'Yes', // training_willingness
+              'Not specified', // availability
+              'default-resume.pdf', // resume_path (placeholder)
+              10, // completion_percentage (low since most fields are placeholders)
+              'pending' // status
+            ]
+          );
+          console.log('Basic company profile created successfully');
+        } catch (profileError) {
+          console.error('Error creating company profile:', profileError);
+          // Don't fail the signup if profile creation fails
+        }
+      }
 
       // Generate JWT token
       const token = jwt.sign(
