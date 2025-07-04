@@ -1114,27 +1114,7 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
   }
 });
 
-// Get Company Profile by User
-app.get('/api/company/profile/:userId', authenticateToken, async (req, res) => {
-  try {
-    const { userId } = req.params;
 
-    if (req.user.id.toString() !== userId) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
-    }
-
-    const result = await pool.query('SELECT * FROM company WHERE created_by = $1', [userId]);
-
-    if (result.rows.length > 0) {
-      res.json({ success: true, profile: result.rows[0] });
-    } else {
-      res.status(404).json({ success: false, message: 'Company profile not found' });
-    }
-  } catch (error) {
-    console.error('Error fetching company profile:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-});
 
 // Update Agent Profile
 app.put(
@@ -2111,9 +2091,12 @@ app.get('/api/agent/companies', authenticateToken, checkAccess(['agent']), async
 app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employee']), async (req, res) => {
   try {
     const userId = parseInt(req.params.userId, 10);
+    console.log('Fetching company profile for user ID:', userId);
+    console.log('Request user ID:', req.user.id, 'Request user type:', req.user.signup_type);
     
     // Check if user is accessing their own profile or has admin access
     if (parseInt(req.user.id, 10) !== userId && req.user.signup_type !== 'admin') {
+      console.log('Access denied - user ID mismatch or not admin');
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
@@ -2122,7 +2105,10 @@ app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employe
       [userId]
     );
 
+    console.log('Profile query result:', result.rows.length, 'profiles found');
+
     if (result.rows.length === 0) {
+      console.log('No profile found for user ID:', userId);
       return res.status(404).json({ success: false, error: 'Company profile not found' });
     }
 
@@ -4150,6 +4136,7 @@ app.post('/api/signup', async (req, res) => {
       // Create basic profile for company users
       if (signup_type === 'company') {
         try {
+          console.log('Creating profile for company user with ID:', result.rows[0].id);
           await client.query(
             `INSERT INTO profiles (
               user_id, full_name, date_of_birth, gender, mobile_number, email_address,
@@ -4199,7 +4186,7 @@ app.post('/api/signup', async (req, res) => {
               'pending' // status
             ]
           );
-          console.log('Basic company profile created successfully');
+          console.log('Basic company profile created successfully for user ID:', result.rows[0].id);
         } catch (profileError) {
           console.error('Error creating company profile:', profileError);
           // Don't fail the signup if profile creation fails
