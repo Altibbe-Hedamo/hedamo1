@@ -1042,7 +1042,7 @@ app.post(
 
 
 // Get Agent Profile by User
-app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client', 'employee']), async (req, res) => {
+app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client']), async (req, res) => {
   console.log(`GET /api/profiles/user - req.user: ${JSON.stringify(req.user)}`);
   
   try {
@@ -1120,7 +1120,7 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 app.put(
   '/api/profiles/:id',
   authenticateToken,
-  checkAccess(['agent', 'employee']),
+  checkAccess(['agent']),
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -1285,7 +1285,7 @@ app.put(
 );
 
 // Get Agent Profile by ID
-app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee']), async (req, res) => {
+app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent']), async (req, res) => {
   try {
     const { id } = req.params;
     const profileId = parseInt(id, 10);
@@ -4032,66 +4032,6 @@ app.post('/api/signup', async (req, res) => {
         signup_type: result.rows[0].signup_type,
                 status: result.rows[0].status
       });
-
-      // Create basic profile for company users (employee signup type)
-      if (signup_type === 'employee') {
-        try {
-          console.log('Creating profile for company user with ID:', result.rows[0].id);
-          await client.query(
-            `INSERT INTO profiles (
-              user_id, full_name, date_of_birth, gender, mobile_number, email_address,
-              current_address, permanent_address, photo_path, selfie_path, id_number,
-              bank_account_number, ifsc_code, cancelled_cheque_path, highest_qualification,
-              institution, year_of_completion, years_of_experience, current_occupation,
-              primary_sectors, regions_covered, languages_spoken, client_base_size,
-              expected_audit_volume, devices_available, internet_quality, digital_tool_comfort,
-              criminal_record, conflict_of_interest, accept_code_of_conduct, training_willingness,
-              availability, resume_path, completion_percentage, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)`,
-            [
-              result.rows[0].id, // user_id
-              name, // full_name
-              '1900-01-01', // date_of_birth (placeholder)
-              'Not specified', // gender
-              phone, // mobile_number
-              email, // email_address
-              'Not specified', // current_address
-              'Not specified', // permanent_address
-              'default-photo.jpg', // photo_path (placeholder)
-              'default-selfie.jpg', // selfie_path (placeholder)
-              'Not specified', // id_number
-              'Not specified', // bank_account_number
-              'Not specified', // ifsc_code
-              'default-cheque.jpg', // cancelled_cheque_path (placeholder)
-              'Not specified', // highest_qualification
-              'Not specified', // institution
-              'Not specified', // year_of_completion
-              '0', // years_of_experience
-              'Company Representative', // current_occupation
-              'Business/Corporate', // primary_sectors
-              'All India', // regions_covered
-              'English, Hindi', // languages_spoken
-              'Not specified', // client_base_size
-              'Not specified', // expected_audit_volume
-              'Not specified', // devices_available
-              'Not specified', // internet_quality
-              'Not specified', // digital_tool_comfort
-              'No', // criminal_record
-              'No', // conflict_of_interest
-              true, // accept_code_of_conduct
-              'Yes', // training_willingness
-              'Not specified', // availability
-              'default-resume.pdf', // resume_path (placeholder)
-              10, // completion_percentage (low since most fields are placeholders)
-              'pending' // status
-            ]
-          );
-          console.log('Basic company profile created successfully for user ID:', result.rows[0].id);
-        } catch (profileError) {
-          console.error('Error creating company profile:', profileError);
-          // Don't fail the signup if profile creation fails
-        }
-      }
 
  
 
