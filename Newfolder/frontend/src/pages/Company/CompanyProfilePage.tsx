@@ -233,14 +233,24 @@ const CompanyProfilePage: React.FC = () => {
       <div className="bg-white p-6 rounded-lg shadow-md">
         {/* Profile Header with Image */}
         <div className="flex items-center mb-8">
-          <img
-            src={profile.photo_path && profile.photo_path !== 'default-photo.jpg' 
-              ? `/Uploads/profiles/${profile.photo_path}` 
-              : 'https://via.placeholder.com/150?text=Profile'}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover mr-4 border-2 border-blue-500"
-            onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150?text=Profile')}
-          />
+          <div className="w-24 h-24 rounded-full mr-4 border-2 border-blue-500 overflow-hidden">
+            {profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? (
+              <img
+                src={`/Uploads/profiles/${profile.photo_path}`}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div className={`w-full h-full bg-gray-200 flex items-center justify-center ${profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? 'hidden' : 'flex'}`}>
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+          </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-800">{profile.full_name || 'Company Name'}</h2>
             <p className="text-gray-600">{profile.email_address || 'Email not specified'}</p>

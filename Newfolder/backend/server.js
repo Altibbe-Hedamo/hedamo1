@@ -1232,8 +1232,7 @@ app.put(
           criminal_record = $28, criminal_details = $29, conflict_of_interest = $30,
           accept_code_of_conduct = $31, training_willingness = $32, training_mode = $33,
           availability = $34, additional_skills = $35, comments = $36, resume_path = $37,
-          other_documents = $38, completion_percentage = $39, status = $40,
-          updated_at = CURRENT_TIMESTAMP
+          other_documents = $38, completion_percentage = $39, status = $40
         WHERE id = $41 AND user_id = $42
         RETURNING id
       `;
