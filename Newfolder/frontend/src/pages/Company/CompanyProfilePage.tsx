@@ -12,12 +12,9 @@ interface CompanyProfile {
   email_address: string;
   current_address: string;
   permanent_address: string;
-  photo_path: string;
-  selfie_path: string;
   id_number: string;
   bank_account_number: string;
   ifsc_code: string;
-  cancelled_cheque_path: string;
   highest_qualification: string;
   institution: string;
   year_of_completion: string;
@@ -42,8 +39,6 @@ interface CompanyProfile {
   availability: string;
   additional_skills: string;
   comments: string;
-  resume_path: string;
-  other_documents: string;
   completion_percentage: number;
   status: string;
   created_at: string;
@@ -72,17 +67,6 @@ const CompanyProfilePage: React.FC = () => {
       
       try {
         const token = sessionStorage.getItem('token');
-        
-        // First, let's test the user profile endpoint to see what's happening
-        console.log('Testing user profile access for user ID:', user.id);
-        try {
-          const testResponse = await api.get(`/api/test/user-profile/${user.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          console.log('Test endpoint response:', testResponse.data);
-        } catch (testErr) {
-          console.error('Test endpoint error:', testErr);
-        }
         
         // Get the full profile data directly from profiles table
         const response = await api.get(`/api/profiles/user`, {
@@ -231,25 +215,12 @@ const CompanyProfilePage: React.FC = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
-        {/* Profile Header with Image */}
+        {/* Profile Header */}
         <div className="flex items-center mb-8">
-          <div className="w-24 h-24 rounded-full mr-4 border-2 border-blue-500 overflow-hidden">
-            {profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? (
-              <img
-                src={`/Uploads/profiles/${profile.photo_path}`}
-                alt="Profile"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div className={`w-full h-full bg-gray-200 flex items-center justify-center ${profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? 'hidden' : 'flex'}`}>
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-            </div>
+          <div className="w-24 h-24 rounded-full mr-4 border-2 border-blue-500 bg-gray-200 flex items-center justify-center">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10V9a2 2 0 012-2h2a2 2 0 012 2v10M9 21h4"></path>
+            </svg>
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-800">{profile.full_name || 'Company Name'}</h2>
@@ -258,32 +229,14 @@ const CompanyProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <Section title="Personal & Contact Details" icon="👤">
+        <Section title="Basic Information" icon="🏢">
           <EditableField 
-            label="Full Name" 
+            label="Company/Full Name" 
             value={profile.full_name || 'Not specified'} 
             name="full_name"
             editing={isEditing}
             editValue={editData.full_name || ''}
             onChange={handleChange}
-          />
-          <EditableField 
-            label="Date of Birth" 
-            value={formatDate(profile.date_of_birth)} 
-            name="date_of_birth"
-            type="date"
-            editing={isEditing}
-            editValue={editData.date_of_birth || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Gender" 
-            value={profile.gender || 'Not specified'} 
-            name="gender"
-            editing={isEditing}
-            editValue={editData.gender || ''}
-            onChange={handleChange}
-            options={['Not specified', 'Male', 'Female', 'Other']}
           />
           <EditableField 
             label="Mobile Number" 
@@ -321,131 +274,15 @@ const CompanyProfilePage: React.FC = () => {
           />
         </Section>
 
-        <Section title="Identity Verification (KYC) & Financial Details" icon="🔍">
+        <Section title="Business Information" icon="💼">
           <EditableField 
-            label="ID Number" 
-            value={profile.id_number || 'Not specified'} 
-            name="id_number"
-            editing={isEditing}
-            editValue={editData.id_number || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Bank Account Number" 
-            value={profile.bank_account_number || 'Not specified'} 
-            name="bank_account_number"
-            editing={isEditing}
-            editValue={editData.bank_account_number || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="IFSC Code" 
-            value={profile.ifsc_code || 'Not specified'} 
-            name="ifsc_code"
-            editing={isEditing}
-            editValue={editData.ifsc_code || ''}
-            onChange={handleChange}
-          />
-          <Field
-            label="Photo ID"
-            value={
-              profile.photo_path && profile.photo_path !== 'default-photo.jpg' ? (
-                <a href={`/Uploads/profiles/${profile.photo_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  View
-                </a>
-              ) : (
-                'Not uploaded'
-              )
-            }
-          />
-          <Field
-            label="Selfie with ID"
-            value={
-              profile.selfie_path && profile.selfie_path !== 'default-selfie.jpg' ? (
-                <a href={`/Uploads/profiles/${profile.selfie_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  View
-                </a>
-              ) : (
-                'Not uploaded'
-              )
-            }
-          />
-          <Field
-            label="Cancelled Cheque"
-            value={
-              profile.cancelled_cheque_path && profile.cancelled_cheque_path !== 'default-cheque.jpg' ? (
-                <a href={`/Uploads/profiles/${profile.cancelled_cheque_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  View
-                </a>
-              ) : (
-                'Not uploaded'
-              )
-            }
-          />
-        </Section>
-
-        <Section title="Professional & Educational Background" icon="🎓">
-          <EditableField 
-            label="Highest Qualification" 
-            value={profile.highest_qualification || 'Not specified'} 
-            name="highest_qualification"
-            editing={isEditing}
-            editValue={editData.highest_qualification || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Institution" 
-            value={profile.institution || 'Not specified'} 
-            name="institution"
-            editing={isEditing}
-            editValue={editData.institution || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Year of Completion" 
-            value={profile.year_of_completion || 'Not specified'} 
-            name="year_of_completion"
-            editing={isEditing}
-            editValue={editData.year_of_completion || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Certifications" 
-            value={profile.certifications || 'None'} 
-            name="certifications"
-            editing={isEditing}
-            editValue={editData.certifications || ''}
-            onChange={handleChange}
-            textarea
-          />
-          <EditableField 
-            label="Years of Experience" 
-            value={profile.years_of_experience || 'Not specified'} 
-            name="years_of_experience"
-            editing={isEditing}
-            editValue={editData.years_of_experience || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Current Occupation" 
+            label="Current Occupation/Business Type" 
             value={profile.current_occupation || 'Not specified'} 
             name="current_occupation"
             editing={isEditing}
             editValue={editData.current_occupation || ''}
             onChange={handleChange}
           />
-          <EditableField 
-            label="References" 
-            value={profile.reference_details || 'None'} 
-            name="reference_details"
-            editing={isEditing}
-            editValue={editData.reference_details || ''}
-            onChange={handleChange}
-            textarea
-          />
-        </Section>
-
-        <Section title="Business Information" icon="🏢">
           <EditableField 
             label="Primary Sectors" 
             value={profile.primary_sectors || 'Not specified'} 
@@ -488,6 +325,69 @@ const CompanyProfilePage: React.FC = () => {
           />
         </Section>
 
+        <Section title="Financial Details" icon="💳">
+          <EditableField 
+            label="Bank Account Number" 
+            value={profile.bank_account_number || 'Not specified'} 
+            name="bank_account_number"
+            editing={isEditing}
+            editValue={editData.bank_account_number || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="IFSC Code" 
+            value={profile.ifsc_code || 'Not specified'} 
+            name="ifsc_code"
+            editing={isEditing}
+            editValue={editData.ifsc_code || ''}
+            onChange={handleChange}
+          />
+        </Section>
+
+        <Section title="Professional Background" icon="🎓">
+          <EditableField 
+            label="Years of Experience" 
+            value={profile.years_of_experience || 'Not specified'} 
+            name="years_of_experience"
+            editing={isEditing}
+            editValue={editData.years_of_experience || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Highest Qualification" 
+            value={profile.highest_qualification || 'Not specified'} 
+            name="highest_qualification"
+            editing={isEditing}
+            editValue={editData.highest_qualification || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Institution" 
+            value={profile.institution || 'Not specified'} 
+            name="institution"
+            editing={isEditing}
+            editValue={editData.institution || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Year of Completion" 
+            value={profile.year_of_completion || 'Not specified'} 
+            name="year_of_completion"
+            editing={isEditing}
+            editValue={editData.year_of_completion || ''}
+            onChange={handleChange}
+          />
+          <EditableField 
+            label="Certifications" 
+            value={profile.certifications || 'None'} 
+            name="certifications"
+            editing={isEditing}
+            editValue={editData.certifications || ''}
+            onChange={handleChange}
+            textarea
+          />
+        </Section>
+
         <Section title="Technology & Availability" icon="💻">
           <EditableField 
             label="Devices Available" 
@@ -504,6 +404,7 @@ const CompanyProfilePage: React.FC = () => {
             editing={isEditing}
             editValue={editData.internet_quality || ''}
             onChange={handleChange}
+            options={['Not specified', 'Poor', 'Average', 'Good', 'Excellent']}
           />
           <EditableField 
             label="Digital Tool Comfort" 
@@ -512,22 +413,7 @@ const CompanyProfilePage: React.FC = () => {
             editing={isEditing}
             editValue={editData.digital_tool_comfort || ''}
             onChange={handleChange}
-          />
-          <EditableField 
-            label="Training Willingness" 
-            value={profile.training_willingness || 'Not specified'} 
-            name="training_willingness"
-            editing={isEditing}
-            editValue={editData.training_willingness || ''}
-            onChange={handleChange}
-          />
-          <EditableField 
-            label="Training Mode" 
-            value={profile.training_mode || 'Not specified'} 
-            name="training_mode"
-            editing={isEditing}
-            editValue={editData.training_mode || ''}
-            onChange={handleChange}
+            options={['Not specified', 'Beginner', 'Intermediate', 'Advanced', 'Expert']}
           />
           <EditableField 
             label="Availability" 
@@ -539,46 +425,22 @@ const CompanyProfilePage: React.FC = () => {
           />
         </Section>
 
-        <Section title="Compliance & Declarations" icon="📜">
-          <EditableField 
-            label="Criminal Record" 
-            value={profile.criminal_record || 'Not specified'} 
-            name="criminal_record"
-            editing={isEditing}
-            editValue={editData.criminal_record || ''}
-            onChange={handleChange}
-            options={['Not specified', 'Yes', 'No']}
-          />
-          {(profile.criminal_record === 'Yes' || editData.criminal_record === 'Yes') && (
-            <EditableField 
-              label="Criminal Details" 
-              value={profile.criminal_details || 'None'} 
-              name="criminal_details"
-              editing={isEditing}
-              editValue={editData.criminal_details || ''}
-              onChange={handleChange}
-              textarea
-            />
-          )}
-          <EditableField 
-            label="Conflict of Interest" 
-            value={profile.conflict_of_interest || 'None'} 
-            name="conflict_of_interest"
-            editing={isEditing}
-            editValue={editData.conflict_of_interest || ''}
-            onChange={handleChange}
-            textarea
-          />
-          <Field label="Code of Conduct Accepted" value={profile.accept_code_of_conduct ? 'Yes' : 'No'} />
-        </Section>
-
-        <Section title="Additional Information" icon="ℹ️">
+        <Section title="Additional Information" icon="📋">
           <EditableField 
             label="Additional Skills" 
             value={profile.additional_skills || 'None'} 
             name="additional_skills"
             editing={isEditing}
             editValue={editData.additional_skills || ''}
+            onChange={handleChange}
+            textarea
+          />
+          <EditableField 
+            label="References" 
+            value={profile.reference_details || 'None'} 
+            name="reference_details"
+            editing={isEditing}
+            editValue={editData.reference_details || ''}
             onChange={handleChange}
             textarea
           />
@@ -591,39 +453,61 @@ const CompanyProfilePage: React.FC = () => {
             onChange={handleChange}
             textarea
           />
-          <Field
-            label="Resume"
-            value={
-              profile.resume_path && profile.resume_path !== 'default-resume.pdf' ? (
-                <a href={`/Uploads/profiles/${profile.resume_path}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  View
-                </a>
-              ) : (
-                'Not uploaded'
-              )
-            }
-          />
-          <Field
-            label="Other Documents"
-            value={
-              profile.other_documents && profile.other_documents !== '' ? (
-                profile.other_documents.split(',').map((doc: string, index: number) => (
-                  <a
-                    key={index}
-                    href={`/Uploads/profiles/${doc.trim()}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-blue-600 hover:underline"
-                  >
-                    Document {index + 1}
-                  </a>
-                ))
-              ) : (
-                'None'
-              )
-            }
-          />
         </Section>
+
+        <Section title="Compliance" icon="⚖️">
+          <Field
+            label="Criminal Record"
+            value={profile.criminal_record || 'No'}
+          />
+          {profile.criminal_record === 'Yes' && profile.criminal_details && (
+            <Field
+              label="Criminal Details"
+              value={profile.criminal_details}
+            />
+          )}
+          <Field
+            label="Conflict of Interest"
+            value={profile.conflict_of_interest || 'No'}
+          />
+          <Field
+            label="Accept Code of Conduct"
+            value={profile.accept_code_of_conduct ? 'Yes' : 'No'}
+          />
+          <Field
+            label="Training Willingness"
+            value={profile.training_willingness || 'Not specified'}
+          />
+          {profile.training_mode && (
+            <Field
+              label="Training Mode"
+              value={profile.training_mode}
+            />
+          )}
+        </Section>
+
+        {/* Profile Status */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">Profile Status</h3>
+              <p className="text-gray-600">Completion: {profile.completion_percentage}%</p>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+              profile.status === 'approved' ? 'bg-green-100 text-green-800' :
+              profile.status === 'rejected' ? 'bg-red-100 text-red-800' :
+              'bg-yellow-100 text-yellow-800'
+            }`}>
+              {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
+            </div>
+          </div>
+          <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full" 
+              style={{ width: `${profile.completion_percentage}%` }}
+            ></div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -631,18 +515,20 @@ const CompanyProfilePage: React.FC = () => {
 
 const Section: React.FC<{ title: string; icon: string; children: React.ReactNode }> = ({ title, icon, children }) => (
   <div className="mb-8">
-    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
       <span className="mr-2">{icon}</span>
       {title}
     </h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {children}
+    </div>
   </div>
 );
 
 const Field: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-  <div>
-    <p className="text-sm text-gray-500 mb-1">{label}</p>
-    <p className="text-gray-800">{value}</p>
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+    <div className="text-gray-900">{value}</div>
   </div>
 );
 
@@ -657,18 +543,20 @@ const EditableField: React.FC<{
   textarea?: boolean;
   options?: string[];
 }> = ({ label, value, name, editing, editValue, onChange, type = 'text', textarea = false, options }) => (
-  <div>
-    <p className="text-sm text-gray-500 mb-1">{label}</p>
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
     {editing ? (
       options ? (
         <select
           name={name}
           value={editValue}
           onChange={onChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          {options.map(option => (
-            <option key={option} value={option}>{option}</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
           ))}
         </select>
       ) : textarea ? (
@@ -677,7 +565,7 @@ const EditableField: React.FC<{
           value={editValue}
           onChange={onChange}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       ) : (
         <input
@@ -685,11 +573,11 @@ const EditableField: React.FC<{
           name={name}
           value={editValue}
           onChange={onChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       )
     ) : (
-      <p className="text-gray-800">{value}</p>
+      <div className="text-gray-900 p-2 bg-gray-50 rounded-md">{value}</div>
     )}
   </div>
 );
