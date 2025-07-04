@@ -2138,7 +2138,110 @@ app.get('/api/company/profile/:userId', authenticateToken, async (req, res) => {
     console.log('Profile query result:', result.rows.length, 'profiles found');
 
     if (result.rows.length === 0) {
-      console.log('No profile found for user ID:', userId);
+      console.log('No profile found for user ID:', userId, 'attempting to create one...');
+      
+      // Get user details to create a profile
+      const userDetails = userResult.rows[0];
+      if (!userDetails) {
+        return res.status(404).json({ success: false, error: 'User not found' });
+      }
+      
+      // Check if this is a company user (employee signup type)
+      if (userDetails.signup_type === 'employee') {
+        try {
+          console.log('Creating missing profile for company user:', userId);
+          
+          // Get user name for profile creation
+          const userNameResult = await pool.query(
+            'SELECT first_name, middle_name, last_name, email, phone FROM users WHERE id = $1',
+            [userId]
+          );
+          
+          if (userNameResult.rows.length > 0) {
+            const userData = userNameResult.rows[0];
+            const fullName = `${userData.first_name} ${userData.middle_name || ''} ${userData.last_name}`.trim();
+            
+            const createProfileResult = await pool.query(
+              `INSERT INTO profiles (
+                user_id, full_name, date_of_birth, gender, mobile_number, email_address,
+                current_address, permanent_address, photo_path, selfie_path, id_number,
+                bank_account_number, ifsc_code, cancelled_cheque_path, highest_qualification,
+                institution, year_of_completion, years_of_experience, current_occupation,
+                primary_sectors, regions_covered, languages_spoken, client_base_size,
+                expected_audit_volume, devices_available, internet_quality, digital_tool_comfort,
+                criminal_record, conflict_of_interest, accept_code_of_conduct, training_willingness,
+                availability, resume_path, completion_percentage, status
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
+              RETURNING *`,
+              [
+                userId, // user_id
+                fullName, // full_name
+                '1900-01-01', // date_of_birth (placeholder)
+                'Not specified', // gender
+                userData.phone, // mobile_number
+                userData.email, // email_address
+                'Not specified', // current_address
+                'Not specified', // permanent_address
+                'default-photo.jpg', // photo_path (placeholder)
+                'default-selfie.jpg', // selfie_path (placeholder)
+                'Not specified', // id_number
+                'Not specified', // bank_account_number
+                'Not specified', // ifsc_code
+                'default-cheque.jpg', // cancelled_cheque_path (placeholder)
+                'Not specified', // highest_qualification
+                'Not specified', // institution
+                'Not specified', // year_of_completion
+                '0', // years_of_experience
+                'Company Representative', // current_occupation
+                'Business/Corporate', // primary_sectors
+                'All India', // regions_covered
+                'English, Hindi', // languages_spoken
+                'Not specified', // client_base_size
+                'Not specified', // expected_audit_volume
+                'Not specified', // devices_available
+                'Not specified', // internet_quality
+                'Not specified', // digital_tool_comfort
+                'No', // criminal_record
+                'No', // conflict_of_interest
+                true, // accept_code_of_conduct
+                'Yes', // training_willingness
+                'Not specified', // availability
+                'default-resume.pdf', // resume_path (placeholder)
+                10, // completion_percentage (low since most fields are placeholders)
+                'pending' // status
+              ]
+            );
+            
+            console.log('Successfully created profile for user:', userId);
+            
+            // Now use the newly created profile
+            const newProfile = createProfileResult.rows[0];
+            const companyProfile = {
+              id: newProfile.id,
+              name: newProfile.full_name,
+              industry: newProfile.primary_sectors,
+              size: newProfile.client_base_size,
+              website: 'Not specified',
+              description: newProfile.current_occupation,
+              contact_email: newProfile.email_address,
+              contact_phone: newProfile.mobile_number,
+              address: newProfile.current_address,
+              city: 'Not specified',
+              state: 'Not specified',
+              zip_code: 'Not specified',
+              country: 'India',
+              status: newProfile.status,
+              created_at: newProfile.created_at,
+              updated_at: newProfile.created_at
+            };
+            
+            return res.json({ success: true, profile: companyProfile });
+          }
+        } catch (createError) {
+          console.error('Error creating profile for user:', userId, createError);
+        }
+      }
+      
       return res.status(404).json({ success: false, error: 'Company profile not found' });
     }
 
