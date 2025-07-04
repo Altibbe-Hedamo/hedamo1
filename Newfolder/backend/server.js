@@ -1116,24 +1116,21 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 
 
 
-// Update Agent Profile
+// Update Profile (Simplified for Company/Employee users)
 app.put(
   '/api/profiles/:id',
   authenticateToken,
   checkAccess(['agent', 'employee']),
-  upload.fields([
-    { name: 'photo', maxCount: 1 },
-    { name: 'selfie', maxCount: 1 },
-    { name: 'resume', maxCount: 1 },
-    { name: 'cancelled_cheque', maxCount: 1 },
-    { name: 'certifications', maxCount: 5 },
-    { name: 'other_documents', maxCount: 5 },
-  ]),
   async (req, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
-      const files = req.files;
+
+      console.log('Profile update request:', {
+        profileId: id,
+        userId: userId,
+        body: req.body
+      });
 
       const existingProfile = await pool.query('SELECT * FROM profiles WHERE id = $1 AND user_id = $2', [id, userId]);
       if (existingProfile.rows.length === 0) {
@@ -1145,79 +1142,55 @@ app.put(
 
       const currentProfile = existingProfile.rows[0];
 
-      const profileData = {
-        full_name: req.body.fullName || currentProfile.full_name,
-        date_of_birth: req.body.dateOfBirth || currentProfile.date_of_birth,
-        gender: req.body.gender || currentProfile.gender,
-        mobile_number: req.body.mobileNumber || currentProfile.mobile_number,
-        email_address: req.body.emailAddress || currentProfile.email_address,
-        current_address: req.body.currentAddress || currentProfile.current_address,
-        permanent_address: req.body.permanentAddress || currentProfile.permanent_address,
-        photo_path: files['photo']?.[0]?.filename || currentProfile.photo_path,
-        selfie_path: files['selfie']?.[0]?.filename || currentProfile.selfie_path,
-        bank_account_number: req.body.bankAccountNumber || currentProfile.bank_account_number,
-        ifsc_code: req.body.ifscCode || currentProfile.ifsc_code,
-        cancelled_cheque_path: files['cancelled_cheque']?.[0]?.filename || currentProfile.cancelled_cheque_path,
-        highest_qualification: req.body.highestQualification || currentProfile.highest_qualification,
+      // Build update data using the direct field names from frontend
+      const updateData = {
+        full_name: req.body.full_name || currentProfile.full_name,
+        mobile_number: req.body.mobile_number || currentProfile.mobile_number,
+        email_address: req.body.email_address || currentProfile.email_address,
+        current_address: req.body.current_address || currentProfile.current_address,
+        permanent_address: req.body.permanent_address || currentProfile.permanent_address,
+        bank_account_number: req.body.bank_account_number || currentProfile.bank_account_number,
+        ifsc_code: req.body.ifsc_code || currentProfile.ifsc_code,
+        highest_qualification: req.body.highest_qualification || currentProfile.highest_qualification,
         institution: req.body.institution || currentProfile.institution,
-        year_of_completion: req.body.yearOfCompletion || currentProfile.year_of_completion,
-        certifications: files['certifications']?.map((f) => f.filename).join(',') || req.body.certifications || currentProfile.certifications,
-        years_of_experience: req.body.yearsOfExperience || currentProfile.years_of_experience,
-        current_occupation: req.body.currentOccupation || currentProfile.current_occupation,
-        reference_details: req.body.references || currentProfile.reference_details,
-        primary_sectors: req.body.primarySectors || currentProfile.primary_sectors,
-        regions_covered: req.body.regionsCovered || currentProfile.regions_covered,
-        languages_spoken: req.body.languagesSpoken || currentProfile.languages_spoken,
-        client_base_size: req.body.clientBaseSize || currentProfile.client_base_size,
-        expected_audit_volume: req.body.expectedAuditVolume || currentProfile.expected_audit_volume,
-        devices_available: req.body.devicesAvailable || currentProfile.devices_available,
-        internet_quality: req.body.internetQuality || currentProfile.internet_quality,
-        digital_tool_comfort: req.body.digitalToolComfort || currentProfile.digital_tool_comfort,
-        criminal_record: req.body.criminalRecord || currentProfile.criminal_record,
-        criminal_details: req.body.criminalDetails || currentProfile.criminal_details,
-        conflict_of_interest: req.body.conflictOfInterest || currentProfile.conflict_of_interest,
-        accept_code_of_conduct: req.body.acceptCodeOfConduct === 'true' || currentProfile.accept_code_of_conduct,
-        training_willingness: req.body.trainingWillingness || currentProfile.training_willingness,
-        training_mode: req.body.trainingMode || currentProfile.training_mode,
+        year_of_completion: req.body.year_of_completion || currentProfile.year_of_completion,
+        certifications: req.body.certifications || currentProfile.certifications,
+        years_of_experience: req.body.years_of_experience || currentProfile.years_of_experience,
+        current_occupation: req.body.current_occupation || currentProfile.current_occupation,
+        reference_details: req.body.reference_details || currentProfile.reference_details,
+        primary_sectors: req.body.primary_sectors || currentProfile.primary_sectors,
+        regions_covered: req.body.regions_covered || currentProfile.regions_covered,
+        languages_spoken: req.body.languages_spoken || currentProfile.languages_spoken,
+        client_base_size: req.body.client_base_size || currentProfile.client_base_size,
+        expected_audit_volume: req.body.expected_audit_volume || currentProfile.expected_audit_volume,
+        devices_available: req.body.devices_available || currentProfile.devices_available,
+        internet_quality: req.body.internet_quality || currentProfile.internet_quality,
+        digital_tool_comfort: req.body.digital_tool_comfort || currentProfile.digital_tool_comfort,
         availability: req.body.availability || currentProfile.availability,
-        additional_skills: req.body.additionalSkills || currentProfile.additional_skills,
+        additional_skills: req.body.additional_skills || currentProfile.additional_skills,
         comments: req.body.comments || currentProfile.comments,
-        resume_path: files['resume']?.[0]?.filename || currentProfile.resume_path,
-        other_documents: files['other_documents']?.map((f) => f.filename).join(',') || currentProfile.other_documents,
-        completion_percentage: 0,
-        status: 'pending',
+        // Keep existing values for fields we don't update
+        date_of_birth: currentProfile.date_of_birth,
+        gender: currentProfile.gender,
+        photo_path: currentProfile.photo_path,
+        selfie_path: currentProfile.selfie_path,
+        id_number: currentProfile.id_number,
+        cancelled_cheque_path: currentProfile.cancelled_cheque_path,
+        criminal_record: currentProfile.criminal_record,
+        criminal_details: currentProfile.criminal_details,
+        conflict_of_interest: currentProfile.conflict_of_interest,
+        accept_code_of_conduct: currentProfile.accept_code_of_conduct,
+        training_willingness: currentProfile.training_willingness,
+        training_mode: currentProfile.training_mode,
+        resume_path: currentProfile.resume_path,
+        other_documents: currentProfile.other_documents,
+        status: 'pending', // Reset to pending when updated
       };
 
-      profileData.completion_percentage = calculateCompletionPercentage(profileData);
+      // Calculate completion percentage
+      updateData.completion_percentage = calculateCompletionPercentage(updateData);
 
-      if (files['photo']?.[0]?.filename && currentProfile.photo_path) {
-        try {
-          fs.unlinkSync(path.join(profilesUploadDir, currentProfile.photo_path));
-        } catch (err) {
-          console.warn('Failed to delete old photo:', err);
-        }
-      }
-      if (files['selfie']?.[0]?.filename && currentProfile.selfie_path) {
-        try {
-          fs.unlinkSync(path.join(profilesUploadDir, currentProfile.selfie_path));
-        } catch (err) {
-          console.warn('Failed to delete old selfie:', err);
-        }
-      }
-      if (files['resume']?.[0]?.filename && currentProfile.resume_path) {
-        try {
-          fs.unlinkSync(path.join(profilesUploadDir, currentProfile.resume_path));
-        } catch (err) {
-          console.warn('Failed to delete old resume:', err);
-        }
-      }
-      if (files['cancelled_cheque']?.[0]?.filename && currentProfile.cancelled_cheque_path) {
-        try {
-          fs.unlinkSync(path.join(profilesUploadDir, currentProfile.cancelled_cheque_path));
-        } catch (err) {
-          console.warn('Failed to delete old cancelled cheque:', err);
-        }
-      }
+      console.log('Update data prepared:', updateData);
 
       const query = `
         UPDATE profiles SET
@@ -1237,7 +1210,52 @@ app.put(
         RETURNING id
       `;
 
-      const values = [...Object.values(profileData), id, userId];
+      const values = [
+        updateData.full_name,
+        updateData.date_of_birth,
+        updateData.gender,
+        updateData.mobile_number,
+        updateData.email_address,
+        updateData.current_address,
+        updateData.permanent_address,
+        updateData.photo_path,
+        updateData.selfie_path,
+        updateData.bank_account_number,
+        updateData.ifsc_code,
+        updateData.cancelled_cheque_path,
+        updateData.highest_qualification,
+        updateData.institution,
+        updateData.year_of_completion,
+        updateData.certifications,
+        updateData.years_of_experience,
+        updateData.current_occupation,
+        updateData.reference_details,
+        updateData.primary_sectors,
+        updateData.regions_covered,
+        updateData.languages_spoken,
+        updateData.client_base_size,
+        updateData.expected_audit_volume,
+        updateData.devices_available,
+        updateData.internet_quality,
+        updateData.digital_tool_comfort,
+        updateData.criminal_record,
+        updateData.criminal_details,
+        updateData.conflict_of_interest,
+        updateData.accept_code_of_conduct,
+        updateData.training_willingness,
+        updateData.training_mode,
+        updateData.availability,
+        updateData.additional_skills,
+        updateData.comments,
+        updateData.resume_path,
+        updateData.other_documents,
+        updateData.completion_percentage,
+        updateData.status,
+        id,
+        userId
+      ];
+
+      console.log('Executing update query with values:', values);
       const result = await pool.query(query, values);
 
       if (result.rows.length === 0) {
@@ -1247,32 +1265,20 @@ app.put(
         });
       }
 
-      // Notify admin
-      try {
-        const adminEmails = await pool.query('SELECT email FROM users WHERE signup_type = $1', ['admin']);
-        await transporter.sendMail({
-          from: `"Your App" <${process.env.EMAIL_USER}>`,
-          to: adminEmails.rows.map((row) => row.email),
-          subject: 'Updated Agent Profile for Approval',
-          html: `
-            <h2>Company Profile Updated</h2>
-            <p>Company ID ${id} (${name}) has been updated by user ID ${userId}.</p>
-            <p>Please review it in the admin dashboard.</p>
-          `,
-        });
-      } catch (emailError) {
-        console.error('Failed to notify admin:', emailError);
-      }
+      console.log('Profile updated successfully:', result.rows[0]);
 
       res.status(200).json({
         success: true,
         profileId: result.rows[0].id,
+        message: 'Profile updated successfully'
       });
     } catch (error) {
       console.error('Error updating profile:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: error.message || 'Failed to update profile',
+        error: error.message
       });
     }
   }
