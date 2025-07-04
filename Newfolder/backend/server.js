@@ -2114,11 +2114,15 @@ app.get('/api/test/user-profile/:userId', authenticateToken, async (req, res) =>
 });
 
 // Company Profile Management
-app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employee']), async (req, res) => {
+app.get('/api/company/profile/:userId', authenticateToken, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId, 10);
     console.log('Fetching company profile for user ID:', userId);
     console.log('Request user ID:', req.user.id, 'Request user type:', req.user.signup_type);
+    
+    // Check user details from database to understand signup type
+    const userResult = await pool.query('SELECT id, signup_type, status FROM users WHERE id = $1', [userId]);
+    console.log('User from database:', userResult.rows[0]);
     
     // Check if user is accessing their own profile or has admin access
     if (parseInt(req.user.id, 10) !== userId && req.user.signup_type !== 'admin') {
@@ -2167,7 +2171,7 @@ app.get('/api/company/profile/:userId', authenticateToken, checkAccess(['employe
   }
 });
 
-app.put('/api/company/profile/:profileId', authenticateToken, checkAccess(['employee']), async (req, res) => {
+app.put('/api/company/profile/:profileId', authenticateToken, async (req, res) => {
   try {
     const profileId = parseInt(req.params.profileId, 10);
     const { name, industry, size, website, description, contact_email, contact_phone, address, city, state, zip_code, country } = req.body;

@@ -34,6 +34,9 @@ const CompanyProfilePage: React.FC = () => {
 
   useEffect(() => {
     const fetchCompanyProfile = async () => {
+      console.log('Current user context:', user);
+      console.log('User type:', user?.type, 'User signup_type:', user?.signup_type);
+      
       if (!user?.id) {
         setError('User not authenticated');
         setLoading(false);
@@ -42,6 +45,18 @@ const CompanyProfilePage: React.FC = () => {
       
       try {
         const token = sessionStorage.getItem('token');
+        
+        // First, let's test the user profile endpoint to see what's happening
+        console.log('Testing user profile access for user ID:', user.id);
+        try {
+          const testResponse = await api.get(`/api/test/user-profile/${user.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('Test endpoint response:', testResponse.data);
+        } catch (testErr) {
+          console.error('Test endpoint error:', testErr);
+        }
+        
         const response = await api.get(`/api/company/profile/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -53,9 +68,13 @@ const CompanyProfilePage: React.FC = () => {
           setError('Failed to fetch company profile');
         }
       } catch (err: any) {
+        console.error('Company profile fetch error:', err);
+        console.error('Error response:', err.response);
         if (err.response?.status === 404) {
           // Profile not found - this shouldn't happen for company users since we create it during signup
           setError('Company profile not found. Please contact support.');
+        } else if (err.response?.status === 403) {
+          setError('Access denied. Please ensure you are logged in as a company user.');
         } else {
           setError(err.response?.data?.message || 'An error occurred while fetching the profile.');
         }
