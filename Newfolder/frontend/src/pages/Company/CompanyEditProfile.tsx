@@ -1,7 +1,6 @@
-import { useState, useEffect, type FormEvent, useContext } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
-import { AuthContext } from '../../context/AuthContext';
 
 interface FormDataType {
   fullName: string;
@@ -83,7 +82,6 @@ const CompanyEditProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchProfile = async () => {

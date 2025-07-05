@@ -1,7 +1,6 @@
-import { useState, useEffect, type FormEvent, useContext } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../config/axios';
-import { AuthContext } from '../../context/AuthContext';
 
 interface FormDataType {
   fullName: string;
@@ -100,7 +99,6 @@ const CompanyCreateProfile: React.FC = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
 
   const sections = [
     'Personal Identification & Contact Details',
