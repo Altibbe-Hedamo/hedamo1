@@ -100,7 +100,7 @@ const CreateProfile: React.FC = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { profileStatus, setProfileStatus } = useContext(AuthContext);
+  const { setProfileStatus } = useContext(AuthContext);
 
   const sections = [
     'Personal Identification & Contact Details',
