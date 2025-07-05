@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../../config/axios';
 
 interface ProfileData {
@@ -48,27 +48,35 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [location.pathname]); // Refetch when location changes
 
-    const fetchProfile = async () => {
-      try {
+  const fetchProfile = async () => {
+    try {
       setLoading(true);
-      const response = await axios.get('/api/profiles/user');
+      setError(null);
+      
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get('/api/profiles/user', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log('Profile data fetched:', response.data);
       setProfile(response.data);
     } catch (err: any) {
       console.error('Error fetching profile:', err);
       if (err.response?.status === 404) {
         setError('No profile found. Please create your profile first.');
-        } else {
+      } else {
         setError('Failed to load profile data.');
-        }
-      } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     navigate('/hap-portal/edit-profile');

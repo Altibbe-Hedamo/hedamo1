@@ -4,22 +4,35 @@ import api from '../../config/axios';
 
 const EditProfile: React.FC = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
-    dateOfBirth: '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    country: '',
+    date_of_birth: '',
     gender: '',
-    mobileNumber: '',
-    emailAddress: '',
-    currentAddress: '',
-    permanentAddress: '',
-    idNumber: '',
-    bankAccountNumber: '',
-    ifscCode: '',
-    highestQualification: '',
-    institution: '',
-    yearOfCompletion: '',
-    yearsOfExperience: '',
-    currentOccupation: '',
-    photo: null,
+    marital_status: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    emergency_contact_relationship: '',
+    education_level: '',
+    field_of_study: '',
+    years_of_experience: '',
+    current_job_title: '',
+    current_employer: '',
+    previous_experience: '',
+    skills: '',
+    certifications: '',
+    languages_spoken: '',
+    references: '',
+    linkedin_profile: '',
+    portfolio_website: '',
+    github_profile: '',
+    additional_info: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,40 +53,49 @@ const EditProfile: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (response.data.success && response.data.profile) {
-          const profile = response.data.profile;
-          
-          // Format date properly for HTML date input
-          let formattedDate = '';
-          if (profile.date_of_birth) {
-            const date = new Date(profile.date_of_birth);
-            formattedDate = date.toISOString().split('T')[0];
-          }
-          
-          setFormData({
-            fullName: profile.full_name || '',
-            dateOfBirth: formattedDate,
-            gender: profile.gender || '',
-            mobileNumber: profile.mobile_number || '',
-            emailAddress: profile.email_address || '',
-            currentAddress: profile.current_address || '',
-            permanentAddress: profile.permanent_address || '',
-            idNumber: profile.id_number || '',
-            bankAccountNumber: profile.bank_account_number || '',
-            ifscCode: profile.ifsc_code || '',
-            highestQualification: profile.highest_qualification || '',
-            institution: profile.institution || '',
-            yearOfCompletion: profile.year_of_completion || '',
-            yearsOfExperience: profile.years_of_experience?.toString() || '',
-            currentOccupation: profile.current_occupation || '',
-            photo: profile.photo || null,
-          });
-        } else {
-          // If no profile exists, redirect to create profile
-          console.log('No profile found, redirecting to create profile');
-          navigate('/hap-portal/create-profile');
-          return;
+        console.log('Profile fetch response:', response.data);
+        
+        // Handle direct profile data (not nested)
+        const profile = response.data;
+        
+        // Format date properly for HTML date input
+        let formattedDate = '';
+        if (profile.date_of_birth) {
+          const date = new Date(profile.date_of_birth);
+          formattedDate = date.toISOString().split('T')[0];
         }
+        
+        setFormData({
+          first_name: profile.first_name || '',
+          last_name: profile.last_name || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          address: profile.address || '',
+          city: profile.city || '',
+          state: profile.state || '',
+          zip_code: profile.zip_code || '',
+          country: profile.country || '',
+          date_of_birth: formattedDate,
+          gender: profile.gender || '',
+          marital_status: profile.marital_status || '',
+          emergency_contact_name: profile.emergency_contact_name || '',
+          emergency_contact_phone: profile.emergency_contact_phone || '',
+          emergency_contact_relationship: profile.emergency_contact_relationship || '',
+          education_level: profile.education_level || '',
+          field_of_study: profile.field_of_study || '',
+          years_of_experience: profile.years_of_experience?.toString() || '',
+          current_job_title: profile.current_job_title || '',
+          current_employer: profile.current_employer || '',
+          previous_experience: profile.previous_experience || '',
+          skills: profile.skills || '',
+          certifications: profile.certifications || '',
+          languages_spoken: profile.languages_spoken || '',
+          references: profile.references || '',
+          linkedin_profile: profile.linkedin_profile || '',
+          portfolio_website: profile.portfolio_website || '',
+          github_profile: profile.github_profile || '',
+          additional_info: profile.additional_info || '',
+        });
       } catch (err: any) {
         console.error('Error fetching profile:', err);
         console.error('Error response:', err.response?.data);
@@ -94,7 +116,7 @@ const EditProfile: React.FC = () => {
     fetchProfile();
   }, [navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -109,10 +131,9 @@ const EditProfile: React.FC = () => {
       const submitData = {
         ...formData,
         // Convert date to proper format (YYYY-MM-DD)
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : '',
+        date_of_birth: formData.date_of_birth ? new Date(formData.date_of_birth).toISOString().split('T')[0] : '',
         // Ensure numeric fields are properly formatted
-        yearsOfExperience: formData.yearsOfExperience ? parseInt(formData.yearsOfExperience) : 0,
-        yearOfCompletion: formData.yearOfCompletion ? parseInt(formData.yearOfCompletion) : null,
+        years_of_experience: formData.years_of_experience ? parseInt(formData.years_of_experience) : 0,
       };
 
       console.log('Submitting profile update:', submitData);
@@ -121,7 +142,11 @@ const EditProfile: React.FC = () => {
       });
       console.log('Profile update response:', response.data);
       setSuccess('Profile updated successfully!');
-      navigate('/hap-portal/profile');
+      
+      // Wait a moment to show success message, then navigate
+      setTimeout(() => {
+        navigate('/hap-portal/profile');
+      }, 1500);
     } catch (err: any) {
       console.error('Error updating profile:', err);
       console.error('Error response:', err.response?.data);
@@ -161,162 +186,352 @@ const EditProfile: React.FC = () => {
           {success}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-gray-600 mb-1">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        {/* Personal Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Personal Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-1">First Name</label>
+              <input
+                type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Last Name</label>
+              <input
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Phone</label>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Date of Birth</label>
+              <input
+                type="date"
+                name="date_of_birth"
+                value={formData.date_of_birth}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Gender</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Marital Status</label>
+              <select
+                name="marital_status"
+                value={formData.marital_status}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Status</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Address Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Address Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-gray-600 mb-1">Address</label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">City</label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">State</label>
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">ZIP Code</label>
+              <input
+                type="text"
+                name="zip_code"
+                value={formData.zip_code}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Country</label>
+              <input
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Emergency Contact */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Emergency Contact</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-1">Emergency Contact Name</label>
+              <input
+                type="text"
+                name="emergency_contact_name"
+                value={formData.emergency_contact_name}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Emergency Contact Phone</label>
+              <input
+                type="text"
+                name="emergency_contact_phone"
+                value={formData.emergency_contact_phone}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Relationship</label>
+              <input
+                type="text"
+                name="emergency_contact_relationship"
+                value={formData.emergency_contact_relationship}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Education */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Education</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-1">Education Level</label>
+              <input
+                type="text"
+                name="education_level"
+                value={formData.education_level}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Field of Study</label>
+              <input
+                type="text"
+                name="field_of_study"
+                value={formData.field_of_study}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Professional Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-1">Years of Experience</label>
+              <input
+                type="number"
+                name="years_of_experience"
+                value={formData.years_of_experience}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Current Job Title</label>
+              <input
+                type="text"
+                name="current_job_title"
+                value={formData.current_job_title}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Current Employer</label>
+              <input
+                type="text"
+                name="current_employer"
+                value={formData.current_employer}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Skills</label>
+              <input
+                type="text"
+                name="skills"
+                value={formData.skills}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Certifications</label>
+              <input
+                type="text"
+                name="certifications"
+                value={formData.certifications}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Languages Spoken</label>
+              <input
+                type="text"
+                name="languages_spoken"
+                value={formData.languages_spoken}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Date of Birth</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={formData.dateOfBirth}
+            <label className="block text-gray-600 mb-1">Previous Experience</label>
+            <textarea
+              name="previous_experience"
+              value={formData.previous_experience}
               onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Mobile Number</label>
-            <input
-              type="text"
-              name="mobileNumber"
-              value={formData.mobileNumber}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Email Address</label>
-            <input
-              type="email"
-              name="emailAddress"
-              value={formData.emailAddress}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Current Address</label>
-            <input
-              type="text"
-              name="currentAddress"
-              value={formData.currentAddress}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Permanent Address</label>
-            <input
-              type="text"
-              name="permanentAddress"
-              value={formData.permanentAddress}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">ID Number</label>
-            <input
-              type="text"
-              name="idNumber"
-              value={formData.idNumber}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Bank Account Number</label>
-            <input
-              type="text"
-              name="bankAccountNumber"
-              value={formData.bankAccountNumber}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">IFSC Code</label>
-            <input
-              type="text"
-              name="ifscCode"
-              value={formData.ifscCode}
-              onChange={handleChange}
+              rows={4}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Online Presence */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Online Presence</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-1">LinkedIn Profile</label>
+              <input
+                type="url"
+                name="linkedin_profile"
+                value={formData.linkedin_profile}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">Portfolio Website</label>
+              <input
+                type="url"
+                name="portfolio_website"
+                value={formData.portfolio_website}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">GitHub Profile</label>
+              <input
+                type="url"
+                name="github_profile"
+                value={formData.github_profile}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800">Additional Information</h2>
           <div>
-            <label className="block text-gray-600 mb-1">Highest Qualification</label>
-            <input
-              type="text"
-              name="highestQualification"
-              value={formData.highestQualification}
+            <label className="block text-gray-600 mb-1">References</label>
+            <textarea
+              name="references"
+              value={formData.references}
               onChange={handleChange}
+              rows={3}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-gray-600 mb-1">Institution</label>
-            <input
-              type="text"
-              name="institution"
-              value={formData.institution}
+            <label className="block text-gray-600 mb-1">Additional Information</label>
+            <textarea
+              name="additional_info"
+              value={formData.additional_info}
               onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Year of Completion</label>
-            <input
-              type="text"
-              name="yearOfCompletion"
-              value={formData.yearOfCompletion}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Years of Experience</label>
-            <input
-              type="text"
-              name="yearsOfExperience"
-              value={formData.yearsOfExperience}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-600 mb-1">Current Occupation</label>
-            <input
-              type="text"
-              name="currentOccupation"
-              value={formData.currentOccupation}
-              onChange={handleChange}
+              rows={3}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -326,15 +541,16 @@ const EditProfile: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/hap-portal/profile')}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors duration-200"
+            className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors duration-200"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            disabled={loading}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
           >
-            Save Changes
+            {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>
