@@ -143,15 +143,65 @@ const CreateProfile: React.FC = () => {
     setProgress(calculateProgress());
   }, [formData, files]);
 
-  // Check profile status on mount to ensure correct navigation
+  // Load existing profile data if available
   useEffect(() => {
-    if (profileStatus && profileStatus !== null) {
-      // If a profile already exists, redirect based on status
-      if (profileStatus === 'pending' || profileStatus === 'rejected') {
-        navigate('/hap-portal/view-profile', { replace: true });
+    const loadExistingProfile = async () => {
+      try {
+        const token = sessionStorage.getItem('token');
+        if (!token) return;
+
+        const response = await api.get('/api/profiles/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data.success && response.data.profile) {
+          const profile = response.data.profile;
+          // Pre-populate form with existing data
+          setFormData({
+            fullName: profile.full_name || '',
+            dateOfBirth: profile.date_of_birth || '',
+            gender: profile.gender || '',
+            mobileNumber: profile.mobile_number || '',
+            emailAddress: profile.email_address || '',
+            currentAddress: profile.current_address || '',
+            permanentAddress: profile.permanent_address || '',
+            idNumber: profile.id_number || '',
+            bankAccountNumber: profile.bank_account_number || '',
+            ifscCode: profile.ifsc_code || '',
+            highestQualification: profile.highest_qualification || '',
+            institution: profile.institution || '',
+            yearOfCompletion: profile.year_of_completion || '',
+            certifications: profile.certifications || '',
+            yearsOfExperience: profile.years_of_experience || '',
+            currentOccupation: profile.current_occupation || '',
+            references: profile.reference_details || '',
+            primarySectors: profile.primary_sectors || '',
+            regionsCovered: profile.regions_covered || '',
+            languagesSpoken: profile.languages_spoken || '',
+            clientBaseSize: profile.client_base_size || '',
+            expectedAuditVolume: profile.expected_audit_volume || '',
+            devicesAvailable: profile.devices_available || '',
+            internetQuality: profile.internet_quality || '',
+            digitalToolComfort: profile.digital_tool_comfort || '',
+            criminalRecord: profile.criminal_record || '',
+            criminalDetails: profile.criminal_details || '',
+            conflictOfInterest: profile.conflict_of_interest || '',
+            acceptCodeOfConduct: profile.accept_code_of_conduct || false,
+            trainingWillingness: profile.training_willingness || '',
+            trainingMode: profile.training_mode || '',
+            availability: profile.availability || '',
+            additionalSkills: profile.additional_skills || '',
+            comments: profile.comments || '',
+          });
+        }
+      } catch (error) {
+        // Profile doesn't exist yet, that's fine
+        console.log('No existing profile found, starting fresh');
       }
-    }
-  }, [profileStatus, navigate]);
+    };
+
+    loadExistingProfile();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -196,14 +246,37 @@ const CreateProfile: React.FC = () => {
 
     try {
       const token = sessionStorage.getItem('token');
-      const response = await api.post('/api/profiles', form, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
-        },
-      });
+      
+      // Check if profile already exists
+      let isUpdate = false;
+      try {
+        const checkResponse = await api.get('/api/profiles/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (checkResponse.data.success && checkResponse.data.profile) {
+          isUpdate = true;
+        }
+      } catch (checkError) {
+        // Profile doesn't exist, create new one
+        isUpdate = false;
+      }
+
+      const response = isUpdate 
+        ? await api.put('/api/profiles/user', form, {
+            headers: { 
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`
+            },
+          })
+        : await api.post('/api/profiles', form, {
+            headers: { 
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`
+            },
+          });
+
       if (response.data.success) {
-        setSuccess('Profile submitted for approval');
+        setSuccess(isUpdate ? 'Profile updated successfully' : 'Profile submitted for approval');
         setProfileStatus('pending'); // Update context to reflect new profile status
         setTimeout(() => navigate('/hap-portal/view-profile'), 2000);
       }
