@@ -188,78 +188,28 @@ const Profile: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700">Gender</label>
               <p className="mt-1 text-sm text-gray-900">{profile.gender || 'Not provided'}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Marital Status</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.marital_status || 'Not provided'}</p>
-            </div>
           </div>
         </div>
 
         {/* Address Information */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Address Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Address</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.address || 'Not provided'}</p>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">City</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.city || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">State</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.state || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">ZIP Code</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.zip_code || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Country</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.country || 'Not provided'}</p>
+              <label className="block text-sm font-medium text-gray-700">Current Address</label>
+              <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{profile.address || 'Not provided'}</p>
             </div>
           </div>
         </div>
 
-        {/* Emergency Contact */}
+        {/* Education & Professional Information */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Emergency Contact</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.emergency_contact_name || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.emergency_contact_phone || 'Not provided'}</p>
-            </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700">Relationship</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.emergency_contact_relationship || 'Not provided'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Education</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Education & Professional Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Education Level</label>
               <p className="mt-1 text-sm text-gray-900">{profile.education_level || 'Not provided'}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Field of Study</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.field_of_study || 'Not provided'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Professional Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Professional Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Years of Experience</label>
               <p className="mt-1 text-sm text-gray-900">{profile.years_of_experience || 'Not provided'}</p>
@@ -267,10 +217,6 @@ const Profile: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700">Current Job Title</label>
               <p className="mt-1 text-sm text-gray-900">{profile.current_job_title || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Current Employer</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.current_employer || 'Not provided'}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Skills</label>
@@ -286,27 +232,8 @@ const Profile: React.FC = () => {
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700">Previous Experience</label>
-            <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{profile.previous_experience || 'Not provided'}</p>
-          </div>
-        </div>
-
-        {/* Online Presence */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Online Presence</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">LinkedIn Profile</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.linkedin_profile || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Portfolio Website</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.portfolio_website || 'Not provided'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">GitHub Profile</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.github_profile || 'Not provided'}</p>
-            </div>
+            <label className="block text-sm font-medium text-gray-700">References</label>
+            <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{profile.references || 'Not provided'}</p>
           </div>
         </div>
 
@@ -314,10 +241,6 @@ const Profile: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Additional Information</h2>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">References</label>
-              <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{profile.references || 'Not provided'}</p>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Additional Information</label>
               <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{profile.additional_info || 'Not provided'}</p>

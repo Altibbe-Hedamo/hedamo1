@@ -1090,33 +1090,33 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
       email: profile.email_address,
       phone: profile.mobile_number,
       address: profile.current_address,
-      city: '', // Not in database, will be empty
-      state: '', // Not in database, will be empty
-      zip_code: '', // Not in database, will be empty
-      country: '', // Not in database, will be empty
+      city: '', // Not in database schema, will be empty
+      state: '', // Not in database schema, will be empty
+      zip_code: '', // Not in database schema, will be empty
+      country: '', // Not in database schema, will be empty
       date_of_birth: profile.date_of_birth,
       gender: profile.gender,
-      marital_status: '', // Not in database, will be empty
-      emergency_contact_name: '', // Not in database, will be empty
-      emergency_contact_phone: '', // Not in database, will be empty
-      emergency_contact_relationship: '', // Not in database, will be empty
+      marital_status: '', // Not in database schema, will be empty
+      emergency_contact_name: '', // Not in database schema, will be empty
+      emergency_contact_phone: '', // Not in database schema, will be empty
+      emergency_contact_relationship: '', // Not in database schema, will be empty
       education_level: profile.highest_qualification,
-      field_of_study: '', // Not in database, will be empty
+      field_of_study: '', // Not in database schema, will be empty
       years_of_experience: profile.years_of_experience,
       current_job_title: profile.current_occupation,
-      current_employer: '', // Not in database, will be empty
-      previous_experience: '', // Not in database, will be empty
+      current_employer: '', // Not in database schema, will be empty
+      previous_experience: '', // Not in database schema, will be empty
       skills: profile.additional_skills,
       certifications: profile.certifications,
       languages_spoken: profile.languages_spoken,
       references: profile.reference_details,
-      linkedin_profile: '', // Not in database, will be empty
-      portfolio_website: '', // Not in database, will be empty
-      github_profile: '', // Not in database, will be empty
+      linkedin_profile: '', // Not in database schema, will be empty
+      portfolio_website: '', // Not in database schema, will be empty
+      github_profile: '', // Not in database schema, will be empty
       additional_info: profile.comments,
       profile_picture: profile.photo_path,
       resume: profile.resume_path,
-      cover_letter: '', // Not in database, will be empty
+      cover_letter: '', // Not in database schema, will be empty
       id_document: profile.id_number,
       status: profile.status,
       created_at: profile.created_at,
