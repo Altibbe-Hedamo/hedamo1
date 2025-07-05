@@ -1116,6 +1116,193 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 
 
 
+// Update Profile by User (for HAP and Agent Edit Profile) - MUST BE BEFORE /:id route
+app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee', 'client', 'hap']), async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    console.log('Profile update request for user:', {
+      userId: userId,
+      body: req.body
+    });
+
+    // Find the user's profile
+    const existingProfile = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
+    if (existingProfile.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found',
+      });
+    }
+
+    const currentProfile = existingProfile.rows[0];
+    const profileId = currentProfile.id;
+
+    // Map frontend camelCase field names to backend snake_case field names
+    const fieldMapping = {
+      fullName: 'full_name',
+      dateOfBirth: 'date_of_birth',
+      mobileNumber: 'mobile_number',
+      emailAddress: 'email_address',
+      currentAddress: 'current_address',
+      permanentAddress: 'permanent_address',
+      idNumber: 'id_number',
+      bankAccountNumber: 'bank_account_number',
+      ifscCode: 'ifsc_code',
+      highestQualification: 'highest_qualification',
+      yearOfCompletion: 'year_of_completion',
+      yearsOfExperience: 'years_of_experience',
+      currentOccupation: 'current_occupation'
+    };
+
+    // Build update data using the field mapping with proper type conversion
+    const updateData = {
+      full_name: req.body.fullName || req.body.full_name || currentProfile.full_name,
+      date_of_birth: req.body.dateOfBirth || req.body.date_of_birth || currentProfile.date_of_birth,
+      gender: req.body.gender || currentProfile.gender,
+      mobile_number: req.body.mobileNumber || req.body.mobile_number || currentProfile.mobile_number,
+      email_address: req.body.emailAddress || req.body.email_address || currentProfile.email_address,
+      current_address: req.body.currentAddress || req.body.current_address || currentProfile.current_address,
+      permanent_address: req.body.permanentAddress || req.body.permanent_address || currentProfile.permanent_address,
+      id_number: req.body.idNumber || req.body.id_number || currentProfile.id_number,
+      bank_account_number: req.body.bankAccountNumber || req.body.bank_account_number || currentProfile.bank_account_number,
+      ifsc_code: req.body.ifscCode || req.body.ifsc_code || currentProfile.ifsc_code,
+      highest_qualification: req.body.highestQualification || req.body.highest_qualification || currentProfile.highest_qualification,
+      institution: req.body.institution || currentProfile.institution,
+      year_of_completion: req.body.yearOfCompletion ? parseInt(req.body.yearOfCompletion) : (req.body.year_of_completion ? parseInt(req.body.year_of_completion) : currentProfile.year_of_completion),
+      certifications: req.body.certifications || currentProfile.certifications,
+      years_of_experience: req.body.yearsOfExperience ? parseInt(req.body.yearsOfExperience) : (req.body.years_of_experience ? parseInt(req.body.years_of_experience) : currentProfile.years_of_experience),
+      current_occupation: req.body.currentOccupation || req.body.current_occupation || currentProfile.current_occupation,
+      reference_details: req.body.references || req.body.reference_details || currentProfile.reference_details,
+      primary_sectors: req.body.primarySectors || req.body.primary_sectors || currentProfile.primary_sectors,
+      regions_covered: req.body.regionsCovered || req.body.regions_covered || currentProfile.regions_covered,
+      languages_spoken: req.body.languagesSpoken || req.body.languages_spoken || currentProfile.languages_spoken,
+      client_base_size: req.body.clientBaseSize || req.body.client_base_size || currentProfile.client_base_size,
+      expected_audit_volume: req.body.expectedAuditVolume || req.body.expected_audit_volume || currentProfile.expected_audit_volume,
+      devices_available: req.body.devicesAvailable || req.body.devices_available || currentProfile.devices_available,
+      internet_quality: req.body.internetQuality || req.body.internet_quality || currentProfile.internet_quality,
+      digital_tool_comfort: req.body.digitalToolComfort || req.body.digital_tool_comfort || currentProfile.digital_tool_comfort,
+      availability: req.body.availability || currentProfile.availability,
+      additional_skills: req.body.additionalSkills || req.body.additional_skills || currentProfile.additional_skills,
+      comments: req.body.comments || currentProfile.comments,
+      // Keep existing values for fields we don't update
+      photo_path: currentProfile.photo_path,
+      selfie_path: currentProfile.selfie_path,
+      cancelled_cheque_path: currentProfile.cancelled_cheque_path,
+      criminal_record: currentProfile.criminal_record,
+      criminal_details: currentProfile.criminal_details,
+      conflict_of_interest: currentProfile.conflict_of_interest,
+      accept_code_of_conduct: currentProfile.accept_code_of_conduct,
+      training_willingness: currentProfile.training_willingness,
+      training_mode: currentProfile.training_mode,
+      resume_path: currentProfile.resume_path,
+      other_documents: currentProfile.other_documents,
+      status: 'pending', // Reset to pending when updated
+    };
+
+    // Calculate completion percentage
+    updateData.completion_percentage = calculateCompletionPercentage(updateData);
+
+    console.log('Update data prepared:', updateData);
+
+    const query = `
+      UPDATE profiles SET
+        full_name = $1, date_of_birth = $2, gender = $3, mobile_number = $4, email_address = $5,
+        current_address = $6, permanent_address = $7, photo_path = $8, selfie_path = $9,
+        bank_account_number = $10, ifsc_code = $11, cancelled_cheque_path = $12,
+        highest_qualification = $13, institution = $14, year_of_completion = $15,
+        certifications = $16, years_of_experience = $17, current_occupation = $18,
+        reference_details = $19, primary_sectors = $20, regions_covered = $21,
+        languages_spoken = $22, client_base_size = $23, expected_audit_volume = $24,
+        devices_available = $25, internet_quality = $26, digital_tool_comfort = $27,
+        criminal_record = $28, criminal_details = $29, conflict_of_interest = $30,
+        accept_code_of_conduct = $31, training_willingness = $32, training_mode = $33,
+        availability = $34, additional_skills = $35, comments = $36, resume_path = $37,
+        other_documents = $38, completion_percentage = $39, status = $40, id_number = $41
+      WHERE user_id = $42
+      RETURNING id
+    `;
+
+    const values = [
+      updateData.full_name,
+      updateData.date_of_birth,
+      updateData.gender,
+      updateData.mobile_number,
+      updateData.email_address,
+      updateData.current_address,
+      updateData.permanent_address,
+      updateData.photo_path,
+      updateData.selfie_path,
+      updateData.bank_account_number,
+      updateData.ifsc_code,
+      updateData.cancelled_cheque_path,
+      updateData.highest_qualification,
+      updateData.institution,
+      updateData.year_of_completion,
+      updateData.certifications,
+      updateData.years_of_experience,
+      updateData.current_occupation,
+      updateData.reference_details,
+      updateData.primary_sectors,
+      updateData.regions_covered,
+      updateData.languages_spoken,
+      updateData.client_base_size,
+      updateData.expected_audit_volume,
+      updateData.devices_available,
+      updateData.internet_quality,
+      updateData.digital_tool_comfort,
+      updateData.criminal_record,
+      updateData.criminal_details,
+      updateData.conflict_of_interest,
+      updateData.accept_code_of_conduct,
+      updateData.training_willingness,
+      updateData.training_mode,
+      updateData.availability,
+      updateData.additional_skills,
+      updateData.comments,
+      updateData.resume_path,
+      updateData.other_documents,
+      updateData.completion_percentage,
+      updateData.status,
+      updateData.id_number,
+      userId
+    ];
+
+    console.log('Executing update query for user:', userId);
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found',
+      });
+    }
+
+    console.log('Profile updated successfully for user:', userId);
+
+    res.status(200).json({
+      success: true,
+      profileId: result.rows[0].id,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update profile',
+      error: error.message,
+      details: error.detail || error.hint
+    });
+  }
+});
+
 // Update Profile (Simplified for Company/Employee users)
 app.put(
   '/api/profiles/:id',
@@ -1317,193 +1504,6 @@ app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee'
     res.status(500).json({
       success: false,
       message: 'Failed to fetch profile',
-    });
-  }
-});
-
-// Update Profile by User (for HAP and Agent Edit Profile)
-app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee', 'client', 'hap']), async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    console.log('Profile update request for user:', {
-      userId: userId,
-      body: req.body
-    });
-
-    // Find the user's profile
-    const existingProfile = await pool.query('SELECT * FROM profiles WHERE user_id = $1', [userId]);
-    if (existingProfile.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Profile not found',
-      });
-    }
-
-    const currentProfile = existingProfile.rows[0];
-    const profileId = currentProfile.id;
-
-    // Map frontend camelCase field names to backend snake_case field names
-    const fieldMapping = {
-      fullName: 'full_name',
-      dateOfBirth: 'date_of_birth',
-      mobileNumber: 'mobile_number',
-      emailAddress: 'email_address',
-      currentAddress: 'current_address',
-      permanentAddress: 'permanent_address',
-      idNumber: 'id_number',
-      bankAccountNumber: 'bank_account_number',
-      ifscCode: 'ifsc_code',
-      highestQualification: 'highest_qualification',
-      yearOfCompletion: 'year_of_completion',
-      yearsOfExperience: 'years_of_experience',
-      currentOccupation: 'current_occupation'
-    };
-
-    // Build update data using the field mapping with proper type conversion
-    const updateData = {
-      full_name: req.body.fullName || req.body.full_name || currentProfile.full_name,
-      date_of_birth: req.body.dateOfBirth || req.body.date_of_birth || currentProfile.date_of_birth,
-      gender: req.body.gender || currentProfile.gender,
-      mobile_number: req.body.mobileNumber || req.body.mobile_number || currentProfile.mobile_number,
-      email_address: req.body.emailAddress || req.body.email_address || currentProfile.email_address,
-      current_address: req.body.currentAddress || req.body.current_address || currentProfile.current_address,
-      permanent_address: req.body.permanentAddress || req.body.permanent_address || currentProfile.permanent_address,
-      id_number: req.body.idNumber || req.body.id_number || currentProfile.id_number,
-      bank_account_number: req.body.bankAccountNumber || req.body.bank_account_number || currentProfile.bank_account_number,
-      ifsc_code: req.body.ifscCode || req.body.ifsc_code || currentProfile.ifsc_code,
-      highest_qualification: req.body.highestQualification || req.body.highest_qualification || currentProfile.highest_qualification,
-      institution: req.body.institution || currentProfile.institution,
-      year_of_completion: req.body.yearOfCompletion ? parseInt(req.body.yearOfCompletion) : (req.body.year_of_completion ? parseInt(req.body.year_of_completion) : currentProfile.year_of_completion),
-      certifications: req.body.certifications || currentProfile.certifications,
-      years_of_experience: req.body.yearsOfExperience ? parseInt(req.body.yearsOfExperience) : (req.body.years_of_experience ? parseInt(req.body.years_of_experience) : currentProfile.years_of_experience),
-      current_occupation: req.body.currentOccupation || req.body.current_occupation || currentProfile.current_occupation,
-      reference_details: req.body.references || req.body.reference_details || currentProfile.reference_details,
-      primary_sectors: req.body.primarySectors || req.body.primary_sectors || currentProfile.primary_sectors,
-      regions_covered: req.body.regionsCovered || req.body.regions_covered || currentProfile.regions_covered,
-      languages_spoken: req.body.languagesSpoken || req.body.languages_spoken || currentProfile.languages_spoken,
-      client_base_size: req.body.clientBaseSize || req.body.client_base_size || currentProfile.client_base_size,
-      expected_audit_volume: req.body.expectedAuditVolume || req.body.expected_audit_volume || currentProfile.expected_audit_volume,
-      devices_available: req.body.devicesAvailable || req.body.devices_available || currentProfile.devices_available,
-      internet_quality: req.body.internetQuality || req.body.internet_quality || currentProfile.internet_quality,
-      digital_tool_comfort: req.body.digitalToolComfort || req.body.digital_tool_comfort || currentProfile.digital_tool_comfort,
-      availability: req.body.availability || currentProfile.availability,
-      additional_skills: req.body.additionalSkills || req.body.additional_skills || currentProfile.additional_skills,
-      comments: req.body.comments || currentProfile.comments,
-      // Keep existing values for fields we don't update
-      photo_path: currentProfile.photo_path,
-      selfie_path: currentProfile.selfie_path,
-      cancelled_cheque_path: currentProfile.cancelled_cheque_path,
-      criminal_record: currentProfile.criminal_record,
-      criminal_details: currentProfile.criminal_details,
-      conflict_of_interest: currentProfile.conflict_of_interest,
-      accept_code_of_conduct: currentProfile.accept_code_of_conduct,
-      training_willingness: currentProfile.training_willingness,
-      training_mode: currentProfile.training_mode,
-      resume_path: currentProfile.resume_path,
-      other_documents: currentProfile.other_documents,
-      status: 'pending', // Reset to pending when updated
-    };
-
-    // Calculate completion percentage
-    updateData.completion_percentage = calculateCompletionPercentage(updateData);
-
-    console.log('Update data prepared:', updateData);
-
-    const query = `
-      UPDATE profiles SET
-        full_name = $1, date_of_birth = $2, gender = $3, mobile_number = $4, email_address = $5,
-        current_address = $6, permanent_address = $7, photo_path = $8, selfie_path = $9,
-        bank_account_number = $10, ifsc_code = $11, cancelled_cheque_path = $12,
-        highest_qualification = $13, institution = $14, year_of_completion = $15,
-        certifications = $16, years_of_experience = $17, current_occupation = $18,
-        reference_details = $19, primary_sectors = $20, regions_covered = $21,
-        languages_spoken = $22, client_base_size = $23, expected_audit_volume = $24,
-        devices_available = $25, internet_quality = $26, digital_tool_comfort = $27,
-        criminal_record = $28, criminal_details = $29, conflict_of_interest = $30,
-        accept_code_of_conduct = $31, training_willingness = $32, training_mode = $33,
-        availability = $34, additional_skills = $35, comments = $36, resume_path = $37,
-        other_documents = $38, completion_percentage = $39, status = $40, id_number = $41
-      WHERE user_id = $42
-      RETURNING id
-    `;
-
-    const values = [
-      updateData.full_name,
-      updateData.date_of_birth,
-      updateData.gender,
-      updateData.mobile_number,
-      updateData.email_address,
-      updateData.current_address,
-      updateData.permanent_address,
-      updateData.photo_path,
-      updateData.selfie_path,
-      updateData.bank_account_number,
-      updateData.ifsc_code,
-      updateData.cancelled_cheque_path,
-      updateData.highest_qualification,
-      updateData.institution,
-      updateData.year_of_completion,
-      updateData.certifications,
-      updateData.years_of_experience,
-      updateData.current_occupation,
-      updateData.reference_details,
-      updateData.primary_sectors,
-      updateData.regions_covered,
-      updateData.languages_spoken,
-      updateData.client_base_size,
-      updateData.expected_audit_volume,
-      updateData.devices_available,
-      updateData.internet_quality,
-      updateData.digital_tool_comfort,
-      updateData.criminal_record,
-      updateData.criminal_details,
-      updateData.conflict_of_interest,
-      updateData.accept_code_of_conduct,
-      updateData.training_willingness,
-      updateData.training_mode,
-      updateData.availability,
-      updateData.additional_skills,
-      updateData.comments,
-      updateData.resume_path,
-      updateData.other_documents,
-      updateData.completion_percentage,
-      updateData.status,
-      updateData.id_number,
-      userId
-    ];
-
-    console.log('Executing update query for user:', userId);
-    const result = await pool.query(query, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Profile not found',
-      });
-    }
-
-    console.log('Profile updated successfully for user:', userId);
-
-    res.status(200).json({
-      success: true,
-      profileId: result.rows[0].id,
-      message: 'Profile updated successfully'
-    });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      detail: error.detail,
-      hint: error.hint
-    });
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update profile',
-      error: error.message,
-      details: error.detail || error.hint
     });
   }
 });
