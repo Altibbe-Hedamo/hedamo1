@@ -10,33 +10,18 @@ interface ProfileData {
   email?: string;
   phone?: string;
   address?: string;
-  city?: string;
-  state?: string;
-  zip_code?: string;
-  country?: string;
   date_of_birth?: string;
   gender?: string;
-  marital_status?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  emergency_contact_relationship?: string;
   education_level?: string;
-  field_of_study?: string;
   years_of_experience?: number;
   current_job_title?: string;
-  current_employer?: string;
-  previous_experience?: string;
   skills?: string;
   certifications?: string;
   languages_spoken?: string;
   references?: string;
-  linkedin_profile?: string;
-  portfolio_website?: string;
-  github_profile?: string;
   additional_info?: string;
   profile_picture?: string;
   resume?: string;
-  cover_letter?: string;
   id_document?: string;
   status?: string;
   created_at?: string;
@@ -259,10 +244,6 @@ const Profile: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700">Resume</label>
               <p className="mt-1 text-sm text-gray-900">{profile.resume ? 'Uploaded' : 'Not uploaded'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Cover Letter</label>
-              <p className="mt-1 text-sm text-gray-900">{profile.cover_letter ? 'Uploaded' : 'Not uploaded'}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">ID Document</label>
