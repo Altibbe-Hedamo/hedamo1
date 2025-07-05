@@ -62,6 +62,10 @@ const AgentDashboardRoutes = () => {
           />
           <Route
             path="/profile"
+            element={<ProtectedRoute><CreateProfile /></ProtectedRoute>}
+          />
+          <Route
+            path="/view-profile"
             element={<ProtectedRoute><Profile /></ProtectedRoute>}
           />
           <Route

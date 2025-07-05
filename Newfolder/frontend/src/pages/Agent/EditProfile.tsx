@@ -85,7 +85,7 @@ const EditProfile: React.FC = () => {
         headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       setSuccess('Profile updated successfully!');
-      navigate('/agent-dashboard/profile');
+      navigate('/agent-dashboard/view-profile');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
@@ -293,7 +293,7 @@ const EditProfile: React.FC = () => {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => navigate('/agent-dashboard/profile')}
+            onClick={() => navigate('/agent-dashboard/view-profile')}
             className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors duration-200"
           >
             Cancel

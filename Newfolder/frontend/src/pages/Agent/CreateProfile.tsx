@@ -148,7 +148,7 @@ const CreateProfile: React.FC = () => {
     if (profileStatus && profileStatus !== null) {
       // If a profile already exists, redirect based on status
       if (profileStatus === 'pending' || profileStatus === 'rejected') {
-        navigate('/agent-dashboard/waiting-approval', { replace: true });
+        navigate('/agent-dashboard/view-profile', { replace: true });
       }
     }
   }, [profileStatus, navigate]);
@@ -195,13 +195,17 @@ const CreateProfile: React.FC = () => {
     files.otherDocuments.forEach(file => form.append('other_documents', file));
 
     try {
+      const token = sessionStorage.getItem('token');
       const response = await api.post('/api/profiles', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        },
       });
       if (response.data.success) {
         setSuccess('Profile submitted for approval');
         setProfileStatus('pending'); // Update context to reflect new profile status
-        setTimeout(() => navigate('/agent-dashboard/waiting-approval'), 2000);
+        setTimeout(() => navigate('/agent-dashboard/view-profile'), 2000);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit profile');
