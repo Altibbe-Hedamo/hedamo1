@@ -1069,41 +1069,82 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
 
     if (profileResult.rows.length === 0) {
       console.log(`No profile found for user ID: ${userId}`);
-      return res.status(200).json({
-        success: true,
-        profile: null,
-        companies: [],
-        products: [],
+      return res.status(404).json({
+        success: false,
         message: 'Profile not found',
       });
     }
 
     const profile = profileResult.rows[0];
-
-    // Fetch companies created by the user
-    const companyQuery = 'SELECT id, name, status FROM company WHERE created_by = $1';
-    const companyResult = await pool.query(companyQuery, [userId]);
-    const companies = companyResult.rows;
-
-    // Fetch products related to user's companies
-    const productQuery = `
-      SELECT p.id, p.name, p.status, p.company_id
-      FROM products p
-      WHERE p.company_id IN (
-        SELECT id FROM company WHERE created_by = $1
-      )
-    `;
-    const productResult = await pool.query(productQuery, [userId]);
-    const products = productResult.rows;
-
-    // Final response
-    res.status(200).json({
-      success: true,
+    
+    // Map database field names to frontend field names
+    const mappedProfile = {
+      id: profile.id,
+      user_id: profile.user_id,
+      // Map full_name to first_name and last_name
+      first_name: profile.full_name ? profile.full_name.split(' ')[0] : '',
+      last_name: profile.full_name ? profile.full_name.split(' ').slice(1).join(' ') : '',
+      email: profile.email_address,
+      phone: profile.mobile_number,
+      address: profile.current_address,
+      city: '', // Not in database, will be empty
+      state: '', // Not in database, will be empty
+      zip_code: '', // Not in database, will be empty
+      country: '', // Not in database, will be empty
+      date_of_birth: profile.date_of_birth,
+      gender: profile.gender,
+      marital_status: '', // Not in database, will be empty
+      emergency_contact_name: '', // Not in database, will be empty
+      emergency_contact_phone: '', // Not in database, will be empty
+      emergency_contact_relationship: '', // Not in database, will be empty
+      education_level: profile.highest_qualification,
+      field_of_study: '', // Not in database, will be empty
+      years_of_experience: profile.years_of_experience,
+      current_job_title: profile.current_occupation,
+      current_employer: '', // Not in database, will be empty
+      previous_experience: '', // Not in database, will be empty
+      skills: profile.additional_skills,
+      certifications: profile.certifications,
+      languages_spoken: profile.languages_spoken,
+      references: profile.reference_details,
+      linkedin_profile: '', // Not in database, will be empty
+      portfolio_website: '', // Not in database, will be empty
+      github_profile: '', // Not in database, will be empty
+      additional_info: profile.comments,
+      profile_picture: profile.photo_path,
+      resume: profile.resume_path,
+      cover_letter: '', // Not in database, will be empty
+      id_document: profile.id_number,
       status: profile.status,
-      profile,
-      companies,
-      products,
-    });
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
+      // Keep original fields for backward compatibility
+      full_name: profile.full_name,
+      mobile_number: profile.mobile_number,
+      email_address: profile.email_address,
+      current_address: profile.current_address,
+      permanent_address: profile.permanent_address,
+      highest_qualification: profile.highest_qualification,
+      institution: profile.institution,
+      year_of_completion: profile.year_of_completion,
+      current_occupation: profile.current_occupation,
+      reference_details: profile.reference_details,
+      primary_sectors: profile.primary_sectors,
+      regions_covered: profile.regions_covered,
+      client_base_size: profile.client_base_size,
+      expected_audit_volume: profile.expected_audit_volume,
+      devices_available: profile.devices_available,
+      internet_quality: profile.internet_quality,
+      digital_tool_comfort: profile.digital_tool_comfort,
+      bank_account_number: profile.bank_account_number,
+      ifsc_code: profile.ifsc_code,
+      completion_percentage: profile.completion_percentage
+    };
+
+    console.log('Mapped profile data:', mappedProfile);
+
+    // Return the profile data directly (not nested)
+    res.status(200).json(mappedProfile);
 
   } catch (error) {
     console.error(`Error fetching profile for user_id=${req.user?.id}:`, error);

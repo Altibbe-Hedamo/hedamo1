@@ -127,13 +127,45 @@ const EditProfile: React.FC = () => {
     setLoading(true);
 
     try {
-      // Format the data before sending
+      // Map frontend field names to backend database field names
       const submitData = {
-        ...formData,
-        // Convert date to proper format (YYYY-MM-DD)
+        // Map to database field names
+        full_name: `${formData.first_name} ${formData.last_name}`.trim(),
         date_of_birth: formData.date_of_birth ? new Date(formData.date_of_birth).toISOString().split('T')[0] : '',
-        // Ensure numeric fields are properly formatted
+        gender: formData.gender,
+        mobile_number: formData.phone,
+        email_address: formData.email,
+        current_address: formData.address,
+        permanent_address: formData.address, // Use same as current for now
+        highest_qualification: formData.education_level,
+        institution: '', // Not captured in form
+        year_of_completion: '', // Not captured in form
+        certifications: formData.certifications,
         years_of_experience: formData.years_of_experience ? parseInt(formData.years_of_experience) : 0,
+        current_occupation: formData.current_job_title,
+        reference_details: formData.references,
+        primary_sectors: '', // Not captured in form
+        regions_covered: '', // Not captured in form
+        languages_spoken: formData.languages_spoken,
+        client_base_size: '', // Not captured in form
+        expected_audit_volume: '', // Not captured in form
+        devices_available: '', // Not captured in form
+        internet_quality: '', // Not captured in form
+        digital_tool_comfort: '', // Not captured in form
+        additional_skills: formData.skills,
+        comments: formData.additional_info,
+        // Required fields with defaults
+        photo_path: 'default.jpg',
+        selfie_path: 'default.jpg',
+        id_number: formData.id_document || 'temp',
+        bank_account_number: '',
+        ifsc_code: '',
+        cancelled_cheque_path: 'default.jpg',
+        resume_path: 'default.pdf',
+        criminal_record: 'No',
+        accept_code_of_conduct: true,
+        training_willingness: 'Yes',
+        availability: 'Full-time'
       };
 
       console.log('Submitting profile update:', submitData);
