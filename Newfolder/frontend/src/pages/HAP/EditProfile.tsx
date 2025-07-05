@@ -33,6 +33,7 @@ const EditProfile: React.FC = () => {
     portfolio_website: '',
     github_profile: '',
     additional_info: '',
+    id_document: '', // Add missing field
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,6 +96,7 @@ const EditProfile: React.FC = () => {
           portfolio_website: profile.portfolio_website || '',
           github_profile: profile.github_profile || '',
           additional_info: profile.additional_info || '',
+          id_document: profile.id_document || '', // Add missing field
         });
       } catch (err: any) {
         console.error('Error fetching profile:', err);
@@ -304,6 +306,17 @@ const EditProfile: React.FC = () => {
                 <option value="Divorced">Divorced</option>
                 <option value="Widowed">Widowed</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-1">ID Document Number</label>
+              <input
+                type="text"
+                name="id_document"
+                value={formData.id_document}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter ID document number"
+              />
             </div>
           </div>
         </div>
