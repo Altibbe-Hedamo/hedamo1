@@ -194,8 +194,15 @@ const CompanyCreateProfile: React.FC = () => {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
-        setSuccess('Profile submitted for approval');
-        setTimeout(() => navigate('/company-portal/view-profile'), 2000);
+        if (response.data.action === 'redirect_to_edit') {
+          // Profile already exists, redirect to edit page
+          setSuccess('Profile already exists. Redirecting to edit page...');
+          setTimeout(() => navigate('/company-portal/edit-profile'), 2000);
+        } else {
+          // New profile created
+          setSuccess('Profile submitted for approval');
+          setTimeout(() => navigate('/company-portal/view-profile'), 2000);
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit profile');

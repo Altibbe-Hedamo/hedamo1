@@ -853,9 +853,12 @@ app.post(
       console.log('Existing profile check:', existingProfile.rows);
       
       if (existingProfile.rows.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'User already has a profile',
+        // User already has a profile, return success with existing profile info
+        return res.status(200).json({
+          success: true,
+          message: 'Profile already exists. You can update it using the edit profile option.',
+          profileId: existingProfile.rows[0].id,
+          action: 'redirect_to_edit'
         });
       }
 

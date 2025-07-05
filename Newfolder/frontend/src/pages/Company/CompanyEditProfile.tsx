@@ -97,8 +97,9 @@ const CompanyEditProfile: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (response.data.success && response.data.profile) {
-          const profile = response.data.profile;
+        // Backend now returns profile data directly
+        const profile = response.data;
+        if (profile.id) {
           setProfileId(profile.id);
           setFormData({
             fullName: profile.full_name || '',
