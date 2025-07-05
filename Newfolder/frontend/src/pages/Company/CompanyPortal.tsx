@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
 import CompanyProfilePage from './CompanyProfilePage';
+import CompanyCreateProfile from './CompanyCreateProfile';
+import CompanyEditProfile from './CompanyEditProfile';
 import CompanyHorizonDataPage from './CompanyHorizonDataPage';
 import CompanyProductPage from './CompanyProductPage';
 import CompanyLedgerPage from './CompanyLedgerPage';
@@ -24,6 +26,8 @@ const CompanyPortal: React.FC = () => {
       <div className="flex-1 p-8">
         <Routes>
           <Route path="profile" element={<CompanyProfilePage />} />
+          <Route path="create-profile" element={<CompanyCreateProfile />} />
+          <Route path="edit-profile" element={<CompanyEditProfile />} />
           <Route path="horizon-data" element={<CompanyHorizonDataPage />} />
           <Route path="product-page" element={<CompanyProductPage />} />
           <Route path="ledger" element={<CompanyLedgerPage />} />
