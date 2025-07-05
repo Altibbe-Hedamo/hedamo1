@@ -1360,7 +1360,7 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
       currentOccupation: 'current_occupation'
     };
 
-    // Build update data using the field mapping
+    // Build update data using the field mapping with proper type conversion
     const updateData = {
       full_name: req.body.fullName || req.body.full_name || currentProfile.full_name,
       date_of_birth: req.body.dateOfBirth || req.body.date_of_birth || currentProfile.date_of_birth,
@@ -1374,9 +1374,9 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
       ifsc_code: req.body.ifscCode || req.body.ifsc_code || currentProfile.ifsc_code,
       highest_qualification: req.body.highestQualification || req.body.highest_qualification || currentProfile.highest_qualification,
       institution: req.body.institution || currentProfile.institution,
-      year_of_completion: req.body.yearOfCompletion || req.body.year_of_completion || currentProfile.year_of_completion,
+      year_of_completion: req.body.yearOfCompletion ? parseInt(req.body.yearOfCompletion) : (req.body.year_of_completion ? parseInt(req.body.year_of_completion) : currentProfile.year_of_completion),
       certifications: req.body.certifications || currentProfile.certifications,
-      years_of_experience: req.body.yearsOfExperience || req.body.years_of_experience || currentProfile.years_of_experience,
+      years_of_experience: req.body.yearsOfExperience ? parseInt(req.body.yearsOfExperience) : (req.body.years_of_experience ? parseInt(req.body.years_of_experience) : currentProfile.years_of_experience),
       current_occupation: req.body.currentOccupation || req.body.current_occupation || currentProfile.current_occupation,
       reference_details: req.body.references || req.body.reference_details || currentProfile.reference_details,
       primary_sectors: req.body.primarySectors || req.body.primary_sectors || currentProfile.primary_sectors,
@@ -1493,10 +1493,17 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
   } catch (error) {
     console.error('Error updating profile:', error);
     console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update profile',
-      error: error.message
+      error: error.message,
+      details: error.detail || error.hint
     });
   }
 });

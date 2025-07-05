@@ -42,9 +42,17 @@ const EditProfile: React.FC = () => {
 
         if (response.data.success && response.data.profile) {
           const profile = response.data.profile;
+          
+          // Format date properly for HTML date input
+          let formattedDate = '';
+          if (profile.date_of_birth) {
+            const date = new Date(profile.date_of_birth);
+            formattedDate = date.toISOString().split('T')[0];
+          }
+          
           setFormData({
             fullName: profile.full_name || '',
-            dateOfBirth: profile.date_of_birth || '',
+            dateOfBirth: formattedDate,
             gender: profile.gender || '',
             mobileNumber: profile.mobile_number || '',
             emailAddress: profile.email_address || '',
@@ -56,7 +64,7 @@ const EditProfile: React.FC = () => {
             highestQualification: profile.highest_qualification || '',
             institution: profile.institution || '',
             yearOfCompletion: profile.year_of_completion || '',
-            yearsOfExperience: profile.years_of_experience || '',
+            yearsOfExperience: profile.years_of_experience?.toString() || '',
             currentOccupation: profile.current_occupation || '',
             photo: profile.photo || null,
           });
@@ -97,8 +105,18 @@ const EditProfile: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('Submitting profile update:', formData);
-      const response = await api.put('/api/profiles/user', formData, {
+      // Format the data before sending
+      const submitData = {
+        ...formData,
+        // Convert date to proper format (YYYY-MM-DD)
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : '',
+        // Ensure numeric fields are properly formatted
+        yearsOfExperience: formData.yearsOfExperience ? parseInt(formData.yearsOfExperience) : 0,
+        yearOfCompletion: formData.yearOfCompletion ? parseInt(formData.yearOfCompletion) : null,
+      };
+
+      console.log('Submitting profile update:', submitData);
+      const response = await api.put('/api/profiles/user', submitData, {
         headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
       console.log('Profile update response:', response.data);
