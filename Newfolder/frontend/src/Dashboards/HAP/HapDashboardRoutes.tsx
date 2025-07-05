@@ -3,6 +3,9 @@ import { useContext, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import Dashboard from '../../pages/HAP/Dashboard';
 import Profile from '../../pages/HAP/Profile';
+import CreateProfile from '../../pages/HAP/CreateProfile';
+import EditProfile from '../../pages/HAP/EditProfile';
+import WaitingApproval from '../../pages/HAP/WaitingApproval';
 import CreateCompany from '../../pages/HAP/CreateCompany';
 import ManageCompany from '../../pages/HAP/ManageCompany';
 // import CreateProduct from '../../pages/Hap/CreateProduct';
@@ -47,7 +50,23 @@ const HapDashboardRoutes = () => {
           />
           <Route
             path="/profile"
+            element={<ProtectedRoute><CreateProfile /></ProtectedRoute>}
+          />
+          <Route
+            path="/view-profile"
             element={<ProtectedRoute><Profile /></ProtectedRoute>}
+          />
+          <Route
+            path="/create-profile"
+            element={<ProtectedRoute><CreateProfile /></ProtectedRoute>}
+          />
+          <Route
+            path="/edit-profile"
+            element={<ProtectedRoute><EditProfile /></ProtectedRoute>}
+          />
+          <Route
+            path="/waiting-approval"
+            element={<ProtectedRoute><WaitingApproval /></ProtectedRoute>}
           />
           <Route
             path="/create-company"

@@ -143,10 +143,12 @@ const CreateProfile: React.FC = () => {
     setProgress(calculateProgress());
   }, [formData, files]);
 
+  // Check profile status on mount to ensure correct navigation
   useEffect(() => {
     if (profileStatus && profileStatus !== null) {
+      // If a profile already exists, redirect based on status
       if (profileStatus === 'pending' || profileStatus === 'rejected') {
-        navigate('/hap-portal/profile', { replace: true });
+        navigate('/hap-portal/view-profile', { replace: true });
       }
     }
   }, [profileStatus, navigate]);
@@ -181,13 +183,6 @@ const CreateProfile: React.FC = () => {
     setSuccess(null);
     setLoading(true);
 
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      setError('Please log in to continue');
-      setLoading(false);
-      return;
-    }
-
     const form = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       form.append(key, value.toString());
@@ -200,13 +195,17 @@ const CreateProfile: React.FC = () => {
     files.otherDocuments.forEach(file => form.append('other_documents', file));
 
     try {
+      const token = sessionStorage.getItem('token');
       const response = await api.post('/api/profiles', form, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        },
       });
       if (response.data.success) {
         setSuccess('Profile submitted for approval');
-        setProfileStatus('pending');
-        setTimeout(() => navigate('/hap-portal/profile'), 2000);
+        setProfileStatus('pending'); // Update context to reflect new profile status
+        setTimeout(() => navigate('/hap-portal/view-profile'), 2000);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit profile');
@@ -255,7 +254,7 @@ const CreateProfile: React.FC = () => {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
@@ -266,19 +265,18 @@ const CreateProfile: React.FC = () => {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Gender *</label>
+                <label className="block text-sm font-medium mb-1">Gender</label>
                 <select
                   name="gender"
                   value={formData.gender}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 >
-                  <option value="">Select Gender</option>
+                  <option value="">Select</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -287,12 +285,12 @@ const CreateProfile: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Mobile Number *</label>
                 <input
-                  type="tel"
+                  type="text"
                   name="mobileNumber"
                   value={formData.mobileNumber}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
@@ -303,18 +301,18 @@ const CreateProfile: React.FC = () => {
                   value={formData.emailAddress}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Current Address *</label>
+                <label className="block text-sm font-medium mb-1">Current Residential Address *</label>
                 <textarea
                   name="currentAddress"
                   value={formData.currentAddress}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                ></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Permanent Address</label>
@@ -322,7 +320,73 @@ const CreateProfile: React.FC = () => {
                   name="permanentAddress"
                   value={formData.permanentAddress}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">ID Number (e.g., Aadhaar, Passport) *</label>
+                <input
+                  type="text"
+                  name="idNumber"
+                  value={formData.idNumber}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Bank Account Number *</label>
+                <input
+                  type="text"
+                  name="bankAccountNumber"
+                  value={formData.bankAccountNumber}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">IFSC Code *</label>
+                <input
+                  type="text"
+                  name="ifscCode"
+                  value={formData.ifscCode}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Profile Photo *</label>
+                <input
+                  type="file"
+                  name="photo"
+                  onChange={(e) => handleFileChange(e, 'photo')}
+                  accept="image/jpeg,image/png"
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Selfie *</label>
+                <input
+                  type="file"
+                  name="selfie"
+                  onChange={(e) => handleFileChange(e, 'selfie')}
+                  accept="image/jpeg,image/png"
+                  required
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Cancelled Cheque *</label>
+                <input
+                  type="file"
+                  name="cancelled_cheque"
+                  onChange={(e) => handleFileChange(e, 'cancelled_cheque')}
+                  accept="image/jpeg,image/png,application/pdf"
+                  required
+                  className="w-full p-2 border rounded"
                 />
               </div>
             </div>
@@ -334,14 +398,14 @@ const CreateProfile: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">{sections[1]}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Highest Qualification *</label>
+                <label className="block text-sm font-medium mb-1">Highest Educational Qualification *</label>
                 <input
                   type="text"
                   name="highestQualification"
                   value={formData.highestQualification}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
@@ -352,39 +416,40 @@ const CreateProfile: React.FC = () => {
                   value={formData.institution}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Year of Completion *</label>
                 <input
-                  type="text"
+                  type="number"
                   name="yearOfCompletion"
                   value={formData.yearOfCompletion}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Certifications</label>
+                <label className="block text-sm font-medium mb-1">Relevant Certifications</label>
                 <input
-                  type="text"
+                  type="file"
                   name="certifications"
-                  value={formData.certifications}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  onChange={(e) => handleFileChange(e, 'certifications', true)}
+                  accept="image/jpeg,image/png,application/pdf"
+                  multiple
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Years of Experience *</label>
                 <input
-                  type="text"
+                  type="number"
                   name="yearsOfExperience"
                   value={formData.yearsOfExperience}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
@@ -394,17 +459,27 @@ const CreateProfile: React.FC = () => {
                   name="currentOccupation"
                   value={formData.currentOccupation}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">References</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium mb-1">Professional References</label>
+                <textarea
                   name="references"
                   value={formData.references}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Resume *</label>
+                <input
+                  type="file"
+                  name="resume"
+                  onChange={(e) => handleFileChange(e, 'resume')}
+                  accept="application/pdf,.doc,.docx"
+                  required
+                  className="w-full p-2 border rounded"
                 />
               </div>
             </div>
@@ -416,56 +491,82 @@ const CreateProfile: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">{sections[2]}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Primary Sectors *</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium mb-1">Primary Sectors of Expertise *</label>
+                <select
                   name="primarySectors"
                   value={formData.primarySectors}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Education">Education</option>
+                  <option value="Agriculture">Agriculture</option>
+                  <option value="Real Estate">Real Estate</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Regions Covered *</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium mb-1">Geographical Regions Covered *</label>
+                <select
                   name="regionsCovered"
                   value={formData.regionsCovered}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="North India">North India</option>
+                  <option value="South India">South India</option>
+                  <option value="East India">East India</option>
+                  <option value="West India">West India</option>
+                  <option value="Central India">Central India</option>
+                  <option value="Pan India">Pan India</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Languages Spoken *</label>
-                <input
-                  type="text"
+                <select
                   name="languagesSpoken"
                   value={formData.languagesSpoken}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Telugu">Telugu</option>
+                  <option value="Bengali">Bengali</option>
+                  <option value="Marathi">Marathi</option>
+                  <option value="Gujarati">Gujarati</option>
+                  <option value="Kannada">Kannada</option>
+                  <option value="Multiple">Multiple Languages</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Client Base Size</label>
                 <input
-                  type="text"
+                  type="number"
                   name="clientBaseSize"
                   value={formData.clientBaseSize}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Expected Audit Volume</label>
+                <label className="block text-sm font-medium mb-1">Expected Monthly Audit Volume</label>
                 <input
-                  type="text"
+                  type="number"
                   name="expectedAuditVolume"
                   value={formData.expectedAuditVolume}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 />
               </div>
             </div>
@@ -478,41 +579,47 @@ const CreateProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Devices Available *</label>
-                <input
-                  type="text"
+                <select
                   name="devicesAvailable"
                   value={formData.devicesAvailable}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="Laptop">Laptop</option>
+                  <option value="Desktop">Desktop</option>
+                  <option value="Tablet">Tablet</option>
+                  <option value="Smartphone">Smartphone</option>
+                  <option value="Multiple Devices">Multiple Devices</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Internet Quality *</label>
+                <label className="block text-sm font-medium mb-1">Internet Connectivity Quality *</label>
                 <select
                   name="internetQuality"
                   value={formData.internetQuality}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 >
-                  <option value="">Select Quality</option>
-                  <option value="Excellent">Excellent</option>
-                  <option value="Good">Good</option>
-                  <option value="Average">Average</option>
-                  <option value="Poor">Poor</option>
+                  <option value="">Select</option>
+                  <option value="Excellent">Excellent (High-speed broadband)</option>
+                  <option value="Good">Good (Stable connection)</option>
+                  <option value="Average">Average (Occasional issues)</option>
+                  <option value="Poor">Poor (Frequent disconnections)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Digital Tool Comfort *</label>
+                <label className="block text-sm font-medium mb-1">Comfort with Digital Tools *</label>
                 <select
                   name="digitalToolComfort"
                   value={formData.digitalToolComfort}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 >
-                  <option value="">Select Level</option>
+                  <option value="">Select</option>
                   <option value="Expert">Expert</option>
                   <option value="Advanced">Advanced</option>
                   <option value="Intermediate">Intermediate</option>
@@ -534,7 +641,7 @@ const CreateProfile: React.FC = () => {
                   value={formData.criminalRecord}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 >
                   <option value="No">No</option>
                   <option value="Yes">Yes</option>
@@ -542,13 +649,14 @@ const CreateProfile: React.FC = () => {
               </div>
               {formData.criminalRecord === 'Yes' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Criminal Details</label>
+                  <label className="block text-sm font-medium mb-1">Criminal Details *</label>
                   <textarea
                     name="criminalDetails"
                     value={formData.criminalDetails}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
+                    required
+                    className="w-full p-2 border rounded"
+                  ></textarea>
                 </div>
               )}
               <div>
@@ -557,20 +665,20 @@ const CreateProfile: React.FC = () => {
                   name="conflictOfInterest"
                   value={formData.conflictOfInterest}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                ></textarea>
               </div>
-              <div className="flex items-center mt-2">
-                <input
-                  type="checkbox"
-                  name="acceptCodeOfConduct"
-                  checked={formData.acceptCodeOfConduct}
-                  onChange={handleInputChange}
-                  required
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 block text-sm text-gray-700">
-                  I accept the code of conduct *
+              <div className="col-span-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="acceptCodeOfConduct"
+                    checked={formData.acceptCodeOfConduct}
+                    onChange={handleInputChange}
+                    required
+                    className="mr-2"
+                  />
+                  <span className="text-sm">I accept the Code of Conduct and Terms of Service *</span>
                 </label>
               </div>
             </div>
@@ -588,31 +696,40 @@ const CreateProfile: React.FC = () => {
                   value={formData.trainingWillingness}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full p-2 border rounded"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Training Mode</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium mb-1">Preferred Training Mode</label>
+                <select
                   name="trainingMode"
                   value={formData.trainingMode}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="Online">Online</option>
+                  <option value="Offline">Offline</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Availability</label>
-                <input
-                  type="text"
+                <select
                   name="availability"
                   value={formData.availability}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Flexible">Flexible</option>
+                  <option value="Weekends">Weekends only</option>
+                </select>
               </div>
             </div>
           </div>
@@ -624,13 +741,13 @@ const CreateProfile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Additional Skills</label>
-                <input
-                  type="text"
+                <textarea
                   name="additionalSkills"
                   value={formData.additionalSkills}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
+                  className="w-full p-2 border rounded"
+                  placeholder="Any additional skills or qualifications"
+                ></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Comments</label>
@@ -638,70 +755,19 @@ const CreateProfile: React.FC = () => {
                   name="comments"
                   value={formData.comments}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-            </div>
-            {/* File Uploads */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Profile Photo *</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => handleFileChange(e, 'photo')}
-                  required
-                  className="w-full"
-                />
+                  className="w-full p-2 border rounded"
+                  placeholder="Any additional comments or information"
+                ></textarea>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Selfie with ID *</label>
+                <label className="block text-sm font-medium mb-1">Other Documents</label>
                 <input
                   type="file"
-                  accept="image/*"
-                  onChange={e => handleFileChange(e, 'selfie')}
-                  required
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Resume *</label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={e => handleFileChange(e, 'resume')}
-                  required
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Cancelled Cheque *</label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={e => handleFileChange(e, 'cancelled_cheque')}
-                  required
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Certifications (multiple)</label>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  name="otherDocuments"
+                  onChange={(e) => handleFileChange(e, 'otherDocuments', true)}
+                  accept="image/jpeg,image/png,application/pdf,.doc,.docx"
                   multiple
-                  onChange={e => handleFileChange(e, 'certifications', true)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Other Documents (multiple)</label>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  multiple
-                  onChange={e => handleFileChange(e, 'otherDocuments', true)}
-                  className="w-full"
+                  className="w-full p-2 border rounded"
                 />
               </div>
             </div>
@@ -713,57 +779,101 @@ const CreateProfile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Create HAP Profile</h1>
-        <div className="mb-6">
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <h1 className="text-3xl font-bold mb-6 text-gray-800">Complete Your HAP Profile</h1>
+          
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Profile Completion</span>
+              <span>{progress}% Complete</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="text-sm text-gray-600">Progress: {progress}%</div>
-        </div>
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg">
-            {error}
+
+          {/* Section Progress */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Step {currentSection + 1} of {sections.length}
+              </h2>
+              <div className="text-sm text-gray-600">
+                {sections[currentSection]}
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              {sections.map((_, index) => (
+                <div
+                  key={index}
+                  className={`flex-1 h-2 rounded-full ${
+                    index <= currentSection ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                ></div>
+              ))}
+            </div>
           </div>
-        )}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg">
-            {success}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          {renderSection()}
-          <div className="flex justify-between mt-8">
-            <button
-              type="button"
-              onClick={handlePrevious}
-              disabled={currentSection === 0}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            {currentSection < sections.length - 1 ? (
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              {success}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            {renderSection()}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8">
               <button
                 type="button"
-                onClick={handleNext}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={handlePrevious}
+                disabled={currentSection === 0}
+                className="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                Previous
               </button>
-            ) : (
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Submit
-              </button>
-            )}
-          </div>
-        </form>
+              
+              {currentSection === sections.length - 1 ? (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
+                >
+                  {loading ? 'Submitting...' : 'Submit Profile'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Next
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
