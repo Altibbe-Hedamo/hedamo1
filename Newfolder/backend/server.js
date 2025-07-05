@@ -3994,8 +3994,52 @@ const createOtpsTable = async () => {
   }
 };
 
-// Call the function when server starts
+// Add updated_at column to profiles table if missing
+const addUpdatedAtToProfiles = async () => {
+  const client = await pool.connect();
+  try {
+    console.log('Checking if profiles table has updated_at column...');
+    
+    // Check if updated_at column exists
+    const checkColumnQuery = `
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'profiles' 
+      AND column_name = 'updated_at'
+    `;
+    
+    const result = await client.query(checkColumnQuery);
+    
+    if (result.rows.length === 0) {
+      console.log('Adding updated_at column to profiles table...');
+      
+      // Add the column
+      await client.query(`
+        ALTER TABLE profiles 
+        ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      `);
+      
+      // Update existing records
+      await client.query(`
+        UPDATE profiles 
+        SET updated_at = created_at 
+        WHERE updated_at IS NULL
+      `);
+      
+      console.log('Successfully added updated_at column to profiles table');
+    } else {
+      console.log('updated_at column already exists in profiles table');
+    }
+  } catch (error) {
+    console.error('Error adding updated_at column to profiles table:', error);
+  } finally {
+    client.release();
+  }
+};
+
+// Call the functions when server starts
 createOtpsTable();
+addUpdatedAtToProfiles();
 
 // ... existing code ...
 // Signup endpoint

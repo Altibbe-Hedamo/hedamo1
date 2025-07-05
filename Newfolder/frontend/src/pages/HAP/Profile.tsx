@@ -53,8 +53,8 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
-    try {
+    const fetchProfile = async () => {
+      try {
       setLoading(true);
       const response = await axios.get('/api/profiles/user');
       setProfile(response.data);
@@ -62,13 +62,13 @@ const Profile: React.FC = () => {
       console.error('Error fetching profile:', err);
       if (err.response?.status === 404) {
         setError('No profile found. Please create your profile first.');
-      } else {
+        } else {
         setError('Failed to load profile data.');
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   const handleEdit = () => {
     navigate('/hap-portal/edit-profile');
@@ -226,7 +226,7 @@ const Profile: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700">Phone</label>
               <p className="mt-1 text-sm text-gray-900">{profile.emergency_contact_phone || 'Not provided'}</p>
             </div>
-            <div>
+          <div>
               <label className="block text-sm font-medium text-gray-700">Relationship</label>
               <p className="mt-1 text-sm text-gray-900">{profile.emergency_contact_relationship || 'Not provided'}</p>
             </div>
