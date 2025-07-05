@@ -40,29 +40,43 @@ const EditProfile: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (response.data.success) {
+        if (response.data.success && response.data.profile) {
+          const profile = response.data.profile;
           setFormData({
-            fullName: response.data.profile.full_name || '',
-            dateOfBirth: response.data.profile.date_of_birth || '',
-            gender: response.data.profile.gender || '',
-            mobileNumber: response.data.profile.mobile_number || '',
-            emailAddress: response.data.profile.email_address || '',
-            currentAddress: response.data.profile.current_address || '',
-            permanentAddress: response.data.profile.permanent_address || '',
-            idNumber: response.data.profile.id_number || '',
-            bankAccountNumber: response.data.profile.bank_account_number || '',
-            ifscCode: response.data.profile.ifsc_code || '',
-            highestQualification: response.data.profile.highest_qualification || '',
-            institution: response.data.profile.institution || '',
-            yearOfCompletion: response.data.profile.year_of_completion || '',
-            yearsOfExperience: response.data.profile.years_of_experience || '',
-            currentOccupation: response.data.profile.current_occupation || '',
-            photo: response.data.profile.photo || null,
+            fullName: profile.full_name || '',
+            dateOfBirth: profile.date_of_birth || '',
+            gender: profile.gender || '',
+            mobileNumber: profile.mobile_number || '',
+            emailAddress: profile.email_address || '',
+            currentAddress: profile.current_address || '',
+            permanentAddress: profile.permanent_address || '',
+            idNumber: profile.id_number || '',
+            bankAccountNumber: profile.bank_account_number || '',
+            ifscCode: profile.ifsc_code || '',
+            highestQualification: profile.highest_qualification || '',
+            institution: profile.institution || '',
+            yearOfCompletion: profile.year_of_completion || '',
+            yearsOfExperience: profile.years_of_experience || '',
+            currentOccupation: profile.current_occupation || '',
+            photo: profile.photo || null,
           });
         } else {
-          setError('Failed to load profile');
+          // If no profile exists, redirect to create profile
+          console.log('No profile found, redirecting to create profile');
+          navigate('/hap-portal/create-profile');
+          return;
         }
       } catch (err: any) {
+        console.error('Error fetching profile:', err);
+        console.error('Error response:', err.response?.data);
+        
+        // If profile not found, redirect to create profile
+        if (err.response?.status === 404 || err.response?.data?.message?.includes('Profile not found')) {
+          console.log('Profile not found, redirecting to create profile');
+          navigate('/hap-portal/create-profile');
+          return;
+        }
+        
         setError(err.response?.data?.message || 'Failed to load profile');
       } finally {
         setLoading(false);
@@ -83,13 +97,17 @@ const EditProfile: React.FC = () => {
     setLoading(true);
 
     try {
-      await api.put('/api/profiles/user', formData, {
+      console.log('Submitting profile update:', formData);
+      const response = await api.put('/api/profiles/user', formData, {
         headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
+      console.log('Profile update response:', response.data);
       setSuccess('Profile updated successfully!');
       navigate('/hap-portal/profile');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      console.error('Error updating profile:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.message || err.response?.data?.error || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
