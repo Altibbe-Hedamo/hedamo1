@@ -195,7 +195,7 @@ const CompanyCreateProfile: React.FC = () => {
       });
       if (response.data.success) {
         setSuccess('Profile submitted for approval');
-        setTimeout(() => navigate('/company-portal/profile'), 2000);
+        setTimeout(() => navigate('/company-portal/view-profile'), 2000);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit profile');

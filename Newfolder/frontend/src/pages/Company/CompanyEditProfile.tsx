@@ -189,7 +189,7 @@ const CompanyEditProfile: React.FC = () => {
       });
       if (response.data.success) {
         setSuccess('Profile updated successfully');
-        setTimeout(() => navigate('/company-portal/profile'), 2000);
+        setTimeout(() => navigate('/company-portal/view-profile'), 2000);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update profile');
@@ -510,7 +510,7 @@ const CompanyEditProfile: React.FC = () => {
           <div className="flex justify-between">
             <button
               type="button"
-              onClick={() => navigate('/company-portal/profile')}
+              onClick={() => navigate('/company-portal/view-profile')}
               className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
             >
               Cancel

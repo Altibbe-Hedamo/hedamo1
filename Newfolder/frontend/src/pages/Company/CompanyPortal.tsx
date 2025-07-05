@@ -25,7 +25,8 @@ const CompanyPortal: React.FC = () => {
       <CompanySidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 p-8">
         <Routes>
-          <Route path="profile" element={<CompanyProfilePage />} />
+          <Route path="profile" element={<CompanyCreateProfile />} />
+          <Route path="view-profile" element={<CompanyProfilePage />} />
           <Route path="create-profile" element={<CompanyCreateProfile />} />
           <Route path="edit-profile" element={<CompanyEditProfile />} />
           <Route path="horizon-data" element={<CompanyHorizonDataPage />} />
