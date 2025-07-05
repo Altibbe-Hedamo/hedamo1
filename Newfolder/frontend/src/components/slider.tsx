@@ -25,17 +25,19 @@ interface SidebarProps {
   header?: string;
 }
 
-const defaultSidebarItems: SidebarItem[] = [
-  { section: 'dashboard', path: '/agent-dashboard/dashboard', icon: FaTachometerAlt, label: 'Dashboard' },
-  { section: 'profile', path: '/agent-dashboard/profile', icon: FaUser, label: 'Profile' },
-  // ... rest of agent items ...
-];
+const getDefaultSidebarItems = (userType: string): SidebarItem[] => {
+  const basePath = userType === 'hap' ? '/hap-portal' : '/agent-dashboard';
+  return [
+    { section: 'dashboard', path: `${basePath}/dashboard`, icon: FaTachometerAlt, label: 'Dashboard' },
+    { section: 'profile', path: `${basePath}/profile`, icon: FaUser, label: 'Profile' },
+  ];
+};
 
 const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSidebarOpen, setIsSidebarOpen, sidebarItems, header }) => {
   const [productMenuOpen, setProductMenuOpen] = useState<boolean>(true);
   const [companyMenuOpen, setCompanyMenuOpen] = useState<boolean>(true);
   const [user, setUser] = useState<any>(null);
-  const { logout } = useContext(AuthContext);
+  const { user: authUser, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const isActive = (section: string) => activeSection === section;
@@ -68,18 +70,20 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
     navigate('/login');
   };
 
-  const items = sidebarItems || defaultSidebarItems;
+  const userType = authUser?.type || 'agent';
+  const basePath = userType === 'hap' ? '/hap-portal' : '/agent-dashboard';
+  const items = sidebarItems || getDefaultSidebarItems(userType);
 
   const companySubItems = [
     {
       section: 'createCompany',
-      path: '/agent-dashboard/create-company',
+      path: `${basePath}/create-company`,
       icon: FaPlus,
       label: 'Create Company',
     },
     {
       section: 'manageCompany',
-      path: '/agent-dashboard/manage-company',
+      path: `${basePath}/manage-company`,
       icon: FaCog,
       label: 'Manage Company',
     },
@@ -88,13 +92,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
   const productSubItems = [
     {
       section: 'createProduct',
-      path: '/agent-dashboard/create-product',
+      path: `${basePath}/create-product`,
       icon: FaPlus,
       label: 'Create Product',
     },
     {
       section: 'manageProduct',
-      path: '/agent-dashboard/manage-product',
+      path: `${basePath}/manage-product`,
       icon: FaCog,
       label: 'Manage Product',
     },
@@ -111,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
         <h1 className="text-xl font-bold flex items-center">
           <FaHome className="mr-2 text-blue-300" />
           <span className="bg-gradient-to-r from-blue-300 to-green-300 bg-clip-text text-transparent">
-            {header || 'Agent Portal'}
+            {header || (userType === 'hap' ? 'HAP Portal' : 'Agent Portal')}
           </span>
         </h1>
         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" aria-label="Active Now"></div>
@@ -172,116 +176,128 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
             )}
           </div>
 
-          {/* Product Section with Dropdown */}
-          <div className="mt-2">
-            <div
-              className="flex items-center justify-between p-3 hover:bg-[#2A5C54] rounded-lg cursor-pointer"
-              onClick={() => setProductMenuOpen(!productMenuOpen)}
-              aria-expanded={productMenuOpen}
-              aria-label="Toggle Products menu"
-            >
-              <div className="flex items-center">
-                <FaBox className="mr-3 text-gray-300" />
-                <span className="text-gray-300">Products</span>
+          {/* Product Section with Dropdown - Only for Agents */}
+          {userType === 'agent' && (
+            <div className="mt-2">
+              <div
+                className="flex items-center justify-between p-3 hover:bg-[#2A5C54] rounded-lg cursor-pointer"
+                onClick={() => setProductMenuOpen(!productMenuOpen)}
+                aria-expanded={productMenuOpen}
+                aria-label="Toggle Products menu"
+              >
+                <div className="flex items-center">
+                  <FaBox className="mr-3 text-gray-300" />
+                  <span className="text-gray-300">Products</span>
+                </div>
+                {productMenuOpen ? (
+                  <FaChevronUp className="text-xs text-gray-400" />
+                ) : (
+                  <FaChevronDown className="text-xs text-gray-400" />
+                )}
               </div>
-              {productMenuOpen ? (
-                <FaChevronUp className="text-xs text-gray-400" />
-              ) : (
-                <FaChevronDown className="text-xs text-gray-400" />
+
+              {productMenuOpen && (
+                <ul className="ml-8 mt-1 space-y-1">
+                  {productSubItems.map(({ section, path, icon: Icon, label }) => (
+                    <li
+                      key={section}
+                      className={`p-2 pl-3 rounded-lg flex items-center transition-colors hover:bg-[#2A5C54] cursor-pointer
+                        ${isActive(section) ? 'bg-[#2A5C54] border-l-2 border-blue-300' : ''}`}
+                      onClick={() => handleRestrictedClick(section, path)}
+                      aria-current={isActive(section) ? 'page' : undefined}
+                    >
+                      <Icon className={`mr-2 text-xs ${isActive(section) ? 'text-blue-300' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive(section) ? 'text-white' : 'text-gray-400'}`}>
+                        {label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
+          )}
 
-            {productMenuOpen && (
-              <ul className="ml-8 mt-1 space-y-1">
-                {productSubItems.map(({ section, path, icon: Icon, label }) => (
-                  <li
-                    key={section}
-                    className={`p-2 pl-3 rounded-lg flex items-center transition-colors hover:bg-[#2A5C54] cursor-pointer
-                      ${isActive(section) ? 'bg-[#2A5C54] border-l-2 border-blue-300' : ''}`}
-                    onClick={() => handleRestrictedClick(section, path)}
-                    aria-current={isActive(section) ? 'page' : undefined}
-                  >
-                    <Icon className={`mr-2 text-xs ${isActive(section) ? 'text-blue-300' : 'text-gray-400'}`} />
-                    <span className={`text-sm ${isActive(section) ? 'text-white' : 'text-gray-400'}`}>
-                      {label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {/* Reports Section - Only for Agents */}
+          {userType === 'agent' && (
+            <li
+              className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
+                ${isActive('reports') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
+              onClick={() => handleRestrictedClick('reports', `${basePath}/report-page`)}
+              aria-current={isActive('reports') ? 'page' : undefined}
+            >
+              <FaFileAlt className={`mr-3 ${isActive('reports') ? 'text-blue-300' : 'text-gray-300'}`} />
+              <span className={isActive('reports') ? 'font-medium text-white' : 'text-gray-300'}>Reports</span>
+            </li>
+          )}
 
-          {/* Reports Section */}
-          <li
-            className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
-              ${isActive('reports') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('reports', '/agent-dashboard/report-page')}
-            aria-current={isActive('reports') ? 'page' : undefined}
-          >
-            <FaFileAlt className={`mr-3 ${isActive('reports') ? 'text-blue-300' : 'text-gray-300'}`} />
-            <span className={isActive('reports') ? 'font-medium text-white' : 'text-gray-300'}>Reports</span>
-          </li>
+          {/* Payments Section - Only for Agents */}
+          {userType === 'agent' && (
+            <li
+              className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
+                ${isActive('payments') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
+              onClick={() => handleRestrictedClick('payments', `${basePath}/payments`)}
+              aria-current={isActive('payments') ? 'page' : undefined}
+            >
+              <FaWallet className={`mr-3 ${isActive('payments') ? 'text-blue-300' : 'text-gray-300'}`} />
+              <span className={isActive('payments') ? 'font-medium text-white' : 'text-gray-300'}>Payments</span>
+            </li>
+          )}
 
-          {/* Payments Section */}
-          <li
-            className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
-              ${isActive('payments') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('payments', '/agent-dashboard/payments')}
-            aria-current={isActive('payments') ? 'page' : undefined}
-          >
-            <FaWallet className={`mr-3 ${isActive('payments') ? 'text-blue-300' : 'text-gray-300'}`} />
-            <span className={isActive('payments') ? 'font-medium text-white' : 'text-gray-300'}>Payments</span>
-          </li>
-
-          {/* HVP Ledger Section */}
-          <li
-            className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
-              ${isActive('hvp-ledger') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('hvp-ledger', '/agent-dashboard/hvp-ledger')}
-            aria-current={isActive('hvp-ledger') ? 'page' : undefined}
-          >
-            <FaBook className={`mr-3 ${isActive('hvp-ledger') ? 'text-blue-300' : 'text-gray-300'}`} />
-            <span className={isActive('hvp-ledger') ? 'font-medium text-white' : 'text-gray-300'}>HVP Ledger</span>
-          </li>
+          {/* HVP Ledger Section - Only for Agents */}
+          {userType === 'agent' && (
+            <li
+              className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
+                ${isActive('hvp-ledger') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
+              onClick={() => handleRestrictedClick('hvp-ledger', `${basePath}/hvp-ledger`)}
+              aria-current={isActive('hvp-ledger') ? 'page' : undefined}
+            >
+              <FaBook className={`mr-3 ${isActive('hvp-ledger') ? 'text-blue-300' : 'text-gray-300'}`} />
+              <span className={isActive('hvp-ledger') ? 'font-medium text-white' : 'text-gray-300'}>HVP Ledger</span>
+            </li>
+          )}
 
           {/* Help Line Section */}
           <li
             className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
               ${isActive('help-line') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('help-line', '/agent-dashboard/help-line')}
+            onClick={() => handleRestrictedClick('help-line', `${basePath}/help-line`)}
             aria-current={isActive('help-line') ? 'page' : undefined}
           >
             <FaHeadset className={`mr-3 ${isActive('help-line') ? 'text-blue-300' : 'text-gray-300'}`} />
             <span className={isActive('help-line') ? 'font-medium text-white' : 'text-gray-300'}>Help Line</span>
           </li>
 
-          {/* Client Invoicing Section */}
-          <li
-            className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
-              ${isActive('client-invoicing') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('client-invoicing', '/agent-dashboard/client-invoicing')}
-            aria-current={isActive('client-invoicing') ? 'page' : undefined}
-          >
-            <FaFileInvoiceDollar className={`mr-3 ${isActive('client-invoicing') ? 'text-blue-300' : 'text-gray-300'}`} />
-            <span className={isActive('client-invoicing') ? 'font-medium text-white' : 'text-gray-300'}>Client Invoicing</span>
-          </li>
+          {/* Client Invoicing Section - Only for Agents */}
+          {userType === 'agent' && (
+            <li
+              className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
+                ${isActive('client-invoicing') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
+              onClick={() => handleRestrictedClick('client-invoicing', `${basePath}/client-invoicing`)}
+              aria-current={isActive('client-invoicing') ? 'page' : undefined}
+            >
+              <FaFileInvoiceDollar className={`mr-3 ${isActive('client-invoicing') ? 'text-blue-300' : 'text-gray-300'}`} />
+              <span className={isActive('client-invoicing') ? 'font-medium text-white' : 'text-gray-300'}>Client Invoicing</span>
+            </li>
+          )}
 
-          {/* Orders Section */}
-          <li
-            className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
-              ${isActive('orders') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('orders', '/agent-dashboard/orders')}
-            aria-current={isActive('orders') ? 'page' : undefined}
-          >
-            <FaClipboardList className={`mr-3 ${isActive('orders') ? 'text-blue-300' : 'text-gray-300'}`} />
-            <span className={isActive('orders') ? 'font-medium text-white' : 'text-gray-300'}>Orders</span>
-          </li>
+          {/* Orders Section - Only for Agents */}
+          {userType === 'agent' && (
+            <li
+              className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
+                ${isActive('orders') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
+              onClick={() => handleRestrictedClick('orders', `${basePath}/orders`)}
+              aria-current={isActive('orders') ? 'page' : undefined}
+            >
+              <FaClipboardList className={`mr-3 ${isActive('orders') ? 'text-blue-300' : 'text-gray-300'}`} />
+              <span className={isActive('orders') ? 'font-medium text-white' : 'text-gray-300'}>Orders</span>
+            </li>
+          )}
 
           {/* Communication Centre Section */}
           <li
             className={`p-3 hover:bg-[#2A5C54] rounded-lg flex items-center transition-colors cursor-pointer
               ${isActive('communication') ? 'bg-[#2A5C54] border-l-4 border-blue-300' : ''}`}
-            onClick={() => handleRestrictedClick('communication', '/agent-dashboard/communication')}
+            onClick={() => handleRestrictedClick('communication', `${basePath}/communication`)}
             aria-current={isActive('communication') ? 'page' : undefined}
           >
             <FaComments className={`mr-3 ${isActive('communication') ? 'text-blue-300' : 'text-gray-300'}`} />
@@ -311,9 +327,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
           </div>
           <div>
             <p className="text-sm font-medium">
-              {user ? `${user.first_name} ${user.last_name}` : 'Agent User'}
+              {user ? `${user.first_name} ${user.last_name}` : `${userType === 'hap' ? 'HAP' : 'Agent'} User`}
             </p>
-            <p className="text-xs text-gray-400">Agent</p>
+            <p className="text-xs text-gray-400">{userType === 'hap' ? 'HAP' : 'Agent'}</p>
           </div>
         </div>
       </div>
