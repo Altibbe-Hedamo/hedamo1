@@ -181,7 +181,36 @@ const CompanyEditProfile: React.FC = () => {
     }
 
     try {
-      const response = await api.put(`/api/profiles/${profileId}`, formData, {
+      // Map frontend field names to backend field names
+      const backendData = {
+        full_name: formData.fullName,
+        mobile_number: formData.mobileNumber,
+        email_address: formData.emailAddress,
+        current_address: formData.currentAddress,
+        permanent_address: formData.permanentAddress,
+        bank_account_number: formData.bankAccountNumber,
+        ifsc_code: formData.ifscCode,
+        highest_qualification: formData.highestQualification,
+        institution: formData.institution,
+        year_of_completion: formData.yearOfCompletion,
+        certifications: formData.certifications,
+        years_of_experience: formData.yearsOfExperience,
+        current_occupation: formData.currentOccupation,
+        reference_details: formData.references,
+        primary_sectors: formData.primarySectors,
+        regions_covered: formData.regionsCovered,
+        languages_spoken: formData.languagesSpoken,
+        client_base_size: formData.clientBaseSize,
+        expected_audit_volume: formData.expectedAuditVolume,
+        devices_available: formData.devicesAvailable,
+        internet_quality: formData.internetQuality,
+        digital_tool_comfort: formData.digitalToolComfort,
+        availability: formData.availability,
+        additional_skills: formData.additionalSkills,
+        comments: formData.comments,
+      };
+
+      const response = await api.put(`/api/profiles/${profileId}`, backendData, {
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}` 
