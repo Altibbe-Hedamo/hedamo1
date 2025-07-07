@@ -69,20 +69,20 @@ function Home() {
           </div>
         </div>
 
-        {/* Full-width, shallow, smooth wave for seamless transition */}
-        <svg viewBox="0 0 1920 180" className="absolute bottom-0 left-0 w-full h-[120px] md:h-[180px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
+        {/* Improved, deeper, organic wave for better section separation */}
+        <svg viewBox="0 0 1920 250" className="absolute bottom-0 left-0 w-full h-[180px] md:h-[250px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
           <path
-            d="M0,80 Q480,160 960,120 Q1440,80 1920,140 L1920,180 L0,180 Z"
-            fill="#e6f4ea"
+            d="M0,120 C400,220 1520,20 1920,120 L1920,250 L0,250 Z"
+            fill="#d6f5e3"
           />
         </svg>
       </section>
 
-      {/* Overlapping Happy Customers Section - perfectly in the valley */}
-      <section className="relative z-10 -mt-16 md:-mt-24 flex flex-col items-center justify-center">
-        <div className="bg-transparent w-full flex flex-col items-center justify-center">
-          <div className="max-w-4xl mx-auto text-center px-4 py-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 drop-shadow-md" style={{textShadow: '0 4px 16px #e6f4ea, 0 2px 8px #fff'}}>Over 100,000 Happy<br />Customers</h2>
+      {/* Overlapping Happy Customers Section - sits in the valley of the wave, with better spacing and background */}
+      <section className="relative z-10 -mt-24 md:-mt-40 flex flex-col items-center justify-center">
+        <div className="bg-[#d6f5e3] w-full flex flex-col items-center justify-center rounded-t-3xl shadow-lg pt-16 pb-12 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-green-900 mb-6 drop-shadow-xl" style={{textShadow: '0 6px 24px #b2e2c7, 0 2px 8px #fff'}}>Over 100,000 Happy<br />Customers</h2>
             <p className="text-lg text-green-800 mb-4 font-medium">
               "Since 2020, We've Been Creating Feel-Good Nutrition Guided By Nature And Wisdom."
             </p>
