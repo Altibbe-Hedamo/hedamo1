@@ -217,53 +217,18 @@ function Home() {
             <div className="w-12 h-1 bg-green-600 mb-4"></div>
             <h2 className="text-3xl font-bold text-gray-900">Community Love</h2>
           </div>
+          <TestimonialCarousel />
+        </div>
+      </section>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-2 border-green-600 border-t-transparent"></div>
-            </div>
-          ) : products.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-8">
-              {products.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/${product.category_name.toLowerCase().replace(' ', '-')}/${product.company_name
-                    .toLowerCase()
-                    .replace(' ', '-')}/${product.name.toLowerCase().replace(' ', '-')}-p-${product.id}`}
-                  className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
-                >
-                  <div className="aspect-[4/5] relative">
-                    <img
-                      src={`${API_URL}/uploads/products/${product.image}`}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">H</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                        <p className="text-xs text-gray-500">By {product.company_name}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                </svg>
-              </div>
-              <p className="text-xl text-gray-500">No products available at the moment</p>
-            </div>
-          )}
+      {/* What Our Clients Say - duplicate testimonial section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-12">
+            <div className="w-12 h-1 bg-green-600 mb-4"></div>
+            <h2 className="text-3xl font-bold text-gray-900">What Our Clients Say</h2>
+          </div>
+          <TestimonialCarousel />
         </div>
       </section>
 
@@ -286,9 +251,6 @@ function Home() {
           </Link>
         </div>
       </section>
-
-      {/* Testimonials */}
-      <TestimonialCarousel />
 
       {/* Footer */}
       <Footer />
