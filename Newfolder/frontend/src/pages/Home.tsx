@@ -175,23 +175,12 @@ function Home() {
         </div>
       </section>
 
-      {/* Recently Added Products */}
+      {/* Community Love - single testimonial section */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="mb-12">
             <div className="w-12 h-1 bg-green-600 mb-4"></div>
             <h2 className="text-3xl font-bold text-gray-900">Community Love</h2>
-          </div>
-          <TestimonialCarousel />
-        </div>
-      </section>
-
-      {/* What Our Clients Say - duplicate testimonial section */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12">
-            <div className="w-12 h-1 bg-green-600 mb-4"></div>
-            <h2 className="text-3xl font-bold text-gray-900">What Our Clients Say</h2>
           </div>
           <TestimonialCarousel />
         </div>
