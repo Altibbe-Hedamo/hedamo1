@@ -103,12 +103,12 @@ function Home() {
           </div>
         </div>
 
-        {/* Water wave curve bottom */}
+        {/* Shallow smooth curve bottom as in screenshot */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" className="w-full h-24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
-              d="M0,80 C360,160 1080,0 1440,80 L1440,120 L0,120 Z"
-              fill="#f0fdf4"
+              d="M0,80 Q360,120 720,80 T1440,80 L1440,120 L0,120 Z"
+              fill="#e6f4ea"
             />
           </svg>
         </div>
@@ -314,14 +314,10 @@ function Home() {
       </section>
 
       {/* Join Us Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-green-50 to-green-100 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-green-300 rounded-full"></div>
-          <div className="absolute bottom-10 right-10 w-48 h-48 bg-green-200 rounded-full"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-green-100 rounded-full"></div>
-        </div>
-
-        <div className="relative max-w-4xl mx-auto text-center">
+      <section className="relative py-20 px-4 overflow-hidden">
+        {/* Large green oval background as in screenshot */}
+        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/3 w-[120vw] h-[60vw] max-w-[1600px] max-h-[600px] bg-green-100 rounded-full z-0" style={{filter: 'blur(0px)'}}></div>
+        <div className="relative max-w-4xl mx-auto text-center z-10">
           <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 italic">
             Become A Part Of The Hedamo Family
           </h2>
