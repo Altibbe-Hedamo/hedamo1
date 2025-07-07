@@ -103,17 +103,17 @@ function Home() {
           </div>
         </div>
 
-        {/* Enhanced organic curve bottom with valley for text overlap */}
-        <svg viewBox="0 0 1440 220" className="absolute bottom-0 left-0 w-full h-[180px] md:h-[220px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
+        {/* Full-width, shallow, smooth wave for seamless transition */}
+        <svg viewBox="0 0 1920 180" className="absolute bottom-0 left-0 w-full h-[120px] md:h-[180px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
           <path
-            d="M0,120 Q360,200 720,160 Q1080,120 1440,180 L1440,220 L0,220 Z"
+            d="M0,80 Q480,160 960,120 Q1440,80 1920,140 L1920,180 L0,180 Z"
             fill="#e6f4ea"
           />
         </svg>
       </section>
 
-      {/* Overlapping Happy Customers Section */}
-      <section className="relative z-10 -mt-24 md:-mt-32 flex flex-col items-center justify-center">
+      {/* Overlapping Happy Customers Section - perfectly in the valley */}
+      <section className="relative z-10 -mt-16 md:-mt-24 flex flex-col items-center justify-center">
         <div className="bg-transparent w-full flex flex-col items-center justify-center">
           <div className="max-w-4xl mx-auto text-center px-4 py-12">
             <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 drop-shadow-md" style={{textShadow: '0 4px 16px #e6f4ea, 0 2px 8px #fff'}}>Over 100,000 Happy<br />Customers</h2>
