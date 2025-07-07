@@ -187,19 +187,17 @@ function Home() {
       </section>
 
       {/* Join Us Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        {/* Large green oval background as in screenshot */}
-        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/3 w-[120vw] h-[60vw] max-w-[1600px] max-h-[600px] bg-green-100 rounded-full z-0" style={{filter: 'blur(0px)'}}></div>
-        <div className="relative max-w-4xl mx-auto text-center z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 italic">
-            Become A Part Of The Hedamo Family
+      <section className="relative flex items-center justify-center py-20 px-4 bg-gradient-to-br from-green-50 via-green-100 to-green-50 overflow-hidden rounded-3xl shadow-lg mx-2 my-12">
+        <div className="max-w-3xl w-full text-center z-10">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-green-900 mb-6 italic drop-shadow-lg">
+            Become <span className="text-green-700">A Part Of The Hedamo Family</span>
           </h2>
           <p className="text-lg text-green-800 mb-8 font-medium">
             At Hedamo, We Believe Small Choices Lead To Big Change — And It Starts With Us.
           </p>
           <Link
             to="/signup"
-            className="inline-block bg-green-700 hover:bg-green-800 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-300"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white px-12 py-4 rounded-full text-lg font-bold shadow-md transition-all duration-300"
           >
             Join Us
           </Link>
