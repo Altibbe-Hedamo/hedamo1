@@ -1,28 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import heroBackground from '/homepage.webp';
 import { TestimonialCarousel } from '../components/testimonial';
 import Footer from '../components/Footer';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  category_name: string;
-  company_name: string;
-  current_market: string;
-  created_at: string;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  products?: T[];
-  error?: string;
-}
-
 function Home() {
-  const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
+  // (removed unused API_URL)
 
   return (
     <div className="min-h-screen bg-white">
