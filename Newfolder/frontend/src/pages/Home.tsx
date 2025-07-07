@@ -11,7 +11,7 @@ function Home() {
       {/* Header */}
       {/* Hero Section */}
       <section
-        className="relative h-[600px] bg-cover bg-center"
+        className="relative h-screen bg-cover bg-center"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${heroBackground})`,
         }}
