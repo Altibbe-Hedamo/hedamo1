@@ -68,14 +68,6 @@ function Home() {
             </Link>
           </div>
         </div>
-
-        {/* Improved, deeper, organic wave for better section separation */}
-        <svg viewBox="0 0 1920 250" className="absolute bottom-0 left-0 w-full h-[180px] md:h-[250px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
-          <path
-            d="M0,120 C400,220 1520,20 1920,120 L1920,250 L0,250 Z"
-            fill="#d6f5e3"
-          />
-        </svg>
       </section>
 
       {/* Overlapping Happy Customers Section - sits in the valley of the wave, with better spacing and background */}
