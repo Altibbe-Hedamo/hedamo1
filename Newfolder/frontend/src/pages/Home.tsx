@@ -79,8 +79,8 @@ function Home() {
       </section>
 
       {/* Overlapping Happy Customers Section - sits in the valley of the wave, with better spacing and background */}
-      <section className="relative z-10 -mt-24 md:-mt-40 flex flex-col items-center justify-center">
-        <div className="bg-[#d6f5e3] w-full flex flex-col items-center justify-center rounded-t-3xl shadow-lg pt-16 pb-12 px-4">
+      <section className="relative z-10 flex flex-col items-center justify-center">
+        <div className="bg-[#d6f5e3] w-full flex flex-col items-center justify-center rounded-t-3xl shadow-lg pt-20 pb-12 px-4 mt-0">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-extrabold text-green-900 mb-6 drop-shadow-xl" style={{textShadow: '0 6px 24px #b2e2c7, 0 2px 8px #fff'}}>Over 100,000 Happy<br />Customers</h2>
             <p className="text-lg text-green-800 mb-4 font-medium">
