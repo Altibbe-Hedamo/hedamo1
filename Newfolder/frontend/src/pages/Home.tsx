@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import heroBackground from '/homepage.webp';
-import { TestimonialCarousel } from '../components/testimonial';
 import Footer from '../components/Footer';
 import React from 'react'; // Added for React.useState
 
