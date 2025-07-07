@@ -186,6 +186,69 @@ function Home() {
         </div>
       </section>
 
+      {/* What Our Clients Say - testimonial cards grid */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-12">
+            <div className="w-12 h-1 bg-green-600 mb-4"></div>
+            <h2 className="text-3xl font-bold text-gray-900">What Our Clients Say</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "Hedamo helped me find reliable freelancers for my startup...",
+                name: "Amit Sharma",
+                role: "Startup Founder",
+                img: "/img/testimonial1.jpg"
+              },
+              {
+                quote: "As a freelancer, Hedamo has given me consistent job opportunities...",
+                name: "Neha Patel",
+                role: "Freelance Graphic Designer",
+                img: "/img/testimonial2.jpg"
+              },
+              {
+                quote: "Finding skilled professionals for SEO and content writing...",
+                name: "Rahul Verma",
+                role: "Digital Marketer",
+                img: "/img/testimonial3.jpg"
+              },
+              {
+                quote: "Great platform for remote work! I found a long-term client...",
+                name: "Priya Iyer",
+                role: "Content Writer",
+                img: "/img/testimonial4.webp"
+              },
+              {
+                quote: "Hedamo made hiring a web developer effortless...",
+                name: "Vikram Mehta",
+                role: "E-commerce Business Owner",
+                img: "/img/testimonial5.webp"
+              },
+              {
+                quote: "The platform's UI is very intuitive...",
+                name: "Karan Malhotra",
+                role: "Project Manager",
+                img: "/img/testimonial6.webp"
+              },
+              {
+                quote: "I landed my first freelance gig through Hedamo...",
+                name: "Sneha Reddy",
+                role: "Frontend Developer",
+                img: "/img/testimonial7.webp"
+              }
+            ].map((testimonial, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-xl shadow-lg border border-green-100 flex flex-col items-center">
+                <img src={testimonial.img} alt={testimonial.name} className="w-20 h-20 rounded-full border-4 border-green-100 object-cover mb-4" />
+                <p className="text-gray-700 italic mb-4 text-center">"{testimonial.quote}"</p>
+                <div className="text-green-800 font-bold">{testimonial.name}</div>
+                <div className="text-sm text-gray-500">{testimonial.role}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Join Us Section */}
       <section className="relative flex items-center justify-center py-24 px-4 overflow-hidden" style={{minHeight: '480px', marginTop: 0}}>
         {/* Large green oval background flush with top */}
