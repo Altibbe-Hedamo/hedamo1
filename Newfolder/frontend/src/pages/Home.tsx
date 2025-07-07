@@ -193,14 +193,14 @@ function Home() {
             </div>
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product, index) => (
-                <Link
-                  to={`/${product.category_name.toLowerCase().replace(' ', '-')}/${product.company_name
-                    .toLowerCase()
-                    .replace(' ', '-')}/${product.name.toLowerCase().replace(' ', '-')}-p-${product.id}`}
-                  key={product.id}
-                  className="group bg-white border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg"
-                >
+                          {products.map((product) => (
+              <Link
+                to={`/${product.category_name.toLowerCase().replace(' ', '-')}/${product.company_name
+                  .toLowerCase()
+                  .replace(' ', '-')}/${product.name.toLowerCase().replace(' ', '-')}-p-${product.id}`}
+                key={product.id}
+                className="group bg-white border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg"
+              >
                   <div className="aspect-w-16 aspect-h-10 overflow-hidden">
                     <img
                       src={`${API_URL}/uploads/products/${product.image}`}
