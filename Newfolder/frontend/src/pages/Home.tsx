@@ -103,10 +103,13 @@ function Home() {
           </div>
         </div>
 
-        {/* Curved bottom */}
+        {/* Water wave curve bottom */}
         <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1200 120" className="w-full h-20 fill-green-50">
-            <path d="M0,120 C300,40 900,40 1200,120 L1200,120 L0,120 Z"></path>
+          <svg viewBox="0 0 1440 120" className="w-full h-24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M0,80 C360,160 1080,0 1440,80 L1440,120 L0,120 Z"
+              fill="#f0fdf4"
+            />
           </svg>
         </div>
       </section>
