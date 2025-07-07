@@ -44,40 +44,6 @@ function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b">
-        <div className="flex items-center">
-          <div className="bg-green-800 text-white px-3 py-1 rounded text-sm font-bold">HEDAMO</div>
-        </div>
-
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="text-gray-700 hover:text-green-700 font-medium">
-            Home
-          </Link>
-          <Link to="/about" className="text-gray-700 hover:text-green-700 font-medium">
-            About Us
-          </Link>
-          <Link to="/products" className="text-gray-700 hover:text-green-700 font-medium">
-            Shop
-          </Link>
-          <Link to="/contact" className="text-gray-700 hover:text-green-700 font-medium">
-            Contact
-          </Link>
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <Link to="/wishlist" className="text-gray-700 hover:text-green-700">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
-          </Link>
-          <Link to="/profile" className="text-gray-700 hover:text-green-700">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-          </Link>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section
         className="relative h-[600px] bg-cover bg-center"
