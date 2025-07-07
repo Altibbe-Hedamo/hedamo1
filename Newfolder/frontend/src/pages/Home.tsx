@@ -187,9 +187,9 @@ function Home() {
       </section>
 
       {/* Join Us Section */}
-      <section className="relative flex items-center justify-center py-24 px-4 overflow-hidden" style={{minHeight: '480px'}}>
-        {/* Large green oval background */}
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 w-[140vw] h-[80vw] max-w-[1800px] max-h-[700px] bg-green-100 rounded-b-full z-0" style={{filter: 'blur(0px)'}}></div>
+      <section className="relative flex items-center justify-center py-24 px-4 overflow-hidden" style={{minHeight: '480px', marginTop: 0}}>
+        {/* Large green oval background flush with top */}
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[140vw] h-[80vw] max-w-[1800px] max-h-[700px] bg-green-100 rounded-b-full z-0" style={{filter: 'blur(0px)', top: 0}}></div>
         <div className="relative max-w-3xl w-full text-center z-10">
           <h2 className="text-4xl md:text-5xl font-extrabold text-green-900 mb-6 italic drop-shadow-lg">
             Become <span className="text-green-700">A Part Of The Hedamo Family</span>
