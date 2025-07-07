@@ -42,149 +42,223 @@ function Home() {
   }, []);
 
   return (
-    <div className="bg-white">
-      {/* Hero Section - Michelin Guide inspired */}
-      <section className="relative h-screen bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src={heroBackground}
-            alt="Organic farming"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/20 via-gray-900/40 to-gray-900/80"></div>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 bg-white border-b">
+        <div className="flex items-center">
+          <div className="bg-green-800 text-white px-3 py-1 rounded text-sm font-bold">HEDAMO</div>
         </div>
-        
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="text-center px-6 max-w-5xl mx-auto">
-            <div className="mb-6">
-              <span className="inline-block bg-green-600 text-white px-6 py-2 rounded-full text-sm font-medium tracking-wide uppercase">
-                Verified Organic Excellence
-              </span>
-            </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-light text-white mb-8 leading-tight tracking-tight">
-              Discover and book
-              <br />
-              <span className="font-normal">organic products</span>
-              <br />
-              selected by <span className="font-semibold text-green-400">Hedamo</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto font-light leading-relaxed">
-              The world's most trusted platform for verified organic products and sustainable farming connections
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/products"
-                className="bg-green-600 text-white px-10 py-4 rounded-sm hover:bg-green-700 transition-all duration-300 font-medium text-lg tracking-wide uppercase"
-              >
-                Explore Products
-              </Link>
-              <Link
-                to="/signup"
-                className="border-2 border-white text-white px-10 py-4 rounded-sm hover:bg-white hover:text-gray-900 transition-all duration-300 font-medium text-lg tracking-wide uppercase"
-              >
-                Join Platform
-              </Link>
-            </div>
+
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/" className="text-gray-700 hover:text-green-700 font-medium">
+            Home
+          </Link>
+          <Link to="/about" className="text-gray-700 hover:text-green-700 font-medium">
+            About Us
+          </Link>
+          <Link to="/products" className="text-gray-700 hover:text-green-700 font-medium">
+            Shop
+          </Link>
+          <Link to="/contact" className="text-gray-700 hover:text-green-700 font-medium">
+            Contact
+          </Link>
+        </nav>
+
+        <div className="flex items-center space-x-4">
+          <Link to="/wishlist" className="text-gray-700 hover:text-green-700">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+          </Link>
+          <Link to="/profile" className="text-gray-700 hover:text-green-700">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </Link>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section
+        className="relative h-[600px] bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${heroBackground})`,
+        }}
+      >
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
+          <h1 className="text-4xl md:text-6xl font-bold mb-8 tracking-wide">FUEL YOUR BODY. FEED YOUR SOUL</h1>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link
+              to="/products"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-300"
+            >
+              Explore Products
+            </Link>
+            <Link
+              to="/about"
+              className="border-2 border-white text-white hover:bg-white hover:text-green-700 px-8 py-3 rounded-full text-lg font-semibold bg-transparent transition-all duration-300"
+            >
+              Our Story
+            </Link>
           </div>
+        </div>
+
+        {/* Curved bottom */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1200 120" className="w-full h-20 fill-green-50">
+            <path d="M0,120 C300,40 900,40 1200,120 L1200,120 L0,120 Z"></path>
+          </svg>
         </div>
       </section>
 
-      {/* Featured Stats - Michelin style */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { number: '1,000+', label: 'Verified Products', sublabel: 'Organic certified' },
-              { number: '500+', label: 'Organic Farmers', sublabel: 'Trusted partners' },
-              { number: '50+', label: 'Countries', sublabel: 'Global reach' },
-              { number: '99.9%', label: 'Trust Score', sublabel: 'Customer satisfaction' }
-            ].map((stat, index) => (
-              <div key={index} className="group">
-                <div className="text-4xl md:text-5xl font-light text-gray-900 mb-2 group-hover:text-green-600 transition-colors duration-300">
-                  {stat.number}
-                </div>
-                <div className="text-gray-700 font-medium mb-1">{stat.label}</div>
-                <div className="text-sm text-gray-500">{stat.sublabel}</div>
+      {/* Happy Customers Section */}
+      <section className="bg-green-50 py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6">
+            Over 100,000 Happy
+            <br />
+            Customers
+          </h2>
+          <p className="text-lg text-green-800 mb-4 font-medium">
+            "Since 2020, We've Been Creating Feel-Good Nutrition Guided By Nature And Wisdom."
+          </p>
+          <p className="text-green-700">Thank You For Being Part Of Our Journey</p>
+        </div>
+      </section>
+
+      {/* Shop By Category */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <div className="w-12 h-1 bg-green-600 mb-4"></div>
+              <h2 className="text-3xl font-bold text-gray-900">Shop By Category</h2>
+            </div>
+            <Link to="/products" className="text-gray-400 hover:text-green-600 transition-colors">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <Link
+              to="/products?cat=food"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/product/food.webp"
+                  alt="Plant-Based Food"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
               </div>
-            ))}
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Plant-Based Food</h3>
+              </div>
+            </Link>
+
+            <Link
+              to="/products?cat=cloth"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/product/clothing.webp"
+                  alt="Organic Clothing"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Organic Clothing</h3>
+              </div>
+            </Link>
+
+            <Link
+              to="/products?cat=cosmetics"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/product/cosmetics.webp"
+                  alt="Natural Cosmetics"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Natural Cosmetics</h3>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Product Categories - Clean grid layout */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4">
-              Product Categories
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light">
-              Explore our carefully curated selection of organic products across different categories
-            </p>
+      {/* The Story Behind The Smile */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-12">
+            <div className="w-12 h-1 bg-green-600 mb-4"></div>
+            <h2 className="text-3xl font-bold text-gray-900">The Story Behind The Smile</h2>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { 
-                name: 'Food & Beverages', 
-                image: '/product/food.webp', 
-                cat: 'food', 
-                description: 'Fresh organic produce, grains, and beverages',
-                count: '450+ Products'
-              },
-              { 
-                name: 'Sustainable Clothing', 
-                image: '/product/clothing.webp', 
-                cat: 'cloth', 
-                description: 'Eco-friendly fashion and organic textiles',
-                count: '280+ Products'
-              },
-              { 
-                name: 'Natural Cosmetics', 
-                image: '/product/cosmetics.webp', 
-                cat: 'cosmetics', 
-                description: 'Pure beauty products and skincare',
-                count: '150+ Products'
-              },
-            ].map(({ name, image, cat, description, count }) => (
-              <Link
-                key={name}
-                to={`/products?cat=${cat}`}
-                className="group bg-white border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg"
-              >
-                <div className="aspect-w-16 aspect-h-10 overflow-hidden">
-                  <img
-                    src={image}
-                    alt={name}
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xl font-medium text-gray-900 group-hover:text-green-600 transition-colors">
-                      {name}
-                    </h3>
-                    <span className="text-sm text-gray-500 font-medium">{count}</span>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed">{description}</p>
-                </div>
-              </Link>
-            ))}
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <Link
+              to="/about"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/h2.jpg"
+                  alt="Our Origins"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Our Origins</h3>
+              </div>
+            </Link>
+
+            <Link
+              to="/services"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/h1.jpg"
+                  alt="How We Create"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">How We Create</h3>
+              </div>
+            </Link>
+
+            <Link
+              to="/about"
+              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+            >
+              <div className="aspect-square relative">
+                <img
+                  src="/us2.jpg"
+                  alt="Why It Matters"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Why It Matters</h3>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Recently Added Products - Michelin card style */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4">
-              Recently Added
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light">
-              Discover the latest organic products from our verified farmers and producers
-            </p>
+      {/* Recently Added Products */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-12">
+            <div className="w-12 h-1 bg-green-600 mb-4"></div>
+            <h2 className="text-3xl font-bold text-gray-900">Community Love</h2>
           </div>
 
           {isLoading ? (
@@ -192,45 +266,32 @@ function Home() {
               <div className="animate-spin rounded-full h-12 w-12 border-2 border-green-600 border-t-transparent"></div>
             </div>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                          {products.map((product) => (
-              <Link
-                to={`/${product.category_name.toLowerCase().replace(' ', '-')}/${product.company_name
-                  .toLowerCase()
-                  .replace(' ', '-')}/${product.name.toLowerCase().replace(' ', '-')}-p-${product.id}`}
-                key={product.id}
-                className="group bg-white border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg"
-              >
-                  <div className="aspect-w-16 aspect-h-10 overflow-hidden">
+            <div className="grid md:grid-cols-3 gap-8">
+              {products.map((product) => (
+                <Link
+                  key={product.id}
+                  to={`/${product.category_name.toLowerCase().replace(' ', '-')}/${product.company_name
+                    .toLowerCase()
+                    .replace(' ', '-')}/${product.name.toLowerCase().replace(' ', '-')}-p-${product.id}`}
+                  className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
+                >
+                  <div className="aspect-[4/5] relative">
                     <img
                       src={`${API_URL}/uploads/products/${product.image}`}
                       alt={product.name}
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
                   </div>
-                  <div className="p-8">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-green-600 font-medium uppercase tracking-wide">
-                        {product.category_name}
-                      </span>
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                        New
-                      </span>
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-900 mb-3 group-hover:text-green-600 transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        By {product.company_name}
-                      </span>
-                      <span className="text-green-600 font-medium group-hover:underline">
-                        View Details
-                      </span>
+                  <div className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">H</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
+                        <p className="text-xs text-gray-500">By {product.company_name}</p>
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -249,193 +310,27 @@ function Home() {
         </div>
       </section>
 
-      {/* About Section - Michelin inspired layout */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="mb-6">
-                <span className="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                  About Hedamo
-                </span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-6 leading-tight">
-                The future of organic commerce
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed font-light">
-                Hedamo is the world's most trusted platform for verified organic products. We connect conscious consumers with authentic organic farmers through our rigorous verification process and QR-based authenticity reports.
-              </p>
-              <div className="space-y-4 mb-8">
-                {[
-                  'QR-verified authenticity reports',
-                  'Direct farmer-to-consumer connections',
-                  'Global marketplace for organic products',
-                  'Sustainable farming support'
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className="w-2 h-2 bg-green-600 rounded-full mr-4"></div>
-                    <span className="text-gray-700">{feature}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/about"
-                  className="bg-green-600 text-white px-8 py-3 rounded-sm hover:bg-green-700 transition-all duration-300 font-medium text-center"
-                >
-                  Learn More
-                </Link>
-                <Link
-                  to="/contact"
-                  className="border border-gray-300 text-gray-700 px-8 py-3 rounded-sm hover:border-gray-400 transition-all duration-300 font-medium text-center"
-                >
-                  Contact Us
-                </Link>
-              </div>
-            </div>
-            <div className="relative">
-              <img
-                src="/h2.jpg"
-                alt="Organic farming"
-                className="w-full h-[500px] object-cover rounded-sm"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-sm"></div>
-            </div>
-          </div>
+      {/* Join Us Section */}
+      <section className="relative py-20 px-4 bg-gradient-to-br from-green-50 to-green-100 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-green-300 rounded-full"></div>
+          <div className="absolute bottom-10 right-10 w-48 h-48 bg-green-200 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-green-100 rounded-full"></div>
         </div>
-      </section>
 
-      {/* Core Services - Clean card layout */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4">
-              Our Services
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light">
-              Comprehensive solutions for organic farming and sustainable commerce
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: 'QR Verification Reports',
-                desc: 'Every product comes with a comprehensive QR-based authenticity report, ensuring complete transparency about origin, farming practices, and quality standards.',
-                icon: '📊',
-                link: '/services#qr-reports'
-              },
-              {
-                title: 'Global B2B Marketplace',
-                desc: 'Connect with verified organic farmers and suppliers worldwide. Our platform facilitates secure transactions and reliable supply chain management.',
-                icon: '🌐',
-                link: '/services#marketplace'
-              },
-              {
-                title: 'Local Producer Network',
-                desc: 'Discover authentic organic producers in your region. Build direct relationships with local farmers and support sustainable agriculture.',
-                icon: '🗺️',
-                link: '/services#local-producers'
-              }
-            ].map((service, index) => (
-              <div key={index} className="bg-white border border-gray-200 p-8 hover:border-gray-300 hover:shadow-lg transition-all duration-300 group">
-                <div className="text-4xl mb-6">{service.icon}</div>
-                <h3 className="text-xl font-medium text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
-                  {service.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  {service.desc}
-                </p>
-                <Link
-                  to={service.link}
-                  className="inline-flex items-center text-green-600 font-medium hover:text-green-700 transition-colors"
-                >
-                  Learn More
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works - Minimal timeline */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-4">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light">
-              Simple steps to connect with verified organic products and farmers
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              {
-                step: '01',
-                title: 'Create Account',
-                desc: 'Sign up as a buyer or farmer to access our verified organic marketplace and connect with like-minded partners.'
-              },
-              {
-                step: '02',
-                title: 'Verification Process',
-                desc: 'Our experts examine and verify all products, ensuring they meet strict organic standards and quality requirements.'
-              },
-              {
-                step: '03',
-                title: 'QR Authentication',
-                desc: 'Each product receives a unique QR code linking to detailed reports about origin, farming practices, and certifications.'
-              },
-              {
-                step: '04',
-                title: 'Secure Trading',
-                desc: 'Connect with verified partners worldwide and engage in secure, transparent transactions with full traceability.'
-              }
-            ].map((step, index) => (
-              <div key={index} className="text-center group">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full text-xl font-medium mb-6 group-hover:bg-green-600 group-hover:text-white transition-all duration-300">
-                  {step.step}
-                </div>
-                <h3 className="text-xl font-medium text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
-                  {step.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {step.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - Michelin style */}
-      <section className="py-24 bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-light text-white mb-6">
-            Ready to discover verified organic products?
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 italic">
+            Become A Part Of The Hedamo Family
           </h2>
-          <p className="text-xl text-gray-300 mb-10 font-light">
-            Join thousands of conscious consumers and farmers who trust Hedamo for authentic organic commerce
+          <p className="text-lg text-green-800 mb-8 font-medium">
+            At Hedamo, We Believe Small Choices Lead To Big Change — And It Starts With Us.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="bg-green-600 text-white px-10 py-4 rounded-sm hover:bg-green-700 transition-all duration-300 font-medium text-lg"
-            >
-              Get Started Today
-            </Link>
-            <Link
-              to="/products"
-              className="border-2 border-white text-white px-10 py-4 rounded-sm hover:bg-white hover:text-gray-900 transition-all duration-300 font-medium text-lg"
-            >
-              Browse Products
-            </Link>
-          </div>
+          <Link
+            to="/signup"
+            className="inline-block bg-green-700 hover:bg-green-800 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-300"
+          >
+            Join Us
+          </Link>
         </div>
       </section>
 
