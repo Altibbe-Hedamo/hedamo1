@@ -86,7 +86,7 @@ function Home() {
         }}
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-8 tracking-wide">FUEL YOUR BODY. FEED YOUR SOUL</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-8 tracking-wide drop-shadow-lg">FUEL YOUR BODY. FEED YOUR SOUL</h1>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               to="/products"
@@ -103,29 +103,25 @@ function Home() {
           </div>
         </div>
 
-        {/* Shallow smooth curve bottom as in screenshot */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" className="w-full h-24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M0,80 Q360,120 720,80 T1440,80 L1440,120 L0,120 Z"
-              fill="#e6f4ea"
-            />
-          </svg>
-        </div>
+        {/* Enhanced organic curve bottom with valley for text overlap */}
+        <svg viewBox="0 0 1440 220" className="absolute bottom-0 left-0 w-full h-[180px] md:h-[220px]" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex: 1}}>
+          <path
+            d="M0,120 Q360,200 720,160 Q1080,120 1440,180 L1440,220 L0,220 Z"
+            fill="#e6f4ea"
+          />
+        </svg>
       </section>
 
-      {/* Happy Customers Section */}
-      <section className="bg-green-50 py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6">
-            Over 100,000 Happy
-            <br />
-            Customers
-          </h2>
-          <p className="text-lg text-green-800 mb-4 font-medium">
-            "Since 2020, We've Been Creating Feel-Good Nutrition Guided By Nature And Wisdom."
-          </p>
-          <p className="text-green-700">Thank You For Being Part Of Our Journey</p>
+      {/* Overlapping Happy Customers Section */}
+      <section className="relative z-10 -mt-24 md:-mt-32 flex flex-col items-center justify-center">
+        <div className="bg-transparent w-full flex flex-col items-center justify-center">
+          <div className="max-w-4xl mx-auto text-center px-4 py-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 drop-shadow-md" style={{textShadow: '0 4px 16px #e6f4ea, 0 2px 8px #fff'}}>Over 100,000 Happy<br />Customers</h2>
+            <p className="text-lg text-green-800 mb-4 font-medium">
+              "Since 2020, We've Been Creating Feel-Good Nutrition Guided By Nature And Wisdom."
+            </p>
+            <p className="text-green-700">Thank You For Being Part Of Our Journey</p>
+          </div>
         </div>
       </section>
 
