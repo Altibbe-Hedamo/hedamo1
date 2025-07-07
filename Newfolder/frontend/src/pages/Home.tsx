@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import heroBackground from '/homepage.webp';
 import { TestimonialCarousel } from '../components/testimonial';
 import Footer from '../components/Footer';
+import React from 'react'; // Added for React.useState
 
 function Home() {
   // (removed unused API_URL)
@@ -175,77 +176,14 @@ function Home() {
         </div>
       </section>
 
-      {/* Community Love - single testimonial section */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12">
-            <div className="w-12 h-1 bg-green-600 mb-4"></div>
-            <h2 className="text-3xl font-bold text-gray-900">Community Love</h2>
-          </div>
-          <TestimonialCarousel />
-        </div>
-      </section>
-
-      {/* What Our Clients Say - testimonial cards grid */}
+      {/* What Our Clients Say - horizontal scrollable slider */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="mb-12">
             <div className="w-12 h-1 bg-green-600 mb-4"></div>
             <h2 className="text-3xl font-bold text-gray-900">What Our Clients Say</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "Hedamo helped me find reliable freelancers for my startup...",
-                name: "Amit Sharma",
-                role: "Startup Founder",
-                img: "/img/testimonial1.jpg"
-              },
-              {
-                quote: "As a freelancer, Hedamo has given me consistent job opportunities...",
-                name: "Neha Patel",
-                role: "Freelance Graphic Designer",
-                img: "/img/testimonial2.jpg"
-              },
-              {
-                quote: "Finding skilled professionals for SEO and content writing...",
-                name: "Rahul Verma",
-                role: "Digital Marketer",
-                img: "/img/testimonial3.jpg"
-              },
-              {
-                quote: "Great platform for remote work! I found a long-term client...",
-                name: "Priya Iyer",
-                role: "Content Writer",
-                img: "/img/testimonial4.webp"
-              },
-              {
-                quote: "Hedamo made hiring a web developer effortless...",
-                name: "Vikram Mehta",
-                role: "E-commerce Business Owner",
-                img: "/img/testimonial5.webp"
-              },
-              {
-                quote: "The platform's UI is very intuitive...",
-                name: "Karan Malhotra",
-                role: "Project Manager",
-                img: "/img/testimonial6.webp"
-              },
-              {
-                quote: "I landed my first freelance gig through Hedamo...",
-                name: "Sneha Reddy",
-                role: "Frontend Developer",
-                img: "/img/testimonial7.webp"
-              }
-            ].map((testimonial, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow-lg border border-green-100 flex flex-col items-center">
-                <img src={testimonial.img} alt={testimonial.name} className="w-20 h-20 rounded-full border-4 border-green-100 object-cover mb-4" />
-                <p className="text-gray-700 italic mb-4 text-center">"{testimonial.quote}"</p>
-                <div className="text-green-800 font-bold">{testimonial.name}</div>
-                <div className="text-sm text-gray-500">{testimonial.role}</div>
-              </div>
-            ))}
-          </div>
+          <TestimonialSlider />
         </div>
       </section>
 
@@ -271,6 +209,95 @@ function Home() {
 
       {/* Footer */}
       <Footer />
+    </div>
+  );
+}
+
+function TestimonialSlider() {
+  const testimonials = [
+    {
+      quote: "Hedamo helped me find reliable freelancers for my startup...",
+      name: "Amit Sharma",
+      role: "Startup Founder",
+      img: "/img/testimonial1.jpg"
+    },
+    {
+      quote: "As a freelancer, Hedamo has given me consistent job opportunities...",
+      name: "Neha Patel",
+      role: "Freelance Graphic Designer",
+      img: "/img/testimonial2.jpg"
+    },
+    {
+      quote: "Finding skilled professionals for SEO and content writing...",
+      name: "Rahul Verma",
+      role: "Digital Marketer",
+      img: "/img/testimonial3.jpg"
+    },
+    {
+      quote: "Great platform for remote work! I found a long-term client...",
+      name: "Priya Iyer",
+      role: "Content Writer",
+      img: "/img/testimonial4.webp"
+    },
+    {
+      quote: "Hedamo made hiring a web developer effortless...",
+      name: "Vikram Mehta",
+      role: "E-commerce Business Owner",
+      img: "/img/testimonial5.webp"
+    },
+    {
+      quote: "The platform's UI is very intuitive...",
+      name: "Karan Malhotra",
+      role: "Project Manager",
+      img: "/img/testimonial6.webp"
+    },
+    {
+      quote: "I landed my first freelance gig through Hedamo...",
+      name: "Sneha Reddy",
+      role: "Frontend Developer",
+      img: "/img/testimonial7.webp"
+    }
+  ];
+  const [start, setStart] = React.useState(0);
+  const visibleCount = 3;
+  const canGoLeft = start > 0;
+  const canGoRight = start + visibleCount < testimonials.length;
+
+  const handleLeft = () => {
+    if (canGoLeft) setStart(start - visibleCount);
+  };
+  const handleRight = () => {
+    if (canGoRight) setStart(start + visibleCount);
+  };
+
+  return (
+    <div className="relative">
+      <div className="flex items-center justify-center mb-6">
+        <button
+          onClick={handleLeft}
+          disabled={!canGoLeft}
+          className={`rounded-full p-2 mx-2 bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-30 disabled:cursor-not-allowed`}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <button
+          onClick={handleRight}
+          disabled={!canGoRight}
+          className={`rounded-full p-2 mx-2 bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-30 disabled:cursor-not-allowed`}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8">
+        {testimonials.slice(start, start + visibleCount).map((testimonial, idx) => (
+          <div key={idx} className="bg-white p-6 rounded-xl shadow-lg border border-green-100 flex flex-col items-center">
+            <img src={testimonial.img} alt={testimonial.name} className="w-20 h-20 rounded-full border-4 border-green-100 object-cover mb-4" />
+            <p className="text-gray-700 italic mb-4 text-center">"{testimonial.quote}"</p>
+            <div className="text-green-800 font-bold">{testimonial.name}</div>
+            <div className="text-sm text-gray-500">{testimonial.role}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
