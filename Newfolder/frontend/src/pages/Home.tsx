@@ -22,24 +22,7 @@ interface ApiResponse<T> {
 }
 
 function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '') || '';
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/products?sort=recent`)
-      .then((res) => res.json())
-      .then((data: ApiResponse<Product>) => {
-        if (data.success && data.products) {
-          setProducts(data.products.slice(0, 3));
-        }
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching products:', error);
-        setIsLoading(false);
-      });
-  }, []);
 
   return (
     <div className="min-h-screen bg-white">
