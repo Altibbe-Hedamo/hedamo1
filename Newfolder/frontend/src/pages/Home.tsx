@@ -263,10 +263,10 @@ function TestimonialSlider() {
   const canGoRight = start + visibleCount < testimonials.length;
 
   const handleLeft = () => {
-    if (canGoLeft) setStart(start - visibleCount);
+    if (canGoLeft) setStart(start - 1);
   };
   const handleRight = () => {
-    if (canGoRight) setStart(start + visibleCount);
+    if (canGoRight) setStart(start + 1);
   };
 
   return (
