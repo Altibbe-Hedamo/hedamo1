@@ -306,7 +306,7 @@ const CompanyProductPage: React.FC = () => {
 
                                         {/* Complete Intake Form Button */}
                                         <Link
-                                            to={`/company/intake-form/${product.id}`}
+                                            to={`/company-portal/intake-form/${product.id}`}
                                             className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
