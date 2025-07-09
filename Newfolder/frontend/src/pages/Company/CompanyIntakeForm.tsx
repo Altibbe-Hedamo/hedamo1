@@ -9,6 +9,8 @@ interface Answer {
   question: string;
   response: string;
   timestamp?: string;
+  section?: string;
+  dataPoint?: string;
 }
 
 interface ConversationData {
@@ -115,6 +117,13 @@ const CompanyIntakeForm: React.FC = () => {
             formData.append('location', productData.location || '');
           }
         }
+        // Add current conversation state
+        formData.append('conversation', JSON.stringify(answers.map(ans => ({
+          question: ans.question,
+          answer: ans.response,
+          section: 'Current Section',
+          dataPoint: 'Current Data Point'
+        }))));
       }
 
       const response = await api.post('/api/company/intake-questionnaire', formData, {
@@ -124,31 +133,48 @@ const CompanyIntakeForm: React.FC = () => {
       if (response.data.success) {
         if (response.data.completed) {
           // Save conversation to database
-          await saveConversation(response.data.answers, response.data.report, response.data.firReport);
+          const conversationAnswers = response.data.conversation || response.data.answers || [];
+          await saveConversation(conversationAnswers, response.data.report, response.data.firReport);
           
           setScreen('result');
-          setAnswers(response.data.answers.map((ans: string, idx: number) => ({
-            question: `Q${idx + 1}`,
-            response: ans,
-            timestamp: new Date().toISOString()
+          setAnswers(conversationAnswers.map((item: any, idx: number) => ({
+            question: item.question || `Q${idx + 1}`,
+            response: item.answer || item,
+            timestamp: new Date().toISOString(),
+            section: item.section || 'Unknown',
+            dataPoint: item.dataPoint || 'Unknown'
           })));
           setReport(response.data.report);
           setFirReport(response.data.firReport || '');
           
           // Generate PDFs
-          await generatePDFs(response.data.answers, response.data.report, response.data.firReport);
+          await generatePDFs(conversationAnswers, response.data.report, response.data.firReport);
           
-          toast.success('Intake questionnaire completed successfully');
+          toast.success('AI-powered intake questionnaire completed successfully');
         } else {
           setQuestion(response.data.message);
           setScreen('chat');
-          if (userResponse || fileData) {
-            const newAnswer: Answer = {
-              question: question || 'Initial question',
-              response: userResponse || '[File Uploaded]',
-              timestamp: new Date().toISOString()
-            };
-            setAnswers(prev => [...prev, newAnswer]);
+          
+          // Update conversation state from AI response
+          if (response.data.conversation) {
+            setAnswers(response.data.conversation.map((item: any) => ({
+              question: item.question,
+              response: item.answer || '',
+              timestamp: new Date().toISOString(),
+              section: item.section || 'Unknown',
+              dataPoint: item.dataPoint || 'Unknown'
+            })));
+          }
+          
+          // Show helper text and progress
+          if (response.data.helperText) {
+            console.log('Helper text:', response.data.helperText);
+          }
+          if (response.data.progress) {
+            console.log(`Overall progress: ${response.data.progress}%`);
+          }
+          if (response.data.sectionProgress) {
+            console.log(`Section progress: ${response.data.sectionProgress}%`);
           }
         }
       } else {

@@ -4,7 +4,11 @@ const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 const { v4: uuidv4 } = require('uuid');
+const AIQuestionnaireService = require('../../services/aiQuestionnaireService');
 const router = express.Router();
+
+// Initialize AI service
+const aiService = new AIQuestionnaireService();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -37,7 +41,7 @@ const upload = multer({
   }
 });
 
-// AI Questionnaire endpoint - integrates with external AI service
+// Advanced AI Questionnaire endpoint - quantum-inspired deep dive approach
 router.post('/intake-questionnaire', upload.single('file'), async (req, res) => {
   const { pool } = req.app.locals;
   const userId = req.user?.id;
@@ -51,54 +55,138 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       sub_categories,
       product_name,
       company_name,
-      location
+      location,
+      conversation = []
     } = req.body;
 
-    // Prepare data for AI service
-    const formData = new FormData();
-    formData.append('session_id', session_id);
-    
-    if (user_response) {
-      formData.append('user_response', user_response);
-    }
-    
-    if (req.file) {
-      formData.append('file', fs.createReadStream(req.file.path), req.file.originalname);
-    }
-    
-    if (category) {
-      formData.append('category', category);
-      formData.append('sub_categories', sub_categories || JSON.stringify(['General']));
-      formData.append('product_name', product_name || '');
-      formData.append('company_name', company_name || '');
-      formData.append('location', location || '');
-    }
-
-    // Call external AI service
-    const aiResponse = await fetch('https://chatsystem-xudw.onrender.com/chats', {
-      method: 'POST',
-      body: formData
-    });
-
-    const aiData = await aiResponse.json();
-
-    // If conversation is completed, also generate FIR report if needed
-    if (aiData.completed && aiData.report) {
-      // Check if product needs FIR report based on category or other criteria
-      const needsFIR = await checkIfNeedsFIRReport(product_id, category, pool);
-      
-      if (needsFIR) {
-        aiData.firReport = await generateFIRReport(aiData.answers, aiData.report, product_name);
+    // Get product data from database to enhance AI context
+    let productData = null;
+    if (product_id) {
+      const client = await pool.connect();
+      try {
+        const productQuery = `
+          SELECT p.*, c.name as company_name, c.location as company_location
+          FROM products p
+          JOIN company c ON p.company_id = c.id
+          WHERE p.id = $1 AND c.created_by = $2
+        `;
+        const productResult = await client.query(productQuery, [product_id, userId]);
+        if (productResult.rows.length > 0) {
+          productData = productResult.rows[0];
+        }
+        client.release();
+      } catch (dbError) {
+        console.error('Error fetching product data:', dbError);
+        if (client) client.release();
       }
     }
 
+    // Build context from request and product data
+    const context = {
+      productName: productData?.name || product_name || 'Unknown Product',
+      commercialName: productData?.name || product_name || 'Unknown Product',
+      category: productData?.category || category || 'General',
+      subcategories: sub_categories ? JSON.parse(sub_categories) : ['General'],
+      description: productData?.description || 'Product description',
+      location: productData?.location || company_location || location || 'Unknown Location',
+      companyName: productData?.company_name || company_name || 'Unknown Company',
+      email: req.user?.email || 'user@example.com'
+    };
+
+    // If this is the first call, return the first question
+    if (!user_response && conversation.length === 0) {
+      const nextStep = await aiService.getNextStep(context, [], session_id, productData);
+      
+      if (nextStep.isComplete) {
+        return res.json({
+          success: true,
+          completed: true,
+          message: 'Questionnaire completed'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: nextStep.nextQuestion,
+        currentSection: nextStep.currentSection,
+        currentDataPoint: nextStep.currentDataPoint,
+        progress: nextStep.progress,
+        sectionProgress: nextStep.sectionProgress,
+        helperText: nextStep.helperText,
+        anticipatedTopics: nextStep.anticipatedTopics,
+        reasoning: nextStep.reasoning,
+        deepDiveMode: true
+      });
+    }
+
+    // Process user response and get next question
+    const updatedConversation = [...conversation];
+    if (user_response) {
+      // Add the user's response to conversation history
+      const lastQuestion = conversation.length > 0 ? conversation[conversation.length - 1] : null;
+      if (lastQuestion && !lastQuestion.answer) {
+        lastQuestion.answer = user_response;
+      } else {
+        // This shouldn't happen, but handle gracefully
+        updatedConversation.push({
+          question: 'Previous question',
+          answer: user_response,
+          section: 'Unknown',
+          dataPoint: 'Unknown'
+        });
+      }
+    }
+
+    // Handle file upload
+    if (req.file) {
+      const fileResponse = `[File uploaded: ${req.file.originalname}]`;
+      if (updatedConversation.length > 0) {
+        updatedConversation[updatedConversation.length - 1].answer = fileResponse;
+      }
+    }
+
+    // Get next step from AI service
+    const nextStep = await aiService.getNextStep(context, updatedConversation, session_id, productData);
+
+    if (nextStep.isComplete) {
+      // Generate final reports
+      const reports = await aiService.generateReport(context, updatedConversation);
+      
+      return res.json({
+        success: true,
+        completed: true,
+        answers: updatedConversation.map(c => c.answer),
+        report: reports.conversationSummary,
+        firReport: reports.productFIR,
+        conversation: updatedConversation
+      });
+    }
+
+    // Add the new question to conversation
+    updatedConversation.push({
+      question: nextStep.nextQuestion,
+      answer: '',
+      section: nextStep.currentSection,
+      dataPoint: nextStep.currentDataPoint
+    });
+
     res.json({
       success: true,
-      ...aiData
+      message: nextStep.nextQuestion,
+      currentSection: nextStep.currentSection,
+      currentDataPoint: nextStep.currentDataPoint,
+      progress: nextStep.progress,
+      sectionProgress: nextStep.sectionProgress,
+      conversation: updatedConversation,
+      helperText: nextStep.helperText,
+      anticipatedTopics: nextStep.anticipatedTopics,
+      reasoning: nextStep.reasoning,
+      deepDiveMode: true,
+      isAskLaterQuestion: nextStep.isAskLaterQuestion
     });
 
   } catch (error) {
-    console.error('AI Questionnaire error:', error);
+    console.error('Advanced AI Questionnaire error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to process questionnaire',
