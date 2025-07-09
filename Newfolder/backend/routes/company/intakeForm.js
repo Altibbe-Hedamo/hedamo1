@@ -104,6 +104,14 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         console.log('📊 accepted_products query result rows:', acceptedResult.rows.length);
         if (acceptedResult.rows.length > 0) {
           acceptedProductData = acceptedResult.rows[0];
+          // STRICT CHECK: Ensure product_name, category, and sub_categories are present and non-empty
+          if (!acceptedProductData.product_name || !acceptedProductData.category || !acceptedProductData.sub_categories || acceptedProductData.product_name.trim() === '' || acceptedProductData.category.trim() === '' || acceptedProductData.sub_categories.trim() === '') {
+            client.release();
+            return res.status(400).json({
+              success: false,
+              error: 'Eligibility form incomplete: product name, category, and subcategory are required. Please complete the eligibility form for this product.'
+            });
+          }
           productData = {
             id: acceptedProductData.id,
             name: acceptedProductData.product_name,
@@ -161,21 +169,19 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
 
     // Build enhanced context prioritizing horizon form data (accepted_products) over basic product data
     const context = {
-      // Core product identity - prioritize horizon form data
-      productName: productData?.horizon_form_name || productData?.name || product_name || 'Unknown Product',
-      commercialName: productData?.horizon_form_name || productData?.name || product_name || 'Unknown Product',
-      category: productData?.horizon_form_category || productData?.category_name || category || 'General',
-      subcategories: productData?.horizon_form_subcategories || (sub_categories ? JSON.parse(sub_categories) : ['General']),
+      // Core product identity - strictly use horizon form data
+      productName: productData?.horizon_form_name,
+      commercialName: productData?.horizon_form_name,
+      category: productData?.horizon_form_category,
+      subcategories: productData?.horizon_form_subcategories,
       description: productData?.description || 'Product details from horizon form',
       location: productData?.horizon_form_location || productData?.company_location || location || 'Unknown Location',
       companyName: productData?.horizon_form_company || productData?.company_name || company_name || 'Unknown Company',
       email: productData?.horizon_form_email || req.user?.email || 'user@example.com',
-      
       // Rich horizon form context
       certifications: productData?.horizon_form_certifications || [],
       eligibilityReason: productData?.eligibility_reason || '',
       hasHorizonData: productData?.has_horizon_data || false,
-      
       // Additional product metadata
       brands: productData?.brands || 'Brand information from horizon form',
       sku: productData?.sku || 'SKU from product registration',
