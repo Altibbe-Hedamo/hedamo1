@@ -86,32 +86,94 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       conversationLength: conversation.length
     });
 
-    // Get product data from database to enhance AI context
+    // Get comprehensive product data from eligibility/horizon form (accepted_products table)
     let productData = null;
+    let acceptedProductData = null;
+    
     if (product_id) {
-      console.log('🔍 Fetching product data for product_id:', product_id);
+      console.log('🔍 Fetching comprehensive product data for product_id:', product_id);
       const client = await pool.connect();
       try {
+        // First get basic product info
         const productQuery = `
-          SELECT p.*, c.name as company_name, c.location as company_location
+          SELECT p.*, 
+                 c.name as company_name, 
+                 c.location as company_location,
+                 c.current_market,
+                 cat.name as category_name
           FROM products p
           JOIN company c ON p.company_id = c.id
+          LEFT JOIN categories cat ON p.category = cat.id
           WHERE p.id = $1 AND c.created_by = $2
         `;
-        console.log('📝 Product query:', productQuery);
+        console.log('📝 Basic product query:', productQuery);
         console.log('📝 Query params:', [product_id, userId]);
         
         const productResult = await client.query(productQuery, [product_id, userId]);
-        console.log('📊 Product query result rows:', productResult.rows.length);
+        console.log('📊 Basic product query result rows:', productResult.rows.length);
         
         if (productResult.rows.length > 0) {
           productData = productResult.rows[0];
-          console.log('✅ Product data found:', {
+          console.log('✅ Basic product data found:', {
             id: productData.id,
             name: productData.name,
             category: productData.category,
             company_name: productData.company_name
           });
+
+          // Now get the rich eligibility/horizon form data from accepted_products
+          const acceptedProductQuery = `
+            SELECT ap.*
+            FROM accepted_products ap
+            WHERE ap.product_name ILIKE $1 
+              AND ap.company_name ILIKE $2
+              AND ap.decision = 'accepted'
+            ORDER BY ap.created_at DESC
+            LIMIT 1
+          `;
+          
+          console.log('📝 Accepted products query:', acceptedProductQuery);
+          console.log('📝 Searching for:', {
+            product_name: productData.name,
+            company_name: productData.company_name
+          });
+          
+          const acceptedResult = await client.query(acceptedProductQuery, [
+            `%${productData.name}%`, 
+            `%${productData.company_name}%`
+          ]);
+          
+          console.log('📊 Accepted products query result rows:', acceptedResult.rows.length);
+          
+          if (acceptedResult.rows.length > 0) {
+            acceptedProductData = acceptedResult.rows[0];
+            console.log('✅ Rich eligibility form data found:', {
+              id: acceptedProductData.id,
+              product_name: acceptedProductData.product_name,
+              category: acceptedProductData.category,
+              sub_categories: acceptedProductData.sub_categories,
+              certifications: acceptedProductData.certifications,
+              location: acceptedProductData.location
+            });
+            
+            // Merge the data, prioritizing the rich accepted_products data
+            productData = {
+              ...productData,
+              // Override with rich eligibility form data
+              horizon_form_name: acceptedProductData.product_name,
+              horizon_form_category: acceptedProductData.category,
+              horizon_form_subcategories: acceptedProductData.sub_categories,
+              horizon_form_company: acceptedProductData.company_name,
+              horizon_form_location: acceptedProductData.location,
+              horizon_form_certifications: acceptedProductData.certifications,
+              horizon_form_email: acceptedProductData.email,
+              eligibility_reason: acceptedProductData.reason,
+              has_horizon_data: true
+            };
+          } else {
+            console.log('⚠️ No matching accepted_products entry found - will use basic product data only');
+            productData.has_horizon_data = false;
+          }
         } else {
           console.log('⚠️ No product found for id/user combination');
         }
@@ -126,16 +188,29 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       console.log('⚠️ No product_id provided');
     }
 
-    // Build context from request and product data
+    // Build enhanced context prioritizing horizon form data (accepted_products) over basic product data
     const context = {
-      productName: productData?.name || product_name || 'Unknown Product',
-      commercialName: productData?.name || product_name || 'Unknown Product',
-      category: productData?.category || category || 'General',
-      subcategories: sub_categories ? JSON.parse(sub_categories) : ['General'],
-      description: productData?.description || 'Product description',
-      location: productData?.company_location || productData?.location || location || 'Unknown Location',
-      companyName: productData?.company_name || company_name || 'Unknown Company',
-      email: req.user?.email || 'user@example.com'
+      // Core product identity - prioritize horizon form data
+      productName: productData?.horizon_form_name || productData?.name || product_name || 'Unknown Product',
+      commercialName: productData?.horizon_form_name || productData?.name || product_name || 'Unknown Product',
+      category: productData?.horizon_form_category || productData?.category_name || category || 'General',
+      subcategories: productData?.horizon_form_subcategories || (sub_categories ? JSON.parse(sub_categories) : ['General']),
+      description: productData?.description || 'Product details from horizon form',
+      location: productData?.horizon_form_location || productData?.company_location || location || 'Unknown Location',
+      companyName: productData?.horizon_form_company || productData?.company_name || company_name || 'Unknown Company',
+      email: productData?.horizon_form_email || req.user?.email || 'user@example.com',
+      
+      // Rich horizon form context
+      certifications: productData?.horizon_form_certifications || [],
+      eligibilityReason: productData?.eligibility_reason || '',
+      hasHorizonData: productData?.has_horizon_data || false,
+      
+      // Additional product metadata
+      brands: productData?.brands || 'Brand information from horizon form',
+      sku: productData?.sku || 'SKU from product registration',
+      price: productData?.price || 'Price from product registration',
+      currentMarket: productData?.current_market || 'Market information from company registration',
+      reportStatus: productData?.report_status || 'none'
     };
 
     console.log('📝 Built context:', context);
@@ -194,8 +269,8 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         console.error('❌ AI service error:', aiError);
         console.error('❌ AI Error stack:', aiError.stack);
         
-        // Return fallback question
-        const fallbackQuestion = `Tell me about your product "${product_name || 'this product'}". What is it and what makes it special?`;
+        // Return fallback question with actual product name from context
+        const fallbackQuestion = `Tell me about your product "${context.productName}". What is it and what makes it special?`;
         
         console.log('🔄 Using fallback question:', fallbackQuestion);
         
@@ -320,7 +395,7 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       console.error('❌ AI Error stack:', aiError.stack);
       
       // Return a fallback question if AI service fails
-      const fallbackQuestion = `Tell me more about your product "${product_name || 'this product'}". What other details can you share?`;
+      const fallbackQuestion = `Tell me more about your product "${context.productName}". What other details can you share?`;
       
       updatedConversation.push({
         question: fallbackQuestion,

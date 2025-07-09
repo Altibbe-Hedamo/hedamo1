@@ -114,15 +114,20 @@ const CompanyIntakeForm: React.FC = () => {
         formData.append('product_id', productId || '');
         if (userResponse) formData.append('user_response', userResponse);
         if (file) formData.append('file', file);
-        if (screen === 'category' || !question) {
-          formData.append('category', category);
-          formData.append('sub_categories', JSON.stringify([subcategory]));
-          if (productData) {
-            formData.append('product_name', productData.name);
-            formData.append('company_name', productData.company_name);
-            formData.append('location', productData.location || '');
-          }
+        
+        // Always send product data if available
+        if (productData) {
+          formData.append('product_name', productData.name);
+          formData.append('company_name', productData.company_name);
+          formData.append('location', productData.location || '');
         }
+        
+        // Send category info when needed
+        if (screen === 'category' || !question) {
+          formData.append('category', category || productData?.category || '');
+          formData.append('sub_categories', JSON.stringify([subcategory || productData?.subcategory || 'General']));
+        }
+        
         // Add current conversation state
         formData.append('conversation', JSON.stringify(answers.map(ans => ({
           question: ans.question,
@@ -287,6 +292,22 @@ const CompanyIntakeForm: React.FC = () => {
     formData.append('product_id', productId || '');
     if (response) formData.append('user_response', response);
     if (file) formData.append('file', file);
+    
+    // Always include product data
+    if (productData) {
+      formData.append('product_name', productData.name);
+      formData.append('company_name', productData.company_name);
+      formData.append('location', productData.location || '');
+    }
+    
+    // Add current conversation state
+    formData.append('conversation', JSON.stringify(answers.map(ans => ({
+      question: ans.question,
+      answer: ans.response,
+      section: ans.section || 'Current Section',
+      dataPoint: ans.dataPoint || 'Current Data Point'
+    }))));
+    
     fetchNextQuestion(response, formData);
   };
 
