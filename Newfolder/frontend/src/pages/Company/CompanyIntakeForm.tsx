@@ -30,8 +30,7 @@ const CompanyIntakeForm: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const [sessionId] = useState(Math.random().toString(36).substring(2, 11));
-  const [category, setCategory] = useState('');
-  const [subcategory, setSubcategory] = useState('');
+
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -46,13 +45,7 @@ const CompanyIntakeForm: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const categories = [
-    { value: 'food', label: 'Food', subcategories: ['Regenerative', 'General'] },
-    { value: 'clothing', label: 'Clothing', subcategories: ['Cotton'] },
-    { value: 'cosmetics', label: 'Cosmetics', subcategories: ['Indian-made'] },
-    { value: 'agriculture', label: 'Agriculture', subcategories: ['General'] },
-    { value: 'animal-fodder', label: 'Animal Fodder', subcategories: ['General'] },
-  ];
+
 
   useEffect(() => {
     if (productId) {
@@ -77,8 +70,6 @@ const CompanyIntakeForm: React.FC = () => {
       if (response.data.success) {
         const product = response.data.product;
         setProductData(product);
-        setCategory(product.category || '');
-        setSubcategory(product.subcategory || 'General');
         
         // Always skip category selection since data is in accepted_products table
         console.log('🎯 Product data loaded, starting questionnaire directly...');
@@ -276,11 +267,7 @@ const CompanyIntakeForm: React.FC = () => {
     }
   };
 
-  const handleStartQuestionnaire = () => {
-    // No need to check category/subcategory - they're in accepted_products table
-    setScreen('chat');
-    fetchNextQuestion();
-  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,8 +330,6 @@ const CompanyIntakeForm: React.FC = () => {
 
   const handleRestart = () => {
     setScreen('chat');
-    setCategory('');
-    setSubcategory('');
     setAnswers([]);
     setReport('');
     setFirReport('');
