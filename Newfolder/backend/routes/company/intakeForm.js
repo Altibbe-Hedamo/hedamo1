@@ -292,7 +292,9 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         // Return enhanced fallback question with rich context from horizon form
         const fallbackQuestion = context.hasHorizonData 
           ? `I see you have "${context.productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${context.productName}?`
-          : `Tell me about your product "${context.productName}" from ${context.companyName}. What makes it special and how do you ensure its quality?`;
+          : context.productName !== 'Unknown Product' 
+            ? `Tell me about your product "${context.productName}" from ${context.companyName}. What makes it special and how do you ensure its quality?`
+            : `I notice you're completing an intake assessment. Please tell me about your product - what is it called, what does it do, and what makes it special?`;
         
         console.log('🔄 Using enhanced fallback question with context:', fallbackQuestion);
         

@@ -3507,6 +3507,23 @@ app.get('/api/hr/jobs/:id/applications', authenticateToken, checkAccess(['hr', '
 
 // Company Intake Form Routes
 app.locals.pool = pool; // Make pool available to routes
+
+// Diagnostic endpoint to check AI service
+app.get('/api/diagnostic/ai-service', authenticateToken, (req, res) => {
+  console.log('🔍 AI Service Diagnostic Check');
+  console.log('📊 Environment variables:');
+  console.log('  - GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET');
+  console.log('  - NODE_ENV:', process.env.NODE_ENV);
+  
+  res.json({
+    success: true,
+    environment: {
+      geminiApiKey: process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET',
+      nodeEnv: process.env.NODE_ENV
+    },
+    message: 'AI service diagnostic completed'
+  });
+});
 const companyIntakeRouter = require('./routes/company/intakeForm');
 app.use('/api/company', authenticateToken, companyIntakeRouter);
 
@@ -3550,7 +3567,18 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
       });
     }
     
-    const client = await dbPool.connect();
+    let client;
+    try {
+      client = await dbPool.connect();
+      console.log('✅ Database connection established successfully');
+    } catch (connectionError) {
+      console.error('❌ Database connection failed:', connectionError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to connect to database',
+        details: connectionError.message
+      });
+    }
     
     // Get product with company info, ensuring user has access
     const query = `
@@ -3563,10 +3591,22 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
     console.log('📝 Executing product query:', query);
     console.log('📝 Query params:', [id, userId]);
 
-    const result = await client.query(query, [id, userId]);
-    console.log('📊 Query result rows:', result.rows.length);
+    let result;
+    try {
+      result = await client.query(query, [id, userId]);
+      console.log('📊 Query result rows:', result.rows.length);
+    } catch (queryError) {
+      console.error('❌ Database query failed:', queryError);
+      client.release();
+      return res.status(500).json({
+        success: false,
+        error: 'Database query failed',
+        details: queryError.message
+      });
+    }
     
     client.release();
+    console.log('✅ Database connection released');
 
     if (result.rows.length === 0) {
       console.log('⚠️ No product found for id/user combination');

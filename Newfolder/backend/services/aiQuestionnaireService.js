@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const GEMINI_API_KEY = 'AIzaSyBuAt4y6edPg5KBw1vRFdiZoXbEZCiIWBI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBuAt4y6edPg5KBw1vRFdiZoXbEZCiIWBI';
 const GEMINI_MODEL = 'gemini-1.5-pro';
 
 // Data points per section based on the NestJS controller
