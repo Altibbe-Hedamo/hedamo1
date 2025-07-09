@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import api from '../../config/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { FiMic, FiUpload, FiDownload } from 'react-icons/fi';
+import { AuthContext } from '../../context/AuthContext';
 
 interface Answer {
   question: string;
@@ -44,7 +45,7 @@ const CompanyIntakeForm: React.FC = () => {
   const [productData, setProductData] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-
+  const { user } = useContext(AuthContext);
 
 
   useEffect(() => {
@@ -110,6 +111,7 @@ const CompanyIntakeForm: React.FC = () => {
       if (!fileData) {
         formData.append('session_id', sessionId);
         formData.append('product_id', productId || '');
+        if (user && user.email) formData.append('user_email', user.email);
         if (userResponse) formData.append('user_response', userResponse);
         if (file) formData.append('file', file);
         
@@ -278,6 +280,7 @@ const CompanyIntakeForm: React.FC = () => {
     const formData = new FormData();
     formData.append('session_id', sessionId);
     formData.append('product_id', productId || '');
+    if (user && user.email) formData.append('user_email', user.email);
     if (response) formData.append('user_response', response);
     if (file) formData.append('file', file);
     
