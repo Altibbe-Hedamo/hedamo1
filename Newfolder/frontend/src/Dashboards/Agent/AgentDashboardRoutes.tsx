@@ -16,7 +16,6 @@ import Sidebar from '../../components/slider';
 import EditProfile from '../../pages/Agent/EditProfile';
 import EditCompany from '../../pages/Agent/EditCompany';
 import ReportsPage from '../../pages/Agent/ReportsPage';
-import Questionnaire from '../../pages/Agent/IntakeQuestionnaire';
 import HvpLedgerPage from '../../pages/Agent/HvpLedgerPage';
 import HelpLinePage from '../../pages/Agent/HelpLinePage';
 import ClientInvoicingPage from '../../pages/Agent/ClientInvoicingPage';
