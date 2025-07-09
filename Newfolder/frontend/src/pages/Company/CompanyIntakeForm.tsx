@@ -40,7 +40,7 @@ const CompanyIntakeForm: React.FC = () => {
   const [firReport, setFirReport] = useState('');
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [screen, setScreen] = useState<'category' | 'chat' | 'result'>('category');
+  const [screen, setScreen] = useState<'category' | 'chat' | 'result'>('chat');
   const [conversationId, setConversationId] = useState<string>('');
   const [productData, setProductData] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -61,6 +61,16 @@ const CompanyIntakeForm: React.FC = () => {
     }
   }, [productId]);
 
+  // Auto-start questionnaire when component loads and has productId
+  useEffect(() => {
+    if (productId && screen === 'chat' && !question && !loading) {
+      console.log('🚀 Auto-starting questionnaire for product:', productId);
+      setTimeout(() => {
+        fetchNextQuestion();
+      }, 500); // Give a bit more time for data to load
+    }
+  }, [productId, screen, question, loading]);
+
   const fetchProductData = async () => {
     try {
       const response = await api.get(`/api/company/products/${productId}`);
@@ -70,16 +80,13 @@ const CompanyIntakeForm: React.FC = () => {
         setCategory(product.category || '');
         setSubcategory(product.subcategory || 'General');
         
-        // If product already has category, skip category selection and start questionnaire
-        if (product.category) {
-          console.log('🎯 Product has category:', product.category, 'Starting questionnaire...');
-          setScreen('chat');
-          // Wait a bit for state to update, then fetch first question
-          setTimeout(() => {
-            console.log('⏰ Timeout completed, calling fetchNextQuestion');
-            fetchNextQuestion();
-          }, 100);
-        }
+        // Always skip category selection since data is in accepted_products table
+        console.log('🎯 Product data loaded, starting questionnaire directly...');
+        // Wait a bit for state to update, then fetch first question
+        setTimeout(() => {
+          console.log('⏰ Timeout completed, calling fetchNextQuestion');
+          fetchNextQuestion();
+        }, 100);
       }
     } catch (error: any) {
       console.error('Error fetching product data:', error);
@@ -335,7 +342,7 @@ const CompanyIntakeForm: React.FC = () => {
   };
 
   const handleRestart = () => {
-    setScreen('category');
+    setScreen('chat');
     setCategory('');
     setSubcategory('');
     setAnswers([]);
@@ -343,6 +350,10 @@ const CompanyIntakeForm: React.FC = () => {
     setFirReport('');
     setQuestion('');
     setConversationId('');
+    // Restart questionnaire immediately
+    setTimeout(() => {
+      fetchNextQuestion();
+    }, 100);
   };
 
   return (
@@ -362,57 +373,7 @@ const CompanyIntakeForm: React.FC = () => {
             )}
           </div>
 
-          {screen === 'category' && (
-            <div>
-              <p className="text-gray-600 mb-6 text-center">Please select a category and subcategory to begin:</p>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => {
-                      setCategory(e.target.value);
-                      setSubcategory('');
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
-                  <select
-                    value={subcategory}
-                    onChange={(e) => setSubcategory(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    disabled={!category}
-                  >
-                    <option value="">Select a subcategory</option>
-                    {category &&
-                      categories
-                        .find((cat) => cat.value === category)
-                        ?.subcategories.map((sub) => (
-                          <option key={sub} value={sub}>
-                            {sub}
-                          </option>
-                        ))}
-                  </select>
-                </div>
-              </div>
-              <button
-                onClick={handleStartQuestionnaire}
-                className="w-full mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-semibold"
-              >
-                Start AI Questionnaire
-              </button>
-            </div>
-          )}
+
 
           {screen === 'chat' && (
             <div>
