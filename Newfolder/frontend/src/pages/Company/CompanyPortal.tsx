@@ -18,6 +18,7 @@ import CompanyCustomerCarePage from './CompanyCustomerCarePage';
 import CompanyOrdersPage from './CompanyOrdersPage';
 import CompanyClientInvoicingPage from './CompanyClientInvoicingPage';
 import CompanyHvpLedgerPage from './CompanyHvpLedgerPage';
+import CompanyIntakeForm from './CompanyIntakeForm';
 const CompanyPortal: React.FC = () => {
   const [activeSection, setActiveSection] = useState('');
   return (
@@ -43,6 +44,7 @@ const CompanyPortal: React.FC = () => {
           <Route path="orders" element={<CompanyOrdersPage />} />
           <Route path="client-invoicing" element={<CompanyClientInvoicingPage />} />
           <Route path="hvp-ledger" element={<CompanyHvpLedgerPage />} />
+          <Route path="intake-form/:productId" element={<CompanyIntakeForm />} />
           <Route path="*" element={<div className="text-2xl font-bold">Welcome to the Company Portal</div>} />
         </Routes>
       </div>

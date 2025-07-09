@@ -3368,6 +3368,51 @@ app.get('/api/hr/jobs/:id/applications', authenticateToken, checkAccess(['hr', '
   }
 });
 
+// Company Intake Form Routes
+const companyIntakeRouter = require('./routes/company/intakeForm');
+app.use('/api/company', authenticateToken, companyIntakeRouter);
+
+// Company Products endpoint
+app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const client = await pool.connect();
+    
+    // Get product with company info, ensuring user has access
+    const query = `
+      SELECT p.*, c.name as company_name, c.location as company_location
+      FROM products p
+      JOIN company c ON p.company_id = c.id
+      WHERE p.id = $1 AND c.created_by = $2
+    `;
+    
+    const result = await client.query(query, [id, userId]);
+    client.release();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found or you do not have access'
+      });
+    }
+
+    res.json({
+      success: true,
+      product: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error fetching company product:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch product',
+      details: error.message
+    });
+  }
+});
+
 // HR Dashboard: Update Application Status
 app.post('/api/hr/applications/:id/status', authenticateToken, checkAccess(['hr', 'admin']), verifyCsrfToken, async (req, res) => {
   const { id } = req.params;
