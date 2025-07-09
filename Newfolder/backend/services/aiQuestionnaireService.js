@@ -244,6 +244,19 @@ Return ONLY a JSON array of strings containing the most relevant subcategories f
   }
 
   async getNextStep(context, conversation, sessionId, productData) {
+    console.log('🤖 AI Service - getNextStep called');
+    console.log('🎯 AI Service - Context received:', {
+      productName: context.productName,
+      category: context.category,
+      hasHorizonData: context.hasHorizonData,
+      certifications: context.certifications,
+      subcategories: context.subcategories
+    });
+    console.log('🎯 AI Service - ProductData received:', productData ? {
+      name: productData.name,
+      has_horizon_data: productData.has_horizon_data
+    } : 'NULL');
+    
     const sid = sessionId || `${context.productName}_${context.email}`;
     if (!this.sessionState[sid]) {
       this.sessionState[sid] = { 
@@ -417,12 +430,23 @@ Generate a JSON object for the next question that DEEP DIVES into ${currentSecti
       }),
     });
 
+    // Create enhanced fallback question using context
+    const productName = context.productName !== 'Unknown Product' ? context.productName : 'your product';
+    const hasRichContext = context.hasHorizonData && context.category !== 'General' && context.certifications?.length > 0;
+    
+    const fallbackQuestion = hasRichContext 
+      ? `I see you have "${productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${productName}?`
+      : `Can you tell me about your product "${productName}" from ${context.companyName}? Please provide any details about what it is and what makes it special.`;
+    
+    console.log('🎯 AI Service - Generated fallback question:', fallbackQuestion);
+    console.log('🎯 AI Service - Using rich context:', hasRichContext);
+
     let result = {
-      question: `Can you tell me about your product "${productData?.name || context.productName}"? Please provide any details about what it is and what makes it special.`,
+      question: fallbackQuestion,
       section: mainCategory,
       dataPoint: DATA_POINTS[mainCategory] ? DATA_POINTS[mainCategory][0] : 'Product Information',
       anticipatedTopics: [],
-      reasoning: 'Starting with basic product information to understand the product',
+      reasoning: hasRichContext ? 'Building on horizon form eligibility assessment data' : 'Starting with basic product information to understand the product',
       flowStrategy: 'Sequential data collection'
     };
 

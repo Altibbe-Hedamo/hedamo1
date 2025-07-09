@@ -241,6 +241,15 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
     
     console.log('📝 Final context object:', JSON.stringify(context, null, 2));
 
+    // CRITICAL: Log what will be sent to AI service
+    console.log('🤖 DATA BEING SENT TO AI SERVICE:');
+    console.log('🎯 Product Name for AI:', context.productName);
+    console.log('🎯 Company Name for AI:', context.companyName);
+    console.log('🎯 Category for AI:', context.category);
+    console.log('🎯 Subcategories for AI:', context.subcategories);
+    console.log('🎯 Certifications for AI:', context.certifications);
+    console.log('🎯 Has Horizon Data for AI:', context.hasHorizonData);
+
     // Initialize AI service if needed
     if (!aiService) {
       console.error('❌ AI service not initialized');
@@ -257,6 +266,17 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       
       try {
         console.log('🤖 Calling AI service getNextStep...');
+        console.log('🎯 Sending to AI service - Context:', {
+          productName: context.productName,
+          category: context.category,
+          hasHorizonData: context.hasHorizonData
+        });
+        console.log('🎯 Sending to AI service - ProductData:', productData ? {
+          name: productData.name,
+          horizon_form_name: productData.horizon_form_name,
+          has_horizon_data: productData.has_horizon_data
+        } : 'NULL');
+        
         const nextStep = await aiService.getNextStep(context, [], session_id, productData);
         console.log('📝 First question generated:', nextStep.nextQuestion);
         
