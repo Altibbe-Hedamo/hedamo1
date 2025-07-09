@@ -70,10 +70,13 @@ const CompanyIntakeForm: React.FC = () => {
         setCategory(product.category || '');
         setSubcategory(product.subcategory || 'General');
         
-        // If product already has category, skip category selection
+        // If product already has category, skip category selection and start questionnaire
         if (product.category) {
           setScreen('chat');
-          fetchNextQuestion();
+          // Wait a bit for state to update, then fetch first question
+          setTimeout(() => {
+            fetchNextQuestion();
+          }, 100);
         }
       }
     } catch (error: any) {
@@ -398,7 +401,9 @@ const CompanyIntakeForm: React.FC = () => {
               ) : (
                 <>
                   <div className="bg-blue-50 p-6 rounded-lg mb-6">
-                    <p className="text-lg text-gray-800 animate-fade-in">{question}</p>
+                    <p className="text-lg text-gray-800 animate-fade-in">
+                      {question || "Loading your personalized questionnaire..."}
+                    </p>
                   </div>
                   
                   <form onSubmit={handleSubmit} className="space-y-4">

@@ -95,7 +95,10 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
 
     // If this is the first call, return the first question
     if (!user_response && conversation.length === 0) {
+      console.log('🚀 Starting new questionnaire for product:', productData?.name);
       const nextStep = await aiService.getNextStep(context, [], session_id, productData);
+      
+      console.log('📝 First question generated:', nextStep.nextQuestion);
       
       if (nextStep.isComplete) {
         return res.json({
@@ -105,6 +108,14 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         });
       }
 
+      // Add the first question to conversation
+      const initialConversation = [{
+        question: nextStep.nextQuestion,
+        answer: '',
+        section: nextStep.currentSection,
+        dataPoint: nextStep.currentDataPoint
+      }];
+
       return res.json({
         success: true,
         message: nextStep.nextQuestion,
@@ -112,6 +123,7 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         currentDataPoint: nextStep.currentDataPoint,
         progress: nextStep.progress,
         sectionProgress: nextStep.sectionProgress,
+        conversation: initialConversation,
         helperText: nextStep.helperText,
         anticipatedTopics: nextStep.anticipatedTopics,
         reasoning: nextStep.reasoning,

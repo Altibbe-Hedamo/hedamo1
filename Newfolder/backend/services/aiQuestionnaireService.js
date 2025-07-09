@@ -406,26 +406,32 @@ Generate a JSON object for the next question that DEEP DIVES into ${currentSecti
     });
 
     let result = {
-      question: "Could you tell me more about that?",
+      question: `Can you tell me about your product "${productData?.name || context.productName}"? Please provide any details about what it is and what makes it special.`,
       section: mainCategory,
-      dataPoint: DATA_POINTS[mainCategory][0],
+      dataPoint: DATA_POINTS[mainCategory] ? DATA_POINTS[mainCategory][0] : 'Product Information',
       anticipatedTopics: [],
-      reasoning: 'Enhancing transparency',
+      reasoning: 'Starting with basic product information to understand the product',
       flowStrategy: 'Sequential data collection'
     };
 
     try {
-      const parsed = JSON.parse(questionRes.candidates[0].content.parts[0].text.replace(/```json\s*|```/g, '').trim());
-      result = {
-        question: parsed.question || result.question,
-        section: parsed.section || result.section,
-        dataPoint: parsed.dataPoint || result.dataPoint,
-        anticipatedTopics: parsed.anticipatedTopics || [],
-        reasoning: parsed.reasoning || 'Enhancing transparency',
-        flowStrategy: parsed.flowStrategy || 'Sequential data collection'
-      };
+      const content = questionRes?.candidates?.[0]?.content;
+      if (content?.parts && Array.isArray(content.parts) && content.parts[0]?.text) {
+        const parsed = JSON.parse(content.parts[0].text.replace(/```json\s*|```/g, '').trim());
+        result = {
+          question: parsed.question || result.question,
+          section: parsed.section || result.section,
+          dataPoint: parsed.dataPoint || result.dataPoint,
+          anticipatedTopics: parsed.anticipatedTopics || [],
+          reasoning: parsed.reasoning || 'Starting with basic product information',
+          flowStrategy: parsed.flowStrategy || 'Sequential data collection'
+        };
+      } else {
+        console.log('No valid AI response, using fallback question');
+      }
     } catch (e) {
       console.error('Error parsing Gemini response:', e);
+      console.log('Using fallback question for', productData?.name || context.productName);
     }
     
     const overallProgress = (Object.keys(state.covered).length / Object.values(DATA_POINTS).flat().length) * 100;
