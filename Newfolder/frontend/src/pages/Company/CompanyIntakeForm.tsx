@@ -122,11 +122,8 @@ const CompanyIntakeForm: React.FC = () => {
           formData.append('location', productData.location || '');
         }
         
-        // Send category info when needed
-        if (screen === 'category' || !question) {
-          formData.append('category', category || productData?.category || '');
-          formData.append('sub_categories', JSON.stringify([subcategory || productData?.subcategory || 'General']));
-        }
+        // Category and subcategory data is already in accepted_products table
+        // No need to send it explicitly
         
         // Add current conversation state
         formData.append('conversation', JSON.stringify(answers.map(ans => ({
@@ -273,10 +270,7 @@ const CompanyIntakeForm: React.FC = () => {
   };
 
   const handleStartQuestionnaire = () => {
-    if (!category || !subcategory) {
-      toast.error('Please select both a category and subcategory');
-      return;
-    }
+    // No need to check category/subcategory - they're in accepted_products table
     setScreen('chat');
     fetchNextQuestion();
   };

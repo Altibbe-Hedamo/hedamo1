@@ -154,7 +154,11 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
                 category: acceptedProductData.category,
                 sub_categories: acceptedProductData.sub_categories,
                 certifications: acceptedProductData.certifications,
-                location: acceptedProductData.location
+                location: acceptedProductData.location,
+                company_name: acceptedProductData.company_name,
+                email: acceptedProductData.email,
+                decision: acceptedProductData.decision,
+                reason: acceptedProductData.reason
               });
               
               // Merge the data, prioritizing the rich accepted_products data
@@ -219,7 +223,17 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       reportStatus: productData?.report_status || 'none'
     };
 
-    console.log('📝 Built context:', context);
+    console.log('📝 Built context with horizon data priorities:');
+    console.log('  🔸 Product Name:', productData?.horizon_form_name ? `"${productData.horizon_form_name}" (from horizon)` : productData?.name ? `"${productData.name}" (from basic)` : `"${product_name}" (from request)` || '"Unknown Product" (fallback)');
+    console.log('  🔸 Category:', productData?.horizon_form_category ? `"${productData.horizon_form_category}" (from horizon)` : productData?.category_name ? `"${productData.category_name}" (from basic)` : '"General" (fallback)');
+    console.log('  🔸 Sub-categories:', productData?.horizon_form_subcategories ? `${JSON.stringify(productData.horizon_form_subcategories)} (from horizon)` : 'General (fallback)');
+    console.log('  🔸 Company:', productData?.horizon_form_company ? `"${productData.horizon_form_company}" (from horizon)` : productData?.company_name ? `"${productData.company_name}" (from basic)` : '"Unknown Company" (fallback)');
+    console.log('  🔸 Location:', productData?.horizon_form_location ? `"${productData.horizon_form_location}" (from horizon)` : productData?.company_location ? `"${productData.company_location}" (from basic)` : '"Unknown Location" (fallback)');
+    console.log('  🔸 Certifications:', productData?.horizon_form_certifications ? `${JSON.stringify(productData.horizon_form_certifications)} (from horizon)` : '[] (none)');
+    console.log('  🔸 Has Horizon Data:', productData?.has_horizon_data ? 'YES' : 'NO');
+    console.log('  🔸 Eligibility Reason:', productData?.eligibility_reason ? `"${productData.eligibility_reason}"` : 'None');
+    
+    console.log('📝 Final context object:', JSON.stringify(context, null, 2));
 
     // Initialize AI service if needed
     if (!aiService) {
@@ -275,10 +289,12 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
         console.error('❌ AI service error:', aiError);
         console.error('❌ AI Error stack:', aiError.stack);
         
-        // Return fallback question with actual product name from context
-        const fallbackQuestion = `Tell me about your product "${context.productName}". What is it and what makes it special?`;
+        // Return enhanced fallback question with rich context from horizon form
+        const fallbackQuestion = context.hasHorizonData 
+          ? `I see you have "${context.productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${context.productName}?`
+          : `Tell me about your product "${context.productName}" from ${context.companyName}. What makes it special and how do you ensure its quality?`;
         
-        console.log('🔄 Using fallback question:', fallbackQuestion);
+        console.log('🔄 Using enhanced fallback question with context:', fallbackQuestion);
         
         return res.json({
           success: true,
@@ -400,8 +416,10 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       console.error('❌ AI service error in main flow:', aiError);
       console.error('❌ AI Error stack:', aiError.stack);
       
-      // Return a fallback question if AI service fails
-      const fallbackQuestion = `Tell me more about your product "${context.productName}". What other details can you share?`;
+      // Return an enhanced fallback question using horizon form context
+      const fallbackQuestion = context.hasHorizonData 
+        ? `Based on your eligibility assessment for "${context.productName}" (${context.category}: ${context.subcategories.join(', ')}), what additional quality control measures or unique production processes do you use that weren't covered in your initial assessment?`
+        : `Tell me more about your product "${context.productName}" from ${context.companyName}. What other details can you share about its production and quality?`;
       
       updatedConversation.push({
         question: fallbackQuestion,
@@ -434,9 +452,11 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
     console.error('❌ Error name:', error.name);
     console.error('❌ Error message:', error.message);
     
-    // Return a very basic fallback response
+    // Return a very basic fallback response with any available context
     try {
-      const fallbackQuestion = `Please tell me about your product "${req.body.product_name || 'this product'}". What is it and what makes it special?`;
+      const productName = req.body.product_name || req.body.productName || 'this product';
+      const companyName = req.body.company_name || req.body.companyName || 'your company';
+      const fallbackQuestion = `Please tell me about your product "${productName}" from ${companyName}. What is it and what makes it special?`;
       
       res.status(500).json({
         success: false,

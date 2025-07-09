@@ -3517,6 +3517,8 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
 
   console.log('🔍 GET /api/company/products/:id called');
   console.log('📊 Request params:', { id, userId });
+  console.log('📊 Pool available:', !!pool);
+  console.log('📊 App.locals.pool available:', !!req.app.locals.pool);
 
   try {
     if (!id || isNaN(parseInt(id))) {
@@ -3536,7 +3538,19 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
     }
 
     console.log('📝 Connecting to database...');
-    const client = await pool.connect();
+    console.log('📝 Using pool from:', pool ? 'direct import' : req.app.locals.pool ? 'app.locals' : 'NONE AVAILABLE');
+    
+    // Use the pool that's available
+    const dbPool = pool || req.app.locals.pool;
+    if (!dbPool) {
+      console.error('❌ No database pool available');
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection not available'
+      });
+    }
+    
+    const client = await dbPool.connect();
     
     // Get product with company info, ensuring user has access
     const query = `
