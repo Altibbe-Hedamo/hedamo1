@@ -34,7 +34,6 @@ const CompanyIntakeForm: React.FC = () => {
   const [response, setResponse] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
-  const [completed, setCompleted] = useState(false);
   const [report, setReport] = useState('');
   const [firReport, setFirReport] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,7 +89,6 @@ const CompanyIntakeForm: React.FC = () => {
         setAnswers(conversation.answers);
         setReport(conversation.report);
         setFirReport(conversation.firReport || '');
-        setCompleted(true);
         setScreen('result');
       }
     } catch (error: any) {
@@ -136,7 +134,6 @@ const CompanyIntakeForm: React.FC = () => {
           })));
           setReport(response.data.report);
           setFirReport(response.data.firReport || '');
-          setCompleted(true);
           
           // Generate PDFs
           await generatePDFs(response.data.answers, response.data.report, response.data.firReport);
@@ -189,7 +186,7 @@ const CompanyIntakeForm: React.FC = () => {
   const generatePDFs = async (answers: Answer[], summaryReport: string, firReport: string) => {
     try {
       // Generate summary PDF
-      const summaryResponse = await api.post('/api/company/generate-summary-pdf', {
+      await api.post('/api/company/generate-summary-pdf', {
         conversationId,
         answers,
         report: summaryReport,
@@ -198,7 +195,7 @@ const CompanyIntakeForm: React.FC = () => {
 
       // Generate FIR PDF if FIR report exists
       if (firReport) {
-        const firResponse = await api.post('/api/company/generate-fir-pdf', {
+        await api.post('/api/company/generate-fir-pdf', {
           conversationId,
           firReport,
           productData
@@ -292,7 +289,6 @@ const CompanyIntakeForm: React.FC = () => {
     setAnswers([]);
     setReport('');
     setFirReport('');
-    setCompleted(false);
     setQuestion('');
     setConversationId('');
   };
