@@ -121,57 +121,63 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
             company_name: productData.company_name
           });
 
-          // Now get the rich eligibility/horizon form data from accepted_products
-          const acceptedProductQuery = `
-            SELECT ap.*
-            FROM accepted_products ap
-            WHERE ap.product_name ILIKE $1 
-              AND ap.company_name ILIKE $2
-              AND ap.decision = 'accepted'
-            ORDER BY ap.created_at DESC
-            LIMIT 1
-          `;
-          
-          console.log('📝 Accepted products query:', acceptedProductQuery);
-          console.log('📝 Searching for:', {
-            product_name: productData.name,
-            company_name: productData.company_name
-          });
-          
-          const acceptedResult = await client.query(acceptedProductQuery, [
-            `%${productData.name}%`, 
-            `%${productData.company_name}%`
-          ]);
-          
-          console.log('📊 Accepted products query result rows:', acceptedResult.rows.length);
-          
-          if (acceptedResult.rows.length > 0) {
-            acceptedProductData = acceptedResult.rows[0];
-            console.log('✅ Rich eligibility form data found:', {
-              id: acceptedProductData.id,
-              product_name: acceptedProductData.product_name,
-              category: acceptedProductData.category,
-              sub_categories: acceptedProductData.sub_categories,
-              certifications: acceptedProductData.certifications,
-              location: acceptedProductData.location
+          // Try to get the rich eligibility/horizon form data from accepted_products (if table exists)
+          try {
+            const acceptedProductQuery = `
+              SELECT ap.*
+              FROM accepted_products ap
+              WHERE ap.product_name ILIKE $1 
+                AND ap.company_name ILIKE $2
+                AND ap.decision = 'accepted'
+              ORDER BY ap.created_at DESC
+              LIMIT 1
+            `;
+            
+            console.log('📝 Attempting to query accepted_products table...');
+            console.log('📝 Searching for:', {
+              product_name: productData.name,
+              company_name: productData.company_name
             });
             
-            // Merge the data, prioritizing the rich accepted_products data
-            productData = {
-              ...productData,
-              // Override with rich eligibility form data
-              horizon_form_name: acceptedProductData.product_name,
-              horizon_form_category: acceptedProductData.category,
-              horizon_form_subcategories: acceptedProductData.sub_categories,
-              horizon_form_company: acceptedProductData.company_name,
-              horizon_form_location: acceptedProductData.location,
-              horizon_form_certifications: acceptedProductData.certifications,
-              horizon_form_email: acceptedProductData.email,
-              eligibility_reason: acceptedProductData.reason,
-              has_horizon_data: true
-            };
-          } else {
-            console.log('⚠️ No matching accepted_products entry found - will use basic product data only');
+            const acceptedResult = await client.query(acceptedProductQuery, [
+              `%${productData.name}%`, 
+              `%${productData.company_name}%`
+            ]);
+            
+            console.log('📊 Accepted products query result rows:', acceptedResult.rows.length);
+            
+            if (acceptedResult.rows.length > 0) {
+              acceptedProductData = acceptedResult.rows[0];
+              console.log('✅ Rich eligibility form data found:', {
+                id: acceptedProductData.id,
+                product_name: acceptedProductData.product_name,
+                category: acceptedProductData.category,
+                sub_categories: acceptedProductData.sub_categories,
+                certifications: acceptedProductData.certifications,
+                location: acceptedProductData.location
+              });
+              
+              // Merge the data, prioritizing the rich accepted_products data
+              productData = {
+                ...productData,
+                // Override with rich eligibility form data
+                horizon_form_name: acceptedProductData.product_name,
+                horizon_form_category: acceptedProductData.category,
+                horizon_form_subcategories: acceptedProductData.sub_categories,
+                horizon_form_company: acceptedProductData.company_name,
+                horizon_form_location: acceptedProductData.location,
+                horizon_form_certifications: acceptedProductData.certifications,
+                horizon_form_email: acceptedProductData.email,
+                eligibility_reason: acceptedProductData.reason,
+                has_horizon_data: true
+              };
+            } else {
+              console.log('⚠️ No matching accepted_products entry found - will use basic product data only');
+              productData.has_horizon_data = false;
+            }
+          } catch (acceptedProductsError) {
+            console.log('⚠️ accepted_products table not available or query failed:', acceptedProductsError.message);
+            console.log('📝 Continuing with basic product data only');
             productData.has_horizon_data = false;
           }
         } else {

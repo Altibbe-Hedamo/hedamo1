@@ -115,6 +115,143 @@ pool.connect((err, client, release) => {
   release();
 });
 
+// Ensure accepted_products table exists
+const ensureAcceptedProductsTable = async () => {
+  try {
+    console.log('🔍 Checking if accepted_products table exists...');
+    
+    const client = await pool.connect();
+    
+    // Check if table exists
+    const tableCheck = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name = 'accepted_products'
+    `);
+    
+    if (tableCheck.rows.length === 0) {
+      console.log('⚠️ accepted_products table not found, creating it...');
+      
+      // Create the table
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS accepted_products (
+          id SERIAL PRIMARY KEY,
+          category VARCHAR(100) NOT NULL,
+          sub_categories TEXT[] NOT NULL,
+          product_name VARCHAR(255) NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          location VARCHAR(255) NOT NULL,
+          email VARCHAR(255),
+          certifications TEXT[],
+          decision VARCHAR(20) NOT NULL DEFAULT 'accepted',
+          reason TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_accepted_products_category ON accepted_products(category);
+        CREATE INDEX IF NOT EXISTS idx_accepted_products_company ON accepted_products(company_name);
+        CREATE INDEX IF NOT EXISTS idx_accepted_products_product ON accepted_products(product_name);
+        CREATE INDEX IF NOT EXISTS idx_accepted_products_email ON accepted_products(email);
+        CREATE INDEX IF NOT EXISTS idx_accepted_products_created_at ON accepted_products(created_at);
+      `;
+      
+      await client.query(createTableSQL);
+      console.log('✅ accepted_products table created successfully!');
+    } else {
+      console.log('✅ accepted_products table already exists');
+    }
+    
+    client.release();
+  } catch (error) {
+    console.error('❌ Error ensuring accepted_products table:', error);
+    // Don't exit the process, just log the error
+    console.log('⚠️ Server will continue without accepted_products table');
+  }
+};
+
+// Ensure intake_conversations table exists
+const ensureIntakeConversationsTable = async () => {
+  try {
+    console.log('🔍 Checking if intake_conversations table exists...');
+    
+    const client = await pool.connect();
+    
+    // Check if table exists
+    const tableCheck = await client.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name = 'intake_conversations'
+    `);
+    
+    if (tableCheck.rows.length === 0) {
+      console.log('⚠️ intake_conversations table not found, creating it...');
+      
+      // Create the table
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS intake_conversations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          product_id INTEGER NOT NULL,
+          company_id INTEGER NOT NULL,
+          user_id INTEGER NOT NULL,
+          session_id VARCHAR(255) NOT NULL,
+          
+          -- Q&A Data
+          answers JSONB NOT NULL DEFAULT '[]',
+          
+          -- Reports
+          summary_report TEXT,
+          fir_report TEXT,
+          
+          -- PDF file paths
+          summary_pdf_path VARCHAR(500),
+          fir_pdf_path VARCHAR(500),
+          
+          -- Status tracking
+          status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived')),
+          completed_at TIMESTAMP,
+          
+          -- Metadata
+          category VARCHAR(100),
+          subcategory VARCHAR(100),
+          
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_product_id ON intake_conversations(product_id);
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_company_id ON intake_conversations(company_id);
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_user_id ON intake_conversations(user_id);
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_session_id ON intake_conversations(session_id);
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_status ON intake_conversations(status);
+        CREATE INDEX IF NOT EXISTS idx_intake_conversations_created_at ON intake_conversations(created_at);
+      `;
+      
+      await client.query(createTableSQL);
+      console.log('✅ intake_conversations table created successfully!');
+    } else {
+      console.log('✅ intake_conversations table already exists');
+    }
+    
+    client.release();
+  } catch (error) {
+    console.error('❌ Error ensuring intake_conversations table:', error);
+    console.log('⚠️ Server will continue without intake_conversations table');
+  }
+};
+
+// Initialize database tables
+Promise.all([
+  ensureAcceptedProductsTable(),
+  ensureIntakeConversationsTable()
+]).then(() => {
+  console.log('🚀 Database initialization completed');
+}).catch(error => {
+  console.error('❌ Database initialization failed:', error);
+});
+
 // Recipient email validation
 const blockedEmailDomains = [
   'tempmail.com',
