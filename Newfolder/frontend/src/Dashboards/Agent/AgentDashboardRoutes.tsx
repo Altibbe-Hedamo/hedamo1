@@ -85,7 +85,7 @@ const AgentDashboardRoutes = () => {
           />
           <Route
             path="/report-page/intake/:productId"
-            element={<ProtectedRoute><Questionnaire /></ProtectedRoute>}
+            element={null}
           />
           <Route
             path="/create-company"
