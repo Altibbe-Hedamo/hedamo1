@@ -3369,6 +3369,7 @@ app.get('/api/hr/jobs/:id/applications', authenticateToken, checkAccess(['hr', '
 });
 
 // Company Intake Form Routes
+app.locals.pool = pool; // Make pool available to routes
 const companyIntakeRouter = require('./routes/company/intakeForm');
 app.use('/api/company', authenticateToken, companyIntakeRouter);
 

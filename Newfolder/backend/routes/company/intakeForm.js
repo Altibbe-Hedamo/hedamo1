@@ -46,7 +46,22 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
   const { pool } = req.app.locals;
   const userId = req.user?.id;
   
+  console.log('🚀 POST /intake-questionnaire called');
+  console.log('📋 Request body:', JSON.stringify(req.body, null, 2));
+  console.log('👤 User ID:', userId);
+  console.log('📁 File uploaded:', req.file ? req.file.filename : 'None');
+  
   try {
+    console.log('💾 Checking pool availability...');
+    if (!pool) {
+      console.error('❌ Database pool not available');
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection not available'
+      });
+    }
+    console.log('✅ Pool available');
+
     const {
       session_id,
       product_id,
@@ -59,9 +74,22 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       conversation = []
     } = req.body;
 
+    console.log('📊 Parsed request data:', {
+      session_id,
+      product_id,
+      user_response: user_response ? user_response.substring(0, 50) + '...' : 'None',
+      category,
+      sub_categories,
+      product_name,
+      company_name,
+      location,
+      conversationLength: conversation.length
+    });
+
     // Get product data from database to enhance AI context
     let productData = null;
     if (product_id) {
+      console.log('🔍 Fetching product data for product_id:', product_id);
       const client = await pool.connect();
       try {
         const productQuery = `
@@ -70,15 +98,32 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
           JOIN company c ON p.company_id = c.id
           WHERE p.id = $1 AND c.created_by = $2
         `;
+        console.log('📝 Product query:', productQuery);
+        console.log('📝 Query params:', [product_id, userId]);
+        
         const productResult = await client.query(productQuery, [product_id, userId]);
+        console.log('📊 Product query result rows:', productResult.rows.length);
+        
         if (productResult.rows.length > 0) {
           productData = productResult.rows[0];
+          console.log('✅ Product data found:', {
+            id: productData.id,
+            name: productData.name,
+            category: productData.category,
+            company_name: productData.company_name
+          });
+        } else {
+          console.log('⚠️ No product found for id/user combination');
         }
         client.release();
       } catch (dbError) {
-        console.error('Error fetching product data:', dbError);
+        console.error('❌ Error fetching product data:', dbError);
+        console.error('❌ DB Error stack:', dbError.stack);
         if (client) client.release();
+        // Don't fail completely, continue with available data
       }
+    } else {
+      console.log('⚠️ No product_id provided');
     }
 
     // Build context from request and product data
@@ -93,47 +138,95 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       email: req.user?.email || 'user@example.com'
     };
 
+    console.log('📝 Built context:', context);
+
+    // Initialize AI service if needed
+    if (!aiService) {
+      console.error('❌ AI service not initialized');
+      return res.status(500).json({
+        success: false,
+        error: 'AI service not available'
+      });
+    }
+    console.log('🤖 AI service available');
+
     // If this is the first call, return the first question
     if (!user_response && conversation.length === 0) {
       console.log('🚀 Starting new questionnaire for product:', productData?.name);
-      const nextStep = await aiService.getNextStep(context, [], session_id, productData);
       
-      console.log('📝 First question generated:', nextStep.nextQuestion);
-      
-      if (nextStep.isComplete) {
+      try {
+        console.log('🤖 Calling AI service getNextStep...');
+        const nextStep = await aiService.getNextStep(context, [], session_id, productData);
+        console.log('📝 First question generated:', nextStep.nextQuestion);
+        
+        if (nextStep.isComplete) {
+          console.log('✅ Questionnaire already completed');
+          return res.json({
+            success: true,
+            completed: true,
+            message: 'Questionnaire completed'
+          });
+        }
+
+        // Add the first question to conversation
+        const initialConversation = [{
+          question: nextStep.nextQuestion,
+          answer: '',
+          section: nextStep.currentSection,
+          dataPoint: nextStep.currentDataPoint
+        }];
+
+        console.log('📤 Sending initial response');
         return res.json({
           success: true,
-          completed: true,
-          message: 'Questionnaire completed'
+          message: nextStep.nextQuestion,
+          currentSection: nextStep.currentSection,
+          currentDataPoint: nextStep.currentDataPoint,
+          progress: nextStep.progress,
+          sectionProgress: nextStep.sectionProgress,
+          conversation: initialConversation,
+          helperText: nextStep.helperText,
+          anticipatedTopics: nextStep.anticipatedTopics,
+          reasoning: nextStep.reasoning,
+          deepDiveMode: true
+        });
+      } catch (aiError) {
+        console.error('❌ AI service error:', aiError);
+        console.error('❌ AI Error stack:', aiError.stack);
+        
+        // Return fallback question
+        const fallbackQuestion = `Tell me about your product "${product_name || 'this product'}". What is it and what makes it special?`;
+        
+        console.log('🔄 Using fallback question:', fallbackQuestion);
+        
+        return res.json({
+          success: true,
+          message: fallbackQuestion,
+          currentSection: 'Product Identity & Claims',
+          currentDataPoint: 'Full product name',
+          progress: 0,
+          sectionProgress: 0,
+          conversation: [{
+            question: fallbackQuestion,
+            answer: '',
+            section: 'Product Identity & Claims',
+            dataPoint: 'Full product name'
+          }],
+          helperText: 'Please describe your product in detail, including its main features and benefits.',
+          anticipatedTopics: ['Brand name', 'Claims', 'Product category'],
+          reasoning: 'Starting with basic product information',
+          deepDiveMode: true,
+          isFallback: true
         });
       }
-
-      // Add the first question to conversation
-      const initialConversation = [{
-        question: nextStep.nextQuestion,
-        answer: '',
-        section: nextStep.currentSection,
-        dataPoint: nextStep.currentDataPoint
-      }];
-
-      return res.json({
-        success: true,
-        message: nextStep.nextQuestion,
-        currentSection: nextStep.currentSection,
-        currentDataPoint: nextStep.currentDataPoint,
-        progress: nextStep.progress,
-        sectionProgress: nextStep.sectionProgress,
-        conversation: initialConversation,
-        helperText: nextStep.helperText,
-        anticipatedTopics: nextStep.anticipatedTopics,
-        reasoning: nextStep.reasoning,
-        deepDiveMode: true
-      });
     }
+
+    console.log('📝 Processing user response...');
 
     // Process user response and get next question
     const updatedConversation = [...conversation];
     if (user_response) {
+      console.log('💬 Adding user response to conversation');
       // Add the user's response to conversation history
       const lastQuestion = conversation.length > 0 ? conversation[conversation.length - 1] : null;
       if (lastQuestion && !lastQuestion.answer) {
@@ -151,6 +244,7 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
 
     // Handle file upload
     if (req.file) {
+      console.log('📁 Processing file upload:', req.file.filename);
       const fileResponse = `[File uploaded: ${req.file.originalname}]`;
       if (updatedConversation.length > 0) {
         updatedConversation[updatedConversation.length - 1].answer = fileResponse;
@@ -158,71 +252,143 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
     }
 
     // Get next step from AI service
-    const nextStep = await aiService.getNextStep(context, updatedConversation, session_id, productData);
-
-    if (nextStep.isComplete) {
-      // Generate final reports
-      const reports = await aiService.generateReport(context, updatedConversation);
-      
-      return res.json({
-        success: true,
-        completed: true,
-        answers: updatedConversation.map(c => c.answer),
-        report: reports.conversationSummary,
-        firReport: reports.productFIR,
-        conversation: updatedConversation
+    console.log('🤖 Getting next step from AI service...');
+    try {
+      const nextStep = await aiService.getNextStep(context, updatedConversation, session_id, productData);
+      console.log('✅ Next step received:', {
+        isComplete: nextStep.isComplete,
+        nextQuestion: nextStep.nextQuestion ? nextStep.nextQuestion.substring(0, 50) + '...' : 'None',
+        currentSection: nextStep.currentSection
       });
-    }
 
-    // Add the new question to conversation
-    updatedConversation.push({
-      question: nextStep.nextQuestion,
-      answer: '',
-      section: nextStep.currentSection,
-      dataPoint: nextStep.currentDataPoint
-    });
+      if (nextStep.isComplete) {
+        console.log('🎯 Questionnaire completed, generating reports...');
+        
+        try {
+          // Generate final reports
+          const reports = await aiService.generateReport(context, updatedConversation);
+          console.log('📊 Reports generated successfully');
+          
+          return res.json({
+            success: true,
+            completed: true,
+            answers: updatedConversation.map(c => c.answer),
+            report: reports.conversationSummary,
+            firReport: reports.productFIR,
+            conversation: updatedConversation
+          });
+        } catch (reportError) {
+          console.error('❌ Error generating reports:', reportError);
+          
+          // Return completion without reports
+          return res.json({
+            success: true,
+            completed: true,
+            answers: updatedConversation.map(c => c.answer),
+            report: 'Report generation in progress...',
+            firReport: 'FIR report generation in progress...',
+            conversation: updatedConversation
+          });
+        }
+      }
 
-    res.json({
-      success: true,
-      message: nextStep.nextQuestion,
-      currentSection: nextStep.currentSection,
-      currentDataPoint: nextStep.currentDataPoint,
-      progress: nextStep.progress,
-      sectionProgress: nextStep.sectionProgress,
-      conversation: updatedConversation,
-      helperText: nextStep.helperText,
-      anticipatedTopics: nextStep.anticipatedTopics,
-      reasoning: nextStep.reasoning,
-      deepDiveMode: true,
-      isAskLaterQuestion: nextStep.isAskLaterQuestion
-    });
+      // Add the new question to conversation
+      updatedConversation.push({
+        question: nextStep.nextQuestion,
+        answer: '',
+        section: nextStep.currentSection,
+        dataPoint: nextStep.currentDataPoint
+      });
 
-  } catch (error) {
-    console.error('❌ Advanced AI Questionnaire error:', error);
-    console.error('Error stack:', error.stack);
-    
-    // Return a fallback question if AI service fails
-    const fallbackQuestion = `Tell me about your product "${product_name || 'this product'}". What is it and what makes it special?`;
-    
-    res.json({
-      success: true,
-      message: fallbackQuestion,
-      currentSection: 'Product Identity & Claims',
-      currentDataPoint: 'Full product name',
-      progress: 0,
-      sectionProgress: 0,
-      conversation: [{
+      console.log('📤 Sending next question response');
+      res.json({
+        success: true,
+        message: nextStep.nextQuestion,
+        currentSection: nextStep.currentSection,
+        currentDataPoint: nextStep.currentDataPoint,
+        progress: nextStep.progress,
+        sectionProgress: nextStep.sectionProgress,
+        conversation: updatedConversation,
+        helperText: nextStep.helperText,
+        anticipatedTopics: nextStep.anticipatedTopics,
+        reasoning: nextStep.reasoning,
+        deepDiveMode: true,
+        isAskLaterQuestion: nextStep.isAskLaterQuestion
+      });
+    } catch (aiError) {
+      console.error('❌ AI service error in main flow:', aiError);
+      console.error('❌ AI Error stack:', aiError.stack);
+      
+      // Return a fallback question if AI service fails
+      const fallbackQuestion = `Tell me more about your product "${product_name || 'this product'}". What other details can you share?`;
+      
+      updatedConversation.push({
         question: fallbackQuestion,
         answer: '',
         section: 'Product Identity & Claims',
-        dataPoint: 'Full product name'
-      }],
-      helperText: 'Please describe your product in detail, including its main features and benefits.',
-      anticipatedTopics: ['Brand name', 'Claims', 'Product category'],
-      reasoning: 'Starting with basic product information',
-      deepDiveMode: true,
-      isFallback: true
-    });
+        dataPoint: 'Additional information'
+      });
+      
+      console.log('🔄 Using fallback question in main flow:', fallbackQuestion);
+      
+      res.json({
+        success: true,
+        message: fallbackQuestion,
+        currentSection: 'Product Identity & Claims',
+        currentDataPoint: 'Additional information',
+        progress: (updatedConversation.length / 20) * 100, // Rough estimate
+        sectionProgress: 0,
+        conversation: updatedConversation,
+        helperText: 'Please provide any additional information about your product.',
+        anticipatedTopics: ['Product features', 'Benefits', 'Usage'],
+        reasoning: 'Collecting additional product information',
+        deepDiveMode: true,
+        isFallback: true
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ MAIN Advanced AI Questionnaire error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    
+    // Return a very basic fallback response
+    try {
+      const fallbackQuestion = `Please tell me about your product "${req.body.product_name || 'this product'}". What is it and what makes it special?`;
+      
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error in questionnaire service',
+        details: error.message,
+        fallback: {
+          success: true,
+          message: fallbackQuestion,
+          currentSection: 'Product Identity & Claims',
+          currentDataPoint: 'Full product name',
+          progress: 0,
+          sectionProgress: 0,
+          conversation: [{
+            question: fallbackQuestion,
+            answer: '',
+            section: 'Product Identity & Claims',
+            dataPoint: 'Full product name'
+          }],
+          helperText: 'Please describe your product in detail.',
+          anticipatedTopics: ['Product name', 'Category', 'Description'],
+          reasoning: 'Basic product information collection',
+          deepDiveMode: true,
+          isEmergencyFallback: true
+        }
+      });
+    } catch (fallbackError) {
+      console.error('❌ Even fallback failed:', fallbackError);
+      res.status(500).json({
+        success: false,
+        error: 'Critical server error',
+        details: error.message
+      });
+    }
   }
 });
 
@@ -326,7 +492,35 @@ router.get('/intake-conversations/:productId', async (req, res) => {
   const userId = req.user?.id;
   const { productId } = req.params;
 
+  console.log('🔍 GET /intake-conversations/:productId called');
+  console.log('📊 Request params:', { productId, userId });
+
   try {
+    if (!pool) {
+      console.error('❌ Database pool not available');
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection not available'
+      });
+    }
+
+    if (!productId || isNaN(parseInt(productId))) {
+      console.error('❌ Invalid product ID:', productId);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid product ID'
+      });
+    }
+
+    if (!userId) {
+      console.error('❌ User ID not available');
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+
+    console.log('📝 Connecting to database...');
     const client = await pool.connect();
 
     const query = `
@@ -340,11 +534,23 @@ router.get('/intake-conversations/:productId', async (req, res) => {
       LIMIT 1
     `;
 
+    console.log('📝 Executing query:', query);
+    console.log('📝 Query params:', [productId, userId]);
+
     const result = await client.query(query, [productId, userId]);
+    console.log('📊 Query result rows:', result.rows.length);
+    
     client.release();
 
     if (result.rows.length > 0) {
       const conversation = result.rows[0];
+      console.log('✅ Conversation found:', {
+        id: conversation.id,
+        product_id: conversation.product_id,
+        status: conversation.status,
+        created_at: conversation.created_at
+      });
+      
       res.json({
         success: true,
         conversation: {
@@ -359,6 +565,7 @@ router.get('/intake-conversations/:productId', async (req, res) => {
         }
       });
     } else {
+      console.log('ℹ️ No existing conversation found');
       res.json({
         success: true,
         conversation: null
@@ -366,7 +573,11 @@ router.get('/intake-conversations/:productId', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Get conversation error:', error);
+    console.error('❌ Get conversation error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve conversation',
