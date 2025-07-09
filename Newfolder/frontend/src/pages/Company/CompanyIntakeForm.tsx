@@ -72,9 +72,11 @@ const CompanyIntakeForm: React.FC = () => {
         
         // If product already has category, skip category selection and start questionnaire
         if (product.category) {
+          console.log('🎯 Product has category:', product.category, 'Starting questionnaire...');
           setScreen('chat');
           // Wait a bit for state to update, then fetch first question
           setTimeout(() => {
+            console.log('⏰ Timeout completed, calling fetchNextQuestion');
             fetchNextQuestion();
           }, 100);
         }
@@ -103,6 +105,7 @@ const CompanyIntakeForm: React.FC = () => {
   };
 
   const fetchNextQuestion = async (userResponse?: string, fileData?: FormData) => {
+    console.log('🚀 fetchNextQuestion called with:', { userResponse, hasFile: !!fileData });
     setLoading(true);
     try {
       const formData = fileData || new FormData();
@@ -129,10 +132,12 @@ const CompanyIntakeForm: React.FC = () => {
         }))));
       }
 
+      console.log('📡 Sending request to /api/company/intake-questionnaire...');
       const response = await api.post('/api/company/intake-questionnaire', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
+      console.log('📨 Received response:', response.data);
       if (response.data.success) {
         if (response.data.completed) {
           // Save conversation to database
@@ -155,6 +160,7 @@ const CompanyIntakeForm: React.FC = () => {
           
           toast.success('AI-powered intake questionnaire completed successfully');
         } else {
+          console.log('📝 Setting question:', response.data.message);
           setQuestion(response.data.message);
           setScreen('chat');
           
@@ -184,6 +190,8 @@ const CompanyIntakeForm: React.FC = () => {
         toast.error(response.data.error || 'Failed to process response');
       }
     } catch (error: any) {
+      console.error('❌ fetchNextQuestion error:', error);
+      console.error('Error details:', error.response?.data);
       toast.error(error.response?.data?.error || 'Failed to connect to server');
     } finally {
       setLoading(false);

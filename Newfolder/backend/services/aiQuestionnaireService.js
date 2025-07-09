@@ -118,7 +118,18 @@ class AIQuestionnaireService {
   async fetchWithRetry(url, options, retries = 3, delay = 1000) {
     for (let i = 0; i < retries; i++) {
       try {
-        const response = await fetch(url, options);
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const optionsWithTimeout = {
+          ...options,
+          signal: controller.signal
+        };
+        
+        const response = await fetch(url, optionsWithTimeout);
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           return response.json();
         }
@@ -126,6 +137,7 @@ class AIQuestionnaireService {
           throw new Error(`Client error: ${response.status}`);
         }
       } catch (error) {
+        console.log(`🔄 Retry ${i + 1}/${retries} failed:`, error.message);
         if (i === retries - 1) throw error;
         await new Promise(res => setTimeout(res, delay * (i + 1)));
       }

@@ -198,11 +198,30 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
     });
 
   } catch (error) {
-    console.error('Advanced AI Questionnaire error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process questionnaire',
-      details: error.message
+    console.error('❌ Advanced AI Questionnaire error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Return a fallback question if AI service fails
+    const fallbackQuestion = `Tell me about your product "${product_name || 'this product'}". What is it and what makes it special?`;
+    
+    res.json({
+      success: true,
+      message: fallbackQuestion,
+      currentSection: 'Product Identity & Claims',
+      currentDataPoint: 'Full product name',
+      progress: 0,
+      sectionProgress: 0,
+      conversation: [{
+        question: fallbackQuestion,
+        answer: '',
+        section: 'Product Identity & Claims',
+        dataPoint: 'Full product name'
+      }],
+      helperText: 'Please describe your product in detail, including its main features and benefits.',
+      anticipatedTopics: ['Brand name', 'Claims', 'Product category'],
+      reasoning: 'Starting with basic product information',
+      deepDiveMode: true,
+      isFallback: true
     });
   }
 });
