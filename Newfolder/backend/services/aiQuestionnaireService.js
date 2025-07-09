@@ -434,9 +434,22 @@ Generate a JSON object for the next question that DEEP DIVES into ${currentSecti
     const productName = context.productName !== 'Unknown Product' ? context.productName : 'your product';
     const hasRichContext = context.hasHorizonData && context.category !== 'General' && context.certifications?.length > 0;
     
-    const fallbackQuestion = hasRichContext 
-      ? `I see you have "${productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${productName}?`
-      : `Can you tell me about your product "${productName}" from ${context.companyName}? Please provide any details about what it is and what makes it special.`;
+    const missingFields = [];
+    if (!context.productName || context.productName === 'Unknown Product') missingFields.push('product name');
+    if (!context.category || context.category === 'General') missingFields.push('category');
+    if (!context.subcategories || context.subcategories.length === 0) missingFields.push('subcategories');
+    if (!context.certifications || context.certifications.length === 0) missingFields.push('certifications');
+    if (!context.companyName || context.companyName === 'Unknown Company') missingFields.push('company name');
+    if (!context.location || context.location === 'Unknown Location') missingFields.push('location');
+
+    let fallbackQuestion = '';
+    if (missingFields.length > 0) {
+      fallbackQuestion = `Please provide the following missing information about your product: ${missingFields.join(', ')}.`;
+    } else if (hasRichContext) {
+      fallbackQuestion = `I see you have "${productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${productName}?`;
+    } else {
+      fallbackQuestion = `Can you tell me about your product "${productName}" from ${context.companyName}? Please provide any details about what it is and what makes it special.`;
+    }
     
     console.log('🎯 AI Service - Generated fallback question:', fallbackQuestion);
     console.log('🎯 AI Service - Using rich context:', hasRichContext);

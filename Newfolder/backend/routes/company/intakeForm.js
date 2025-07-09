@@ -90,104 +90,59 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
     let productData = null;
     let acceptedProductData = null;
     
-    if (product_id) {
-      console.log('🔍 Fetching comprehensive product data for product_id:', product_id);
+    if (product_id && req.user?.email) {
+      console.log('🔍 Fetching context from accepted_products for product_id:', product_id, 'and email:', req.user.email);
       const client = await pool.connect();
       try {
-        // PRIORITY 1: Try to get rich data directly from accepted_products table using user's email
-        console.log('🎯 PRIORITY: Checking accepted_products table for user email:', req.user?.email);
-        try {
-          const directAcceptedQuery = `
-            SELECT ap.*
-            FROM accepted_products ap
-            WHERE ap.email = $1 AND ap.decision = 'accepted'
-            ORDER BY ap.created_at DESC
-            LIMIT 1
-          `;
-          
-          const directAcceptedResult = await client.query(directAcceptedQuery, [req.user?.email]);
-          console.log('📊 Direct accepted_products query result rows:', directAcceptedResult.rows.length);
-          
-          if (directAcceptedResult.rows.length > 0) {
-            acceptedProductData = directAcceptedResult.rows[0];
-            console.log('🎉 FOUND HORIZON FORM DATA!', {
-              id: acceptedProductData.id,
-              product_name: acceptedProductData.product_name,
-              category: acceptedProductData.category,
-              sub_categories: acceptedProductData.sub_categories,
-              certifications: acceptedProductData.certifications,
-              company_name: acceptedProductData.company_name,
-              location: acceptedProductData.location,
-              email: acceptedProductData.email
-            });
-            
-            // Create productData object from horizon form data
-            productData = {
-              id: product_id,
-              name: acceptedProductData.product_name,
-              company_name: acceptedProductData.company_name,
-              company_location: acceptedProductData.location,
-              category_name: acceptedProductData.category,
-              // Merge the rich horizon form data
-              horizon_form_name: acceptedProductData.product_name,
-              horizon_form_category: acceptedProductData.category,
-              horizon_form_subcategories: acceptedProductData.sub_categories,
-              horizon_form_company: acceptedProductData.company_name,
-              horizon_form_location: acceptedProductData.location,
-              horizon_form_certifications: acceptedProductData.certifications,
-              horizon_form_email: acceptedProductData.email,
-              eligibility_reason: acceptedProductData.reason,
-              has_horizon_data: true
-            };
-            
-            console.log('✅ Using HORIZON FORM data as primary source!');
-          }
-        } catch (horizonError) {
-          console.log('⚠️ No accepted_products table or data found:', horizonError.message);
-        }
-        
-        // FALLBACK: Try basic product info only if horizon data not found
-        if (!productData) {
-          console.log('🔄 Fallback: Trying basic product table...');
-          const productQuery = `
-            SELECT p.*, 
-                   c.name as company_name, 
-                   c.location as company_location,
-                   c.current_market,
-                   cat.name as category_name
-            FROM products p
-            JOIN company c ON p.company_id = c.id
-            LEFT JOIN categories cat ON p.category = cat.id
-            WHERE p.id = $1 AND c.created_by = $2
-          `;
-          console.log('📝 Basic product query:', productQuery);
-          console.log('📝 Query params:', [product_id, userId]);
-          
-          const productResult = await client.query(productQuery, [product_id, userId]);
-          console.log('📊 Basic product query result rows:', productResult.rows.length);
-        
-          if (productResult.rows.length > 0) {
-            productData = productResult.rows[0];
-            productData.has_horizon_data = false; // Mark as basic data only
-            console.log('✅ Basic product data found:', {
-              id: productData.id,
-              name: productData.name,
-              category: productData.category,
-              company_name: productData.company_name
-            });
-          } else {
-            console.log('⚠️ No product found for id/user combination');
-          }
+        const acceptedProductQuery = `
+          SELECT * FROM accepted_products
+          WHERE email = $1 AND id = $2 AND decision = 'accepted'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
+        const acceptedResult = await client.query(acceptedProductQuery, [req.user.email, product_id]);
+        console.log('📊 accepted_products query result rows:', acceptedResult.rows.length);
+        if (acceptedResult.rows.length > 0) {
+          acceptedProductData = acceptedResult.rows[0];
+          productData = {
+            id: acceptedProductData.id,
+            name: acceptedProductData.product_name,
+            company_name: acceptedProductData.company_name,
+            company_location: acceptedProductData.location,
+            category_name: acceptedProductData.category,
+            horizon_form_name: acceptedProductData.product_name,
+            horizon_form_category: acceptedProductData.category,
+            horizon_form_subcategories: acceptedProductData.sub_categories,
+            horizon_form_company: acceptedProductData.company_name,
+            horizon_form_location: acceptedProductData.location,
+            horizon_form_certifications: acceptedProductData.certifications,
+            horizon_form_email: acceptedProductData.email,
+            eligibility_reason: acceptedProductData.reason,
+            has_horizon_data: true
+          };
+          console.log('✅ Using HORIZON FORM data as context:', productData);
+        } else {
+          client.release();
+          return res.status(404).json({
+            success: false,
+            error: 'No accepted product found for this user and product. Please complete the eligibility form first.'
+          });
         }
         client.release();
       } catch (dbError) {
-        console.error('❌ Error fetching product data:', dbError);
-        console.error('❌ DB Error stack:', dbError.stack);
+        console.error('❌ Error fetching accepted product data:', dbError);
         if (client) client.release();
-        // Don't fail completely, continue with available data
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to fetch product context from eligibility form',
+          details: dbError.message
+        });
       }
     } else {
-      console.log('⚠️ No product_id provided');
+      return res.status(400).json({
+        success: false,
+        error: 'Missing product_id or user email for context lookup.'
+      });
     }
 
     // FINAL FALLBACK: If no product data found, create from request parameters
