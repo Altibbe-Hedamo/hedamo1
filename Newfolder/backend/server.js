@@ -3378,7 +3378,27 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
 
+  console.log('🔍 GET /api/company/products/:id called');
+  console.log('📊 Request params:', { id, userId });
+
   try {
+    if (!id || isNaN(parseInt(id))) {
+      console.error('❌ Invalid product ID:', id);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid product ID'
+      });
+    }
+
+    if (!userId) {
+      console.error('❌ User ID not available');
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated'
+      });
+    }
+
+    console.log('📝 Connecting to database...');
     const client = await pool.connect();
     
     // Get product with company info, ensuring user has access
@@ -3389,15 +3409,27 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
       WHERE p.id = $1 AND c.created_by = $2
     `;
     
+    console.log('📝 Executing product query:', query);
+    console.log('📝 Query params:', [id, userId]);
+
     const result = await client.query(query, [id, userId]);
+    console.log('📊 Query result rows:', result.rows.length);
+    
     client.release();
 
     if (result.rows.length === 0) {
+      console.log('⚠️ No product found for id/user combination');
       return res.status(404).json({
         success: false,
         error: 'Product not found or you do not have access'
       });
     }
+
+    console.log('✅ Product found:', {
+      id: result.rows[0].id,
+      name: result.rows[0].name,
+      company_name: result.rows[0].company_name
+    });
 
     res.json({
       success: true,
@@ -3405,7 +3437,11 @@ app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching company product:', error);
+    console.error('❌ Error fetching company product:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    
     res.status(500).json({
       success: false,
       error: 'Failed to fetch product',

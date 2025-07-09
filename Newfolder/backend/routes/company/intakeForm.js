@@ -133,7 +133,7 @@ router.post('/intake-questionnaire', upload.single('file'), async (req, res) => 
       category: productData?.category || category || 'General',
       subcategories: sub_categories ? JSON.parse(sub_categories) : ['General'],
       description: productData?.description || 'Product description',
-      location: productData?.location || company_location || location || 'Unknown Location',
+      location: productData?.company_location || productData?.location || location || 'Unknown Location',
       companyName: productData?.company_name || company_name || 'Unknown Company',
       email: req.user?.email || 'user@example.com'
     };
