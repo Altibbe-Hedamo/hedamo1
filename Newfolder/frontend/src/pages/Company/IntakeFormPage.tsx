@@ -10,6 +10,7 @@ interface Product {
     sub_categories: string[];
     company_name: string;
     location: string;
+    certifications: string[];
 }
 
 interface ConversationEntry {
@@ -76,6 +77,7 @@ const IntakeFormPage = () => {
                     companyName: prod.company_name,
                     location: prod.location,
                     email: user.email,
+                    certifications: prod.certifications || [],
                 },
                 conversation: conv,
                 productData: prod,
