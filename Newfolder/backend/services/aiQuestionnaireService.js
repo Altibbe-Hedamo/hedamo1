@@ -270,73 +270,28 @@ Return ONLY a JSON array of strings containing the most relevant subcategories f
     }
     const state = this.sessionState[sid];
 
-    // --- Completion Check Logic ---
-    let dataPointComplete = true; // Assume complete unless a check is needed
+    // Mark the last question's data point as covered or ask later
     if (conversation.length > 0) {
       const lastEntry = conversation[conversation.length - 1];
-      const { answer, section, dataPoint } = lastEntry;
+      const key = `${lastEntry.section}:${lastEntry.dataPoint}`;
       
-      const followUpKey = `${section}:${dataPoint}`;
-      if (!state.followUpCounts) state.followUpCounts = {};
-      if (!state.followUpCounts[followUpKey]) state.followUpCounts[followUpKey] = 0;
-
-      // Only perform completion check if the answer isn't a skip command
-      if (!/will upload later|ask later|later|skip|n\/a/i.test(answer)) {
-        const COMPLETION_PROMPT = `You are a world-class product reviewer. Given the following data point and user answer, is the answer complete and unambiguous for a robust, auditable review? If not, reply with a single, direct follow-up question to get the missing information. If the answer is complete, reply with "COMPLETE".
-
-Data point: "${dataPoint}"
-User answer: "${answer}"`;
-
-        const completionData = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: COMPLETION_PROMPT }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 128 },
-            }),
-        });
-
-        const completionText = completionData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'COMPLETE';
-
-        if (!/^COMPLETE$/i.test(completionText) && state.followUpCounts[followUpKey] < MAX_FOLLOWUPS) {
-            dataPointComplete = false;
-            state.followUpCounts[followUpKey]++;
-            // Return the follow-up question immediately
-            return { 
-                nextQuestion: completionText, 
-                currentSection: section, 
-                currentDataPoint: dataPoint,
-                isFollowUp: true, // Indicate this is a follow-up
-                progress: (Object.keys(state.covered).length / Object.values(DATA_POINTS).flat().length) * 100,
-                sectionProgress: state.sectionCompleteness[section] || 0,
-            };
+      if (/will upload later|ask later|later/i.test(lastEntry.answer)) {
+        state.askLater[key] = {
+          section: lastEntry.section,
+          dataPoint: lastEntry.dataPoint,
+          question: lastEntry.question
+        };
+        if (!state.askLaterOrder.includes(key)) {
+          state.askLaterOrder.push(key);
+        }
+      } else {
+        state.covered[key] = true;
+        delete state.askLater[key];
+        const index = state.askLaterOrder.indexOf(key);
+        if (index > -1) {
+          state.askLaterOrder.splice(index, 1);
         }
       }
-    }
-    
-    // --- Main State Progression Logic ---
-    // This part only runs if the last data point was considered complete
-    if (dataPointComplete && conversation.length > 0) {
-        const lastEntry = conversation[conversation.length - 1];
-        const key = `${lastEntry.section}:${lastEntry.dataPoint}`;
-        
-        if (/will upload later|ask later|later/i.test(lastEntry.answer)) {
-            state.askLater[key] = {
-            section: lastEntry.section,
-            dataPoint: lastEntry.dataPoint,
-            question: lastEntry.question
-            };
-            if (!state.askLaterOrder.includes(key)) {
-            state.askLaterOrder.push(key);
-            }
-        } else {
-            state.covered[key] = true;
-            delete state.askLater[key];
-            const index = state.askLaterOrder.indexOf(key);
-            if (index > -1) {
-            state.askLaterOrder.splice(index, 1);
-            }
-        }
     }
     
     // Use product data to determine the main category
