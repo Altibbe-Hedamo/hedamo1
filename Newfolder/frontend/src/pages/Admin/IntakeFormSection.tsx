@@ -149,11 +149,15 @@ const IntakeFormSection: React.FC = () => {
             {isModalOpen && selectedProduct && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
                     <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={closeModal}></div>
-                        </div>
+                        {/* Backdrop */}
+                        <div 
+                            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+                            aria-hidden="true"
+                            onClick={closeModal}
+                        ></div>
 
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                        {/* Modal */}
+                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative z-10">
                             {/* Modal Header */}
                             <div className="bg-white px-6 py-4 border-b border-gray-200">
                                 <div className="flex items-center justify-between">
@@ -167,7 +171,7 @@ const IntakeFormSection: React.FC = () => {
                                     </div>
                                     <button
                                         onClick={closeModal}
-                                        className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 p-1"
                                     >
                                         <X className="h-6 w-6" />
                                     </button>
@@ -179,7 +183,7 @@ const IntakeFormSection: React.FC = () => {
                                 <nav className="-mb-px flex space-x-8">
                                     <button
                                         onClick={() => setActiveTab('summary')}
-                                        className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                                        className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                                             activeTab === 'summary'
                                                 ? 'border-blue-500 text-blue-600'
                                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -190,7 +194,7 @@ const IntakeFormSection: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('fir')}
-                                        className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                                        className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                                             activeTab === 'fir'
                                                 ? 'border-blue-500 text-blue-600'
                                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -205,25 +209,21 @@ const IntakeFormSection: React.FC = () => {
                             {/* Modal Content */}
                             <div className="bg-white px-6 py-6 max-h-96 overflow-y-auto">
                                 {activeTab === 'summary' ? (
-                                    <div className="prose max-w-none">
-                                        <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
-                                            {selectedProduct.summary}
-                                        </div>
+                                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                        {selectedProduct.summary}
                                     </div>
                                 ) : (
-                                    <div className="prose max-w-none">
-                                        <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
-                                            {selectedProduct.fir_report}
-                                        </div>
+                                    <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                        {selectedProduct.fir_report}
                                     </div>
                                 )}
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="bg-gray-50 px-6 py-3 sm:flex sm:flex-row-reverse">
+                            <div className="bg-gray-50 px-6 py-3 flex justify-end">
                                 <button
                                     onClick={closeModal}
-                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                    className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     Close
                                 </button>
