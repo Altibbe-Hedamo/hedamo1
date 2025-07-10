@@ -105,7 +105,9 @@ router.get('/', authenticateToken, checkAccess(['admin']), async (req, res) => {
 
 router.get('/accepted-products', authenticateToken, checkAccess(['admin']), async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, product_name, company_name, category, created_at FROM accepted_products ORDER BY created_at DESC');
+    const result = await pool.query(
+      'SELECT id, product_name, company_name, category, created_at, summary, fir_report FROM accepted_products WHERE summary IS NOT NULL AND fir_report IS NOT NULL ORDER BY created_at DESC'
+    );
     res.json(result.rows);
   } catch (error) {
     console.error('Fetch accepted products error:', error);

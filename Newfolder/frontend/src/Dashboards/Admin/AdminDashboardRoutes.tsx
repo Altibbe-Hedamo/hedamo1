@@ -20,7 +20,6 @@ import LegalDocumentPage from '../../pages/Admin/LegalDocumentPage';
 import HelpLinePage from '../../pages/Admin/HelpLinePage';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
-import IntakeFormPage from '../../pages/Company/IntakeFormPage';
 
 const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
@@ -101,11 +100,6 @@ const AdminDashboardRoutes = () => {
           <Route
             path="/intake-form"
             element={<ProtectedRoute><IntakeFormSection /></ProtectedRoute>}
-          />
-
-          <Route
-            path="/intake-form/:productId"
-            element={<ProtectedRoute><IntakeFormPage /></ProtectedRoute>}
           />
 
           <Route
