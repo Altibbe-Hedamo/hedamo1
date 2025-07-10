@@ -20,7 +20,7 @@ import LegalDocumentPage from '../../pages/Admin/LegalDocumentPage';
 import HelpLinePage from '../../pages/Admin/HelpLinePage';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
-import IntakeFormPage from '../../pages/Admin/IntakeFormPage';
+import IntakeFormPage from '../../pages/Company/IntakeFormPage';
 
 const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
