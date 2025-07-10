@@ -40,6 +40,7 @@ import Wishlist from './pages/Wishlist';
 import Directories from './pages/Directories';
 import LoadingSpinner from './pages/common/LoadingSpinner';
 import CompanyPortal from './pages/Company/CompanyPortal';
+import IntakeFormPage from './pages/Company/IntakeFormPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
@@ -206,6 +207,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <CompanyPortal />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/company-portal/intake-form/:productId"
+        element={
+          <ProtectedRoute>
+            <IntakeFormPage />
           </ProtectedRoute>
         }
       />

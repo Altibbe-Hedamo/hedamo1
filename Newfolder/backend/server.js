@@ -3507,6 +3507,8 @@ app.get('/api/hr/jobs/:id/applications', authenticateToken, checkAccess(['hr', '
 
 // Company Intake Form Routes
 app.locals.pool = pool; // Make pool available to routes
+const intakeRoutes = require('./routes/company/intake');
+app.use('/api/company/intake', intakeRoutes);
 
 // Diagnostic endpoint to check AI service
 app.get('/api/diagnostic/ai-service', authenticateToken, (req, res) => {
