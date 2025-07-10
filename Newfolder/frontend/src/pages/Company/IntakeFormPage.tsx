@@ -34,6 +34,7 @@ const IntakeFormPage = () => {
     const [progress, setProgress] = useState(0);
     const [sectionProgress, setSectionProgress] = useState(0);
     const [currentSection, setCurrentSection] = useState('');
+    const [currentDataPoint, setCurrentDataPoint] = useState('');
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -95,6 +96,7 @@ const IntakeFormPage = () => {
                     setProgress(response.data.progress || 0);
                     setSectionProgress(response.data.sectionProgress || 0);
                     setCurrentSection(response.data.currentSection || '');
+                    setCurrentDataPoint(response.data.currentDataPoint || '');
                 }
             } else {
                 setError(response.data.error || 'An error occurred.');
@@ -114,7 +116,7 @@ const IntakeFormPage = () => {
             question: currentQuestion,
             answer: currentAnswer,
             section: currentSection,
-            dataPoint: 'TBD',
+            dataPoint: currentDataPoint,
         };
 
         const newConversation = [...conversation, newEntry];
