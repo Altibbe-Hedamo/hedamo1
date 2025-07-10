@@ -408,102 +408,101 @@ const CompanyProductPage: React.FC = () => {
                     ))}
                 </div>
             )}
-        </div>
-
-        {/* AI Analysis Modal */}
-        {showAnalysisModal && aiAnalysis && selectedProduct && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                    <div className="p-6 border-b border-gray-200">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-xl font-semibold text-gray-900">
-                                AI Analysis: {selectedProduct.product_name}
-                            </h3>
-                            <button
-                                onClick={closeAnalysisModal}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="p-6 space-y-6">
-                        {/* Product Overview */}
-                        <div className="bg-blue-50 rounded-lg p-4">
-                            <h4 className="font-semibold text-blue-900 mb-2">Product Overview</h4>
-                            <p className="text-blue-800">{aiAnalysis.product_overview}</p>
-                        </div>
-
-                        {/* Key Considerations */}
-                        <div>
-                            <h4 className="font-semibold text-gray-900 mb-3">Key Considerations</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {aiAnalysis.key_considerations.map((consideration, index) => (
-                                    <div key={index} className="bg-gray-50 rounded-lg p-3">
-                                        <div className="flex items-start">
-                                            <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
-                                                <span className="text-blue-600 text-sm font-medium">{index + 1}</span>
-                                            </div>
-                                            <p className="text-gray-700 text-sm">{consideration}</p>
-                                        </div>
-                                    </div>
-                                ))}
+            
+            {/* AI Analysis Modal */}
+            {showAnalysisModal && aiAnalysis && selectedProduct && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    AI Analysis: {selectedProduct.product_name}
+                                </h3>
+                                <button
+                                    onClick={closeAnalysisModal}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
-                        {/* AI Questions */}
-                        <div>
-                            <h4 className="font-semibold text-gray-900 mb-3">Deep Analysis Questions</h4>
-                            <div className="space-y-4">
-                                {aiAnalysis.questions.map((question, index) => (
-                                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                        <div className="flex items-start space-x-3">
-                                            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                                <span className="text-purple-600 text-sm font-medium">{index + 1}</span>
+                        <div className="p-6 space-y-6">
+                            {/* Product Overview */}
+                            <div className="bg-blue-50 rounded-lg p-4">
+                                <h4 className="font-semibold text-blue-900 mb-2">Product Overview</h4>
+                                <p className="text-blue-800">{aiAnalysis.product_overview}</p>
+                            </div>
+
+                            {/* Key Considerations */}
+                            <div>
+                                <h4 className="font-semibold text-gray-900 mb-3">Key Considerations</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {aiAnalysis.key_considerations.map((consideration, index) => (
+                                        <div key={index} className="bg-gray-50 rounded-lg p-3">
+                                            <div className="flex items-start">
+                                                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                                    <span className="text-blue-600 text-sm font-medium">{index + 1}</span>
+                                                </div>
+                                                <p className="text-gray-700 text-sm">{consideration}</p>
                                             </div>
-                                            <div className="flex-1 space-y-2">
-                                                <h5 className="font-medium text-gray-900">{question.question}</h5>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-start">
-                                                        <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded mr-2">Importance</span>
-                                                        <p className="text-sm text-gray-600">{question.importance}</p>
-                                                    </div>
-                                                    <div className="flex items-start">
-                                                        <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded mr-2">Insights</span>
-                                                        <p className="text-sm text-gray-600">{question.insights}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* AI Questions */}
+                            <div>
+                                <h4 className="font-semibold text-gray-900 mb-3">Deep Analysis Questions</h4>
+                                <div className="space-y-4">
+                                    {aiAnalysis.questions.map((question, index) => (
+                                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                                    <span className="text-purple-600 text-sm font-medium">{index + 1}</span>
+                                                </div>
+                                                <div className="flex-1 space-y-2">
+                                                    <h5 className="font-medium text-gray-900">{question.question}</h5>
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-start">
+                                                            <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded mr-2">Importance</span>
+                                                            <p className="text-sm text-gray-600">{question.importance}</p>
+                                                        </div>
+                                                        <div className="flex items-start">
+                                                            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded mr-2">Insights</span>
+                                                            <p className="text-sm text-gray-600">{question.insights}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                            <button
-                                onClick={closeAnalysisModal}
-                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                                Close
-                            </button>
-                            <Link
-                                to={`/company-portal/intake-form/${selectedProduct.id}`}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                                Complete Intake Form
-                            </Link>
+                            {/* Action Buttons */}
+                            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={closeAnalysisModal}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                    Close
+                                </button>
+                                <Link
+                                    to={`/company-portal/intake-form/${selectedProduct.id}`}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                    Complete Intake Form
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )}
-    </div>
-);
+            )}
+        </div>
+    );
 };
 
 export default CompanyProductPage; 
