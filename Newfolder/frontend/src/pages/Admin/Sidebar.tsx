@@ -29,6 +29,7 @@ const Sidebar: React.FC = () => {
     { name: 'HRB', icon: ClipboardCheck, path: '/admin-dashboard/hrb' },
     { name: 'Companies', icon: Building2, path: '/admin-dashboard/companies' },
     { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
+    { name: 'Intake Form', icon: FileText, path: '/admin-dashboard/intake-form' },
     { name: 'Reports', icon: FileText, path: '/admin-dashboard/reports' },
     { name: 'Payments', icon: DollarSign, path: '/admin-dashboard/payments' },
     { name: 'Invoices', icon: Receipt, path: '/admin-dashboard/invoices' },

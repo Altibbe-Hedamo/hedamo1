@@ -9,6 +9,7 @@ import ProductsSection from '../../pages/Admin/ProductsSection';
 import ReportsSection from '../../pages/Admin/ReportsSection';
 import PaymentsSection from '../../pages/Admin/PaymentsSection';
 import CompaniesSection from '../../pages/Admin/CompaniesSection';
+import IntakeFormSection from '../../pages/Admin/IntakeFormSection';
 import HapSection from '../../pages/Admin/HapSection';
 import HrbSection from '../../pages/Admin/HrbSection';
 import InvoicesSection from '../../pages/Admin/InvoicesSection';
@@ -96,6 +97,11 @@ const AdminDashboardRoutes = () => {
             element={<ProtectedRoute><ProductsSection /></ProtectedRoute>}
           />
           
+          <Route
+            path="/intake-form"
+            element={<ProtectedRoute><IntakeFormSection /></ProtectedRoute>}
+          />
+
           <Route
             path="/reports"
             element={<ProtectedRoute><ReportsSection /></ProtectedRoute>}
