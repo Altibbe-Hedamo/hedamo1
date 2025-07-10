@@ -7,14 +7,14 @@ const pool = require('../db');
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Function to store accepted product in database
-const storeAcceptedProduct = async (formData, decision, reason) => {
+const storeAcceptedProduct = async (formData, decision, reason, questionsAndAnswers) => {
   try {
     const { category, subCategory, productName, companyName, location, email, certifications } = formData;
     
     const query = `
       INSERT INTO accepted_products 
-      (category, sub_categories, product_name, company_name, location, email, certifications, decision, reason)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      (category, sub_categories, product_name, company_name, location, email, certifications, decision, reason, questions_and_answers)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id
     `;
     
@@ -27,7 +27,8 @@ const storeAcceptedProduct = async (formData, decision, reason) => {
       email,
       certifications || [],
       decision,
-      reason
+      reason,
+      questionsAndAnswers ? JSON.stringify(questionsAndAnswers) : null
     ];
     
     const result = await pool.query(query, values);
@@ -141,7 +142,7 @@ router.post('/check', async (req, res) => {
         // If product is accepted, store it in the database
         if (jsonResponse.decision === 'accepted') {
             try {
-                await storeAcceptedProduct(req.body, jsonResponse.decision, jsonResponse.reason);
+                await storeAcceptedProduct(req.body, jsonResponse.decision, jsonResponse.reason, null);
             } catch (dbError) {
                 console.error('Failed to store accepted product:', dbError);
                 // Don't fail the request if database storage fails
@@ -171,7 +172,7 @@ router.post('/respond', async (req, res) => {
         // If product is accepted after follow-up questions, store it in the database
         if (jsonResponse.decision === 'accepted') {
             try {
-                await storeAcceptedProduct(initialData, jsonResponse.decision, jsonResponse.reason);
+                await storeAcceptedProduct(initialData, jsonResponse.decision, jsonResponse.reason, answers);
             } catch (dbError) {
                 console.error('Failed to store accepted product:', dbError);
                 // Don't fail the request if database storage fails
