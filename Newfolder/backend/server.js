@@ -3524,8 +3524,8 @@ app.get('/api/diagnostic/ai-service', authenticateToken, (req, res) => {
     message: 'AI service diagnostic completed'
   });
 });
-const companyIntakeRouter = require('./routes/company/intakeForm');
-app.use('/api/company', authenticateToken, companyIntakeRouter);
+// const companyIntakeRouter = require('./routes/company/intakeForm');
+// app.use('/api/company', authenticateToken, companyIntakeRouter);
 
 // Company Products endpoint
 app.get('/api/company/products/:id', authenticateToken, async (req, res) => {
