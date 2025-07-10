@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { generateAndSaveReport } = require('./reportGeneratorService');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBuAt4y6edPg5KBw1vRFdiZoXbEZCiIWBI';
 const GEMINI_MODEL = 'gemini-1.5-pro';
@@ -243,7 +244,7 @@ Return ONLY a JSON array of strings containing the most relevant subcategories f
     return result;
   }
 
-  async getNextStep(context, conversation, sessionId, productData) {
+  async getNextStep(context, conversation, sessionId, productData, acceptedProductId) {
     console.log('🤖 AI Service - getNextStep called');
     console.log('🎯 AI Service - Context received:', {
       productName: context.productName,
@@ -367,6 +368,12 @@ Return ONLY a JSON array of strings containing the most relevant subcategories f
           };
         }
       }
+      
+      // If we are here, it means the questionnaire is complete.
+      // Call the report generation service but do not wait for it to finish.
+      generateAndSaveReport(acceptedProductId).catch(err => {
+        console.error(`Error generating report for acceptedProductId ${acceptedProductId}:`, err);
+      });
       
       return { isComplete: true };
     }

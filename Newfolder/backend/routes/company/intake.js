@@ -14,7 +14,7 @@ router.post('/next-step', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing context or productData' });
         }
 
-        const result = await aiService.getNextStep(context, conversation || [], sessionId, productData);
+        const result = await aiService.getNextStep(context, conversation || [], sessionId, productData, productData.id);
         
         res.json({ success: true, ...result });
 
