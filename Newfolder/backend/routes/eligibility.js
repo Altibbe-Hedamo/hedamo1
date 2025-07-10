@@ -210,4 +210,120 @@ router.get('/accepted-products/:email', async (req, res) => {
     }
 });
 
+// Deep Product Analysis with Gemini AI
+router.post('/analyze-product', async (req, res) => {
+    try {
+        const { product_name, category, sub_categories, company_name, location } = req.body;
+        
+        if (!product_name || !category || !company_name) {
+            return res.status(400).json({
+                success: false,
+                error: 'Product name, category, and company name are required'
+            });
+        }
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        
+        const analysisPrompt = `
+You are a world-class product analyst specializing in deep product analysis and transparency reporting. 
+
+Given the following product information:
+- Product Name: "${product_name}"
+- Category: "${category}"
+- Sub-categories: "${sub_categories ? sub_categories.join(', ') : 'N/A'}"
+- Company Name: "${company_name}"
+- Location: "${location || 'N/A'}"
+
+Your task is to generate 5-7 deep, insightful questions that will help understand this product better. These questions should:
+
+1. **Be specific to the product type and category**
+2. **Focus on transparency, quality, and compliance**
+3. **Cover different aspects: production, ingredients, certifications, environmental impact, etc.**
+4. **Be practical and answerable by the company**
+5. **Help build trust and demonstrate product quality**
+
+For each question, provide:
+- The question itself
+- Why this question is important for this specific product
+- What insights it will provide
+
+Return your response as a JSON object with this structure:
+{
+  "analysis": {
+    "product_overview": "Brief analysis of what this product likely is and its market context",
+    "key_considerations": ["List of 3-4 key areas to focus on for this product type"],
+    "questions": [
+      {
+        "question": "The specific question",
+        "importance": "Why this question matters for this product",
+        "insights": "What valuable information this will reveal"
+      }
+    ]
+  }
+}
+
+Make the questions highly relevant to the specific product and category. For example:
+- For food products: focus on ingredients, processing, certifications, safety
+- For cosmetics: focus on ingredients, testing, safety, sustainability
+- For textiles: focus on materials, dyeing, labor practices, environmental impact
+- For agricultural products: focus on farming methods, certifications, traceability
+`;
+
+        const result = await model.generateContent(analysisPrompt);
+        const response = await result.response;
+        const text = await response.text();
+
+        // Clean the response to get valid JSON
+        const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let jsonResponse;
+        
+        try {
+            jsonResponse = JSON.parse(cleanedText);
+        } catch (parseError) {
+            console.error('Failed to parse AI response:', parseError);
+            // Fallback response
+            jsonResponse = {
+                analysis: {
+                    product_overview: `Analysis of ${product_name} from ${company_name}`,
+                    key_considerations: [
+                        "Product quality and safety standards",
+                        "Compliance with industry regulations",
+                        "Transparency in production processes",
+                        "Environmental and social impact"
+                    ],
+                    questions: [
+                        {
+                            question: `What are the main ingredients or components of ${product_name}?`,
+                            importance: "Understanding product composition is fundamental for quality assessment",
+                            insights: "Will reveal the product's core materials and their quality"
+                        },
+                        {
+                            question: `What quality control measures are in place for ${product_name}?`,
+                            importance: "Quality control ensures consistent product standards",
+                            insights: "Will show the company's commitment to product quality"
+                        },
+                        {
+                            question: `What certifications or quality standards does ${product_name} meet?`,
+                            importance: "Certifications demonstrate compliance with industry standards",
+                            insights: "Will reveal the product's regulatory compliance and quality assurance"
+                        }
+                    ]
+                }
+            };
+        }
+
+        res.json({
+            success: true,
+            data: jsonResponse.analysis
+        });
+
+    } catch (error) {
+        console.error('Error with Gemini AI analysis:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to analyze product with AI.' 
+        });
+    }
+});
+
 module.exports = router; 
