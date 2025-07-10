@@ -5534,8 +5534,12 @@ app.post('/api/wishlist/remove', authenticateToken, async (req, res) => {
 
 // ... existing code ...
 const eligibilityRoutes = require('./routes/eligibility');
+const reportRoutes = require('./routes/report');
+const companyIntakeRoutes = require('./routes/company/intake');
 
 app.use('/api/eligibility', eligibilityRoutes);
+app.use('/api/report', reportRoutes);
+app.use('/api/company/intake', companyIntakeRoutes);
 
 // ... existing code ...
 
