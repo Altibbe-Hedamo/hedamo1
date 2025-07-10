@@ -35,10 +35,6 @@ const IntakeFormPage = () => {
     const [sectionProgress, setSectionProgress] = useState(0);
     const [currentSection, setCurrentSection] = useState('');
     const [currentDataPoint, setCurrentDataPoint] = useState('');
-    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-    const [reportGenerationError, setReportGenerationError] = useState<string | null>(null);
-    const [summaryReport, setSummaryReport] = useState<string | null>(null);
-    const [firReport, setFirReport] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -65,25 +61,6 @@ const IntakeFormPage = () => {
             fetchProduct();
         }
     }, [productId, user]);
-
-    const pollReportStatus = async (retries = 10, delay = 3000) => {
-        for (let i = 0; i < retries; i++) {
-            try {
-                const response = await api.get(`/api/report/report-status/${productId}`);
-                if (response.data.status === 'complete') {
-                    setSummaryReport(response.data.summary);
-                    setFirReport(response.data.fir_report);
-                    setIsGeneratingReport(false);
-                    return;
-                }
-            } catch (err) {
-                // Ignore errors and continue polling
-            }
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-        setReportGenerationError('Failed to retrieve the report after several attempts.');
-        setIsGeneratingReport(false);
-    };
 
     const getNextQuestion = async (conv: ConversationEntry[], prod: Product) => {
         if (!user) {
@@ -114,8 +91,6 @@ const IntakeFormPage = () => {
                     setCurrentQuestion('Thank you! The questionnaire is complete.');
                     setProgress(100);
                     setSectionProgress(100);
-                    setIsGeneratingReport(true);
-                    pollReportStatus();
                 } else {
                     setCurrentQuestion(response.data.nextQuestion);
                     setProgress(response.data.progress || 0);
@@ -198,22 +173,10 @@ const IntakeFormPage = () => {
                         </form>
                     )}
 
-                    {isComplete && !summaryReport && (
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                            <p className="text-blue-700 font-bold text-xl">
-                                {isGeneratingReport ? 'Generating your report, please wait...' : 'Questionnaire Complete!'}
-                            </p>
-                            {reportGenerationError && <p className="text-red-500 mt-2">{reportGenerationError}</p>}
-                        </div>
-                    )}
-
-                    {summaryReport && firReport && (
+                    {isComplete && (
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <p className="text-green-700 font-bold text-xl">Report Generated!</p>
-                            <button onClick={() => alert(`Summary:\n\n${summaryReport}\n\nFIR:\n\n${firReport}`)} className="mt-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700">
-                                View Report
-                            </button>
-                            <Link to="/company-portal/product-page" className="text-blue-600 hover:underline mt-2 ml-4 inline-block">
+                            <p className="text-green-700 font-bold text-xl">Questionnaire Complete!</p>
+                            <Link to="/company-portal/product-page" className="text-blue-600 hover:underline mt-2 inline-block">
                                 Back to Products Page
                             </Link>
                         </div>
