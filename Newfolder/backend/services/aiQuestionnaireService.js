@@ -416,84 +416,123 @@ User answer: "${answer}"`;
       return { isComplete: true };
     }
 
-    // --- New Simplified Prompting Logic ---
+    const GEMINI_PROMPT = `
+--- CRITICAL RULE: One Data Point, One Question ---
+Never combine multiple data points or topics into a single question. If a data point requires several details, ask about each detail in a separate, focused question, one after the other.
 
-    // 1. Deterministically find the next data point
+--- CRITICAL INTENT RULE ---
+Before asking the next question, analyze the user's most recent answer:
+- If the answer already provides details for multiple data points, mark those as covered and do not ask for them again.
+- Only ask for information that is truly missing, unclear, or ambiguous.
+- If the user’s answer is comprehensive, acknowledge it and move to the next relevant data point.
+- If the answer is vague, ask for clarification or a specific missing detail.
+
+--- CRITICAL CLARITY RULE ---
+- Always keep questions simple and easy to understand.
+- If a data point is broad, provide a helper text or example to guide the user.
+- Every question must include a short, user-friendly helper text that suggests what kind of details the user could include in their answer.
+- Avoid referencing too many details or combining multiple context points in a single question.
+- Prefer general, open-ended questions that allow the user to answer in their own words.
+- Only add specific context if it is essential for clarity.
+- Example: "Can you describe your traceability system for AB Organics red tomatoes?"  
+  Helper text: "For example, do you use barcodes, batch numbers, digital records, or any other method to track your tomatoes from farm to consumer?"
+
+--- CRITICAL FLOW RULE ---
+- Always ask about the next uncovered data point in the order they appear in the section’s data point list.
+- Do not jump between topics or reorder questions unless the user’s answer already covers a future data point.
+- If a user’s answer covers multiple data points, mark them as covered and move to the next uncovered one in order.
+
+--- QUANTUM-INSPIRED HEDAMO AI SYSTEM - DEEP DIVE MODE ---
+You are Hedamo AI, using a DEEP DIVE approach to thoroughly explore each section before moving to the next. You're currently focused on completing the "${currentSection}" section.
+
+--- DEEP DIVE STRATEGY ---
+**FOCUS:** Stay within the current section "${currentSection}" until it's thoroughly explored
+**ANTICIPATE:** Analyze answers to anticipate which data points WITHIN THIS SECTION create the most logical flow
+**CONNECT:** Create natural transitions between related data points in the same section
+**DEPTH:** Ask follow-up questions when answers reveal opportunities for deeper exploration
+
+--- CONVERSATION HISTORY ---
+${conversation.map(c => `Q: ${c.question}\nA: ${c.answer}`).join('\n')}
+
+--- CURRENT SECTION FOCUS: ${currentSection} ---
+Remaining data points in this section (in order):
+${(DATA_POINTS[currentSection] || []).filter(dp => {
+  const key = `${currentSection}:${dp}`;
+  return !state.covered[key] && !(state.askLater && state.askLater[key]);
+}).map((dp, idx) => `${idx + 1}. ${dp}`).join('\n')}
+
+Section Completeness: ${state.sectionCompleteness[currentSection] || 0}%
+
+--- DEEP DIVE FLOW RULES ---
+- Stay within ${currentSection} section unless it's >95% complete
+- Always select the next uncovered data point in order for this section
+- Do not jump between topics or reorder questions unless the user’s answer already covers a future data point
+- Build depth by exploring related aspects within the section
+- Only suggest moving to next section when current is thoroughly covered
+
+--- YOUR TASK ---
+Generate a JSON object for the next question that DEEP DIVES into ${currentSection}:
+1. "section": Should be "${currentSection}" (stay focused on current section)
+2. "dataPoint": The next uncovered data point from ${currentSection} (in order)
+3. "question": A focused, simple, and general question that builds on previous answers within this section (ONE DATA POINT ONLY)
+4. "helperText": A short, user-friendly helper text or example that guides the user on what details to include in their answer
+5. "anticipatedTopics": 5-7 data points FROM ${currentSection} that logically follow
+6. "reasoning": Why this creates depth in understanding ${currentSection}
+7. "flowStrategy": How this maintains deep dive focus while building comprehensive understanding
+`;
+    // Always select the next uncovered data point in order for the current section
     let nextDataPoint = null;
-    if (state.currentSectionIndex < conversationFlow.length) {
-      for (const dp of DATA_POINTS[currentSection] || []) {
-        const key = `${currentSection}:${dp}`;
-        if (!state.covered[key] && !(state.askLater && state.askLater[key])) {
-          nextDataPoint = dp;
-          break;
-        }
+    for (const dp of DATA_POINTS[currentSection] || []) {
+      const key = `${currentSection}:${dp}`;
+      if (!state.covered[key] && !(state.askLater && state.askLater[key])) {
+        nextDataPoint = dp;
+        break;
       }
     }
 
     if (!nextDataPoint) {
-      // This case should be handled by the uncoveredDataPoints check above, but as a safeguard:
-      return { isComplete: true };
+      return { isComplete: true }; // Safeguard
     }
 
-    // 2. Build a simpler, more direct prompt
-    const productContext = productData ? `
-- Product Name: ${productData.name}
-- Company: ${productData.company_name}
-- Category: ${productData.category}
-- Description: ${productData.description || 'N/A'}` : '';
-
-    const simplePrompt = `
-You are an AI assistant creating a product questionnaire. Your task is to ask a clear, simple question for a specific data point.
-
-Product Information:
-${productContext}
-
-Conversation History:
-${conversation.map(c => `Q: ${c.question}\\nA: ${c.answer}`).join('\\n\\n')}
-
-Data Point to ask about: "${nextDataPoint}"
-Section: "${currentSection}"
-
-Based on this, generate a JSON object with two keys: "question" and "helperText".
-- The "question" should be a friendly, conversational question directly related to the data point.
-- The "helperText" should provide a brief example or clarification for the user.
-
-Your response must be ONLY the JSON object.
-`;
-
-    // 3. Call Gemini
     const questionRes = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: simplePrompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 256 }
-      }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: GEMINI_PROMPT }] }] }),
     });
 
-    // 4. Parse response, with a simple fallback
-    let question = `Please provide details about: ${nextDataPoint}`;
-    let helperText = "For example, you can describe the process, list the components, or provide relevant certifications.";
+    let result = {
+      question: `Please provide details on: ${nextDataPoint}`,
+      helperText: "Any relevant information would be helpful.",
+      section: currentSection,
+      dataPoint: nextDataPoint,
+      anticipatedTopics: [],
+      reasoning: 'AI processing error',
+      flowStrategy: 'Sequential data collection'
+    };
     
     try {
       const parsed = JSON.parse(this.stripCodeBlock(questionRes.candidates[0].content.parts[0].text));
-      if (parsed.question) {
-        question = parsed.question;
-        helperText = parsed.helperText || helperText;
-      }
-    } catch (e) {
-      console.error("Failed to parse Gemini response, using direct data point as question.", e);
+      result = {
+        question: parsed.question || result.question,
+        helperText: parsed.helperText || result.helperText,
+        section: parsed.section || currentSection,
+        dataPoint: parsed.dataPoint || nextDataPoint,
+        anticipatedTopics: parsed.anticipatedTopics || [],
+        reasoning: parsed.reasoning || 'Enhancing transparency',
+        flowStrategy: parsed.flowStrategy || 'Sequential data collection'
+      };
+    } catch (e) { 
+      console.error('Failed to parse Gemini response for next step, using fallback.', e);
     }
-
-    // 5. Return the result
+    
     const overallProgress = (Object.keys(state.covered).length / Object.values(DATA_POINTS).flat().length) * 100;
     const currentSectionProgress = state.sectionCompleteness[currentSection] || 0;
 
-    return {
-      nextQuestion: question,
-      helperText: helperText,
-      currentSection: currentSection,
-      currentDataPoint: nextDataPoint,
+    return { 
+      nextQuestion: result.question, 
+      helperText: result.helperText,
+      currentSection: result.section, 
+      currentDataPoint: result.dataPoint, 
       progress: overallProgress,
       sectionProgress: currentSectionProgress,
       isComplete: false,
