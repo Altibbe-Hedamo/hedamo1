@@ -5,11 +5,10 @@ const authenticateToken = require('../../middleware/auth').authenticateToken;
 const checkAccess = require('../../middleware/auth').checkAccess;
 
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'myapp_db',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: parseInt(process.env.DB_PORT || '5432'),
+  connectionString: 'postgresql://neondb_owner:npg_cv6yGeh0zRkP@ep-tiny-boat-a8cfehhv-pooler.eastus2.azure.neon.tech/neondb?sslmode=require',
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 
@@ -103,4 +102,15 @@ router.get('/', authenticateToken, checkAccess(['admin']), async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to fetch products' });
   }
 });
+
+router.get('/accepted-products', authenticateToken, checkAccess(['admin']), async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, product_name, company_name, category, created_at FROM accepted_products ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Fetch accepted products error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch accepted products' });
+  }
+});
+
 module.exports = router;
