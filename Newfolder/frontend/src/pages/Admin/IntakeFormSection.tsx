@@ -32,6 +32,11 @@ const IntakeFormSection: React.FC = () => {
     }, []);
 
     const viewSummary = (product: AcceptedProduct) => {
+        if (!product.summary || !product.fir_report) {
+            alert(`Product: ${product.product_name}\n\nError: Report data is incomplete or missing.`);
+            return;
+        }
+        
         alert(`Product: ${product.product_name}\n\nSummary:\n${product.summary}\n\nFIR Report:\n${product.fir_report}`);
     };
 
