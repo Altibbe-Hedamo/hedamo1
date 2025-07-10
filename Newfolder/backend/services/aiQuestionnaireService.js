@@ -416,171 +416,87 @@ User answer: "${answer}"`;
       return { isComplete: true };
     }
 
-    // Build context for Gemini prompt with product data
-    const productContext = productData ? `
-Product Context from Database:
-- Product Name: ${productData.name}
-- Company: ${productData.company_name}
-- Category: ${productData.category}
-- Description: ${productData.description || 'N/A'}
-- Location: ${productData.location || 'N/A'}
-- Claims: ${productData.claims || 'N/A'}
-- Certifications: ${productData.certifications || 'N/A'}
-` : '';
+    // --- New Simplified Prompting Logic ---
 
-    const GEMINI_PROMPT = `
---- CRITICAL RULE: One Data Point, One Question ---
-Never combine multiple data points or topics into a single question. If a data point requires several details, ask about each detail in a separate, focused question, one after the other.
-
---- CRITICAL INTENT RULE ---
-Before asking the next question, analyze the user's most recent answer:
-- If the answer already provides details for multiple data points, mark those as covered and do not ask for them again.
-- Only ask for information that is truly missing, unclear, or ambiguous.
-- If the answer is vague, ask for clarification or a specific missing detail.
-
---- CRITICAL CLARITY RULE ---
-- Always keep questions simple and easy to understand.
-- If a data point is broad, provide a helper text or example to guide the user.
-- Every question must include a short, user-friendly helper text that suggests what kind of details the user could include in their answer.
-- Avoid referencing too many details or combining multiple context points in a single question.
-- Prefer general, open-ended questions that allow the user to answer in their own words.
-- Only add specific context if it is essential for clarity.
-- Example: "Can you describe your traceability system for AB Organics red tomatoes?"  
-  Helper text: "For example, do you use barcodes, batch numbers, digital records, or any other method to track your tomatoes from farm to consumer?"
-
---- CRITICAL FLOW RULE ---
-- Always ask about the next uncovered data point in the order they appear in the section’s data point list.
-- Do not jump between topics or reorder questions unless the user’s answer already covers a future data point.
-- If a user’s answer covers multiple data points, mark them as covered and move to the next uncovered one in order.
-
---- QUANTUM-INSPIRED HEDAMO AI SYSTEM - DEEP DIVE MODE ---
-You are Hedamo AI, using a DEEP DIVE approach to thoroughly explore each section before moving to the next. You're currently focused on completing the "${currentSection}" section.
-
---- DEEP DIVE STRATEGY ---
-**FOCUS:** Stay within the current section "${currentSection}" until it's thoroughly explored
-**ANTICIPATE:** Analyze answers to anticipate which data points WITHIN THIS SECTION create the most logical flow
-**CONNECT:** Create natural transitions between related data points in the same section
-**DEPTH:** Ask follow-up questions when answers reveal opportunities for deeper exploration
-
---- CONVERSATION HISTORY ---
-${conversation.map(c => `Q: ${c.question}\nA: ${c.answer}`).join('\n')}
-
---- CURRENT SECTION FOCUS: ${currentSection} ---
-Remaining data points in this section (in order):
-${(DATA_POINTS[currentSection] || []).filter(dp => {
-  const key = `${currentSection}:${dp}`;
-  return !state.covered[key] && !(state.askLater && state.askLater[key]);
-}).map((dp, idx) => `${idx + 1}. ${dp}`).join('\n')}
-
-Section Completeness: ${state.sectionCompleteness[currentSection] || 0}%
-
---- DEEP DIVE FLOW RULES ---
-- Stay within ${currentSection} section unless it's >95% complete
-- Always select the next uncovered data point in order for this section
-- Do not jump between topics or reorder questions unless the user’s answer already covers a future data point
-- Build depth by exploring related aspects within the section
-- Only suggest moving to next section when current is thoroughly covered
-
---- YOUR TASK ---
-Generate a JSON object for the next question that DEEP DIVES into ${currentSection}:
-1. "section": Should be "${currentSection}" (stay focused on current section)
-2. "dataPoint": The next uncovered data point from ${currentSection} (in order)
-3. "question": A focused, simple, and general question that builds on previous answers within this section (ONE DATA POINT ONLY)
-4. "helperText": A short, user-friendly helper text or example that guides the user on what details to include in their answer
-5. "anticipatedTopics": 5-7 data points FROM ${currentSection} that logically follow
-6. "reasoning": Why this creates depth in understanding ${currentSection}
-7. "flowStrategy": How this maintains deep dive focus while building comprehensive understanding
-`;
-
-    // Always select the next uncovered data point in order for the current section
+    // 1. Deterministically find the next data point
     let nextDataPoint = null;
-    for (const dp of DATA_POINTS[currentSection] || []) {
-      const key = `${currentSection}:${dp}`;
-      if (!state.covered[key] && !(state.askLater && state.askLater[key])) {
-        nextDataPoint = dp;
-        break;
+    if (state.currentSectionIndex < conversationFlow.length) {
+      for (const dp of DATA_POINTS[currentSection] || []) {
+        const key = `${currentSection}:${dp}`;
+        if (!state.covered[key] && !(state.askLater && state.askLater[key])) {
+          nextDataPoint = dp;
+          break;
+        }
       }
     }
 
+    if (!nextDataPoint) {
+      // This case should be handled by the uncoveredDataPoints check above, but as a safeguard:
+      return { isComplete: true };
+    }
+
+    // 2. Build a simpler, more direct prompt
+    const productContext = productData ? `
+- Product Name: ${productData.name}
+- Company: ${productData.company_name}
+- Category: ${productData.category}
+- Description: ${productData.description || 'N/A'}` : '';
+
+    const simplePrompt = `
+You are an AI assistant creating a product questionnaire. Your task is to ask a clear, simple question for a specific data point.
+
+Product Information:
+${productContext}
+
+Conversation History:
+${conversation.map(c => `Q: ${c.question}\\nA: ${c.answer}`).join('\\n\\n')}
+
+Data Point to ask about: "${nextDataPoint}"
+Section: "${currentSection}"
+
+Based on this, generate a JSON object with two keys: "question" and "helperText".
+- The "question" should be a friendly, conversational question directly related to the data point.
+- The "helperText" should provide a brief example or clarification for the user.
+
+Your response must be ONLY the JSON object.
+`;
+
+    // 3. Call Gemini
     const questionRes = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        contents: [{ parts: [{ text: GEMINI_PROMPT }] }],
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: simplePrompt }] }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 256 }
       }),
     });
 
-    // Create enhanced fallback question using context
-    const productName = context.productName !== 'Unknown Product' ? context.productName : 'your product';
-    const hasRichContext = context.hasHorizonData && context.category !== 'General' && context.certifications?.length > 0;
+    // 4. Parse response, with a simple fallback
+    let question = `Please provide details about: ${nextDataPoint}`;
+    let helperText = "For example, you can describe the process, list the components, or provide relevant certifications.";
     
-    const missingFields = [];
-    if (!context.productName || context.productName === 'Unknown Product') missingFields.push('product name');
-    if (!context.category || context.category === 'General') missingFields.push('category');
-    if (!context.subcategories || context.subcategories.length === 0) missingFields.push('subcategories');
-    if (!context.certifications || context.certifications.length === 0) missingFields.push('certifications');
-    if (!context.companyName || context.companyName === 'Unknown Company') missingFields.push('company name');
-    if (!context.location || context.location === 'Unknown Location') missingFields.push('location');
-
-    let fallbackQuestion = '';
-    if (missingFields.length > 0) {
-      fallbackQuestion = `Please provide the following missing information about your product: ${missingFields.join(', ')}.`;
-    } else if (hasRichContext) {
-      fallbackQuestion = `I see you have "${productName}" from ${context.companyName} in the ${context.category} category. Your product has been pre-assessed for ${context.subcategories.join(', ')} with certifications including ${context.certifications.join(', ')}. To complete your comprehensive intake assessment, can you tell me more about the specific production methods and quality control processes you use for this ${productName}?`;
-    } else {
-      fallbackQuestion = `Can you tell me about your product "${productName}" from ${context.companyName}? Please provide any details about what it is and what makes it special.`;
-    }
-    
-    console.log('🎯 AI Service - Generated fallback question:', fallbackQuestion);
-    console.log('🎯 AI Service - Using rich context:', hasRichContext);
-
-    let result = {
-      question: fallbackQuestion,
-      section: mainCategory,
-      dataPoint: DATA_POINTS[mainCategory] ? DATA_POINTS[mainCategory][0] : 'Product Information',
-      anticipatedTopics: [],
-      reasoning: hasRichContext ? 'Building on horizon form eligibility assessment data' : 'Starting with basic product information to understand the product',
-      flowStrategy: 'Sequential data collection'
-    };
-
     try {
-      const content = questionRes?.candidates?.[0]?.content;
-      if (content?.parts && Array.isArray(content.parts) && content.parts[0]?.text) {
-        const parsed = JSON.parse(content.parts[0].text.replace(/```json\s*|```/g, '').trim());
-        result = {
-          question: parsed.question || result.question,
-          section: parsed.section || result.section,
-          dataPoint: parsed.dataPoint || result.dataPoint,
-          anticipatedTopics: parsed.anticipatedTopics || [],
-          reasoning: parsed.reasoning || 'Starting with basic product information',
-          flowStrategy: parsed.flowStrategy || 'Sequential data collection'
-        };
-      } else {
-        console.log('No valid AI response, using fallback question');
+      const parsed = JSON.parse(this.stripCodeBlock(questionRes.candidates[0].content.parts[0].text));
+      if (parsed.question) {
+        question = parsed.question;
+        helperText = parsed.helperText || helperText;
       }
     } catch (e) {
-      console.error('Error parsing Gemini response:', e);
-      console.log('Using fallback question for', productData?.name || context.productName);
+      console.error("Failed to parse Gemini response, using direct data point as question.", e);
     }
-    
+
+    // 5. Return the result
     const overallProgress = (Object.keys(state.covered).length / Object.values(DATA_POINTS).flat().length) * 100;
     const currentSectionProgress = state.sectionCompleteness[currentSection] || 0;
 
-    return { 
-      nextQuestion: result.question, 
-      currentSection: result.section, 
-      currentDataPoint: result.dataPoint, 
+    return {
+      nextQuestion: question,
+      helperText: helperText,
+      currentSection: currentSection,
+      currentDataPoint: nextDataPoint,
       progress: overallProgress,
       sectionProgress: currentSectionProgress,
-      currentSectionIndex: state.currentSectionIndex,
-      totalSections: conversationFlow.length,
-      anticipatedTopics: result.anticipatedTopics,
-      reasoning: result.reasoning,
-      flowStrategy: result.flowStrategy,
-      deepDiveMode: true,
-      helperText: result.helperText || '',
-      productContext: productData || {}
+      isComplete: false,
     };
   }
 
