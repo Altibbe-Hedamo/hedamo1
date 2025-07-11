@@ -120,4 +120,50 @@ router.get('/product/:id', async (req, res) => {
     }
 });
 
+// Endpoint to get the generated report for a specific accepted product
+router.get('/report/:acceptedProductId', async (req, res) => {
+    const { acceptedProductId } = req.params;
+    try {
+        const result = await pool.query(
+            'SELECT summary, fir_report, product_name, company_name, category FROM accepted_products WHERE id = $1', 
+            [acceptedProductId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        const product = result.rows[0];
+        
+        // Check if report is generated
+        if (!product.summary || !product.fir_report) {
+            return res.json({ 
+                success: true, 
+                reportReady: false, 
+                message: 'Report is being generated...',
+                product: {
+                    product_name: product.product_name,
+                    company_name: product.company_name,
+                    category: product.category
+                }
+            });
+        }
+
+        res.json({ 
+            success: true, 
+            reportReady: true,
+            report: {
+                summary: product.summary,
+                fir_report: product.fir_report,
+                product_name: product.product_name,
+                company_name: product.company_name,
+                category: product.category
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching report:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch report.' });
+    }
+});
+
 module.exports = router; 

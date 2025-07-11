@@ -39,6 +39,14 @@ interface AnswerEnhancement {
     enhancedAnswer?: string;
 }
 
+interface GeneratedReport {
+    summary: string;
+    fir_report: string;
+    product_name: string;
+    company_name: string;
+    category: string;
+}
+
 const IntakeFormPage = () => {
     const { productId } = useParams<{ productId: string }>();
     const { user } = useContext(AuthContext);
@@ -63,6 +71,13 @@ const IntakeFormPage = () => {
     const [isEnhancing, setIsEnhancing] = useState(false);
     const [showFileUpload, setShowFileUpload] = useState(false);
     const [ocrResults, setOcrResults] = useState<string[]>([]);
+    
+    // Report generation state
+    const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
+    const [isPollingReport, setIsPollingReport] = useState(false);
+    const [reportStatus, setReportStatus] = useState<string>('');
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [activeReportTab, setActiveReportTab] = useState<'summary' | 'fir'>('summary');
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -168,6 +183,47 @@ const IntakeFormPage = () => {
         setCurrentAnswer(prev => prev + (prev ? '\n\n' : '') + text);
     };
 
+    // Poll for generated report
+    const pollForReport = async (acceptedProductId: number) => {
+        setIsPollingReport(true);
+        setReportStatus('Generating report...');
+        
+        const maxAttempts = 30; // 30 attempts with 2 second intervals = 1 minute max
+        let attempts = 0;
+        
+        const poll = async () => {
+            try {
+                const response = await api.get(`/api/company/intake/report/${acceptedProductId}`);
+                
+                if (response.data.success && response.data.reportReady) {
+                    setGeneratedReport(response.data.report);
+                    setReportStatus('Report generated successfully!');
+                    setIsPollingReport(false);
+                    setShowReportModal(true);
+                    return;
+                }
+                
+                if (response.data.success && !response.data.reportReady) {
+                    setReportStatus(response.data.message || 'Generating report...');
+                    attempts++;
+                    
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, 2000); // Poll every 2 seconds
+                    } else {
+                        setReportStatus('Report generation is taking longer than expected. Please check back later.');
+                        setIsPollingReport(false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling for report:', error);
+                setReportStatus('Error checking report status.');
+                setIsPollingReport(false);
+            }
+        };
+        
+        poll();
+    };
+
     const getNextQuestion = async (conv: ConversationEntry[], prod: Product) => {
         if (!user) {
             setError("Cannot proceed without an authenticated user.");
@@ -197,6 +253,11 @@ const IntakeFormPage = () => {
                     setCurrentQuestion('Thank you! The questionnaire is complete.');
                     setProgress(100);
                     setSectionProgress(100);
+                    
+                    // Start polling for the generated report
+                    if (prod.id) {
+                        pollForReport(prod.id);
+                    }
                 } else {
                     setCurrentQuestion(response.data.nextQuestion);
                     setProgress(response.data.progress || 0);
@@ -436,6 +497,28 @@ const IntakeFormPage = () => {
                     {isComplete && (
                         <div className="text-center p-4 bg-green-50 rounded-lg">
                             <p className="text-green-700 font-bold text-xl">Questionnaire Complete!</p>
+                            
+                            {isPollingReport && (
+                                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        <span className="text-blue-700 text-sm">{reportStatus}</span>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {generatedReport && !isPollingReport && (
+                                <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                                    <p className="text-yellow-700 text-sm mb-2">✅ Report generated successfully!</p>
+                                    <button
+                                        onClick={() => setShowReportModal(true)}
+                                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+                                    >
+                                        View Generated Report
+                                    </button>
+                                </div>
+                            )}
+                            
                             <Link to="/company-portal/product-page" className="text-blue-600 hover:underline mt-2 inline-block">
                                 Back to Products Page
                             </Link>
@@ -466,6 +549,107 @@ const IntakeFormPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Report Modal */}
+            {showReportModal && generatedReport && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h2 className="text-2xl font-bold">Generated Report</h2>
+                                    <p className="text-blue-100 mt-1">
+                                        {generatedReport.product_name} - {generatedReport.company_name}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowReportModal(false)}
+                                    className="text-white hover:text-gray-200 text-2xl font-bold"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tab Navigation */}
+                        <div className="border-b border-gray-200">
+                            <nav className="flex">
+                                <button
+                                    onClick={() => setActiveReportTab('summary')}
+                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                                        activeReportTab === 'summary'
+                                            ? 'border-blue-500 text-blue-600 bg-blue-50'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    Summary Report
+                                </button>
+                                <button
+                                    onClick={() => setActiveReportTab('fir')}
+                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                                        activeReportTab === 'fir'
+                                            ? 'border-purple-500 text-purple-600 bg-purple-50'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    FIR Report
+                                </button>
+                            </nav>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6 overflow-y-auto max-h-[60vh]">
+                            {activeReportTab === 'summary' && (
+                                <div className="prose max-w-none">
+                                    <h3 className="text-lg font-semibold text-blue-600 mb-4">Product Summary Report</h3>
+                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                        <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                            {generatedReport.summary}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeReportTab === 'fir' && (
+                                <div className="prose max-w-none">
+                                    <h3 className="text-lg font-semibold text-purple-600 mb-4">First Information Report (FIR)</h3>
+                                    <div className="bg-purple-50 p-4 rounded-lg">
+                                        <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                                            {generatedReport.fir_report}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
+                            <button
+                                onClick={() => setShowReportModal(false)}
+                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const reportContent = activeReportTab === 'summary' ? generatedReport.summary : generatedReport.fir_report;
+                                    const blob = new Blob([reportContent], { type: 'text/plain' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${generatedReport.product_name}_${activeReportTab}_report.txt`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            >
+                                Download {activeReportTab === 'summary' ? 'Summary' : 'FIR'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
