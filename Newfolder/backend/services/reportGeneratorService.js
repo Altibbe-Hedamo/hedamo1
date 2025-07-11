@@ -22,6 +22,8 @@ async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
 }
 
 async function generateAndSaveReport(acceptedProductId) {
+    console.log(`🚀 Report generation started for acceptedProductId: ${acceptedProductId}`);
+    
     if (!acceptedProductId) {
         throw new Error('acceptedProductId is required.');
     }
@@ -33,6 +35,7 @@ async function generateAndSaveReport(acceptedProductId) {
             throw new Error('Product not found.');
         }
         productData = result.rows[0];
+        console.log(`📊 Product data fetched: ${productData.product_name}, Q&A present: ${!!productData.questions_and_answers}`);
     } catch (error) {
         console.error('Error fetching product data:', error);
         throw new Error('Failed to fetch product data.');
@@ -41,6 +44,7 @@ async function generateAndSaveReport(acceptedProductId) {
     const { product_name, company_name, location, category, sub_categories, questions_and_answers } = productData;
 
     if (!questions_and_answers) {
+        console.log(`❌ No Q&A data found for product ${product_name} (ID: ${acceptedProductId})`);
         throw new Error('No questions and answers found for this product.');
     }
 

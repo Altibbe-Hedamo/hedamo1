@@ -591,6 +591,27 @@ Return ONLY a JSON array of strings containing the most relevant subcategories f
       }
       
       // If we are here, it means the questionnaire is complete.
+      // First, save the conversation data to the database
+      try {
+        if (acceptedProductId && conversation.length > 0) {
+          // Convert conversation array to Q&A object
+          const questionsAndAnswers = {};
+          conversation.forEach((entry, index) => {
+            questionsAndAnswers[`Q${index + 1}: ${entry.question}`] = entry.answer;
+          });
+          
+          // Update the accepted_products table with the Q&A data
+          const pool = require('../db');
+          await pool.query(
+            'UPDATE accepted_products SET questions_and_answers = $1 WHERE id = $2',
+            [JSON.stringify(questionsAndAnswers), acceptedProductId]
+          );
+          console.log(`✅ Saved ${conversation.length} Q&A entries for product ID ${acceptedProductId}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error saving conversation data for acceptedProductId ${acceptedProductId}:`, error);
+      }
+      
       // Call the report generation service but do not wait for it to finish.
       generateAndSaveReport(acceptedProductId).catch(err => {
         console.error(`Error generating report for acceptedProductId ${acceptedProductId}:`, err);
