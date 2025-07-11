@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../config/axios';
-import { Upload, FileText, Sparkles, Camera, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Sparkles, Camera, CheckCircle } from 'lucide-react';
 
 interface Product {
     id: number;
