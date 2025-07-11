@@ -5,6 +5,87 @@ const pool = require('../../db');
 
 const aiService = new AIQuestionnaireService();
 
+// File upload endpoint with OCR processing
+router.post('/upload-document', aiService.upload.single('document'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No file uploaded' });
+        }
+
+        const { sessionId, currentSection, currentDataPoint } = req.body;
+        
+        // Process the uploaded file
+        const fileProcessing = await aiService.processUploadedFile(req.file.path, req.file.mimetype);
+        
+        if (!fileProcessing.success) {
+            return res.status(500).json({ success: false, error: fileProcessing.error });
+        }
+
+        // Analyze document for relevant information
+        const documentAnalysis = await aiService.analyzeDocumentForDataPoints(
+            req.file.path, 
+            req.file.mimetype, 
+            currentSection, 
+            currentDataPoint
+        );
+
+        res.json({
+            success: true,
+            file: {
+                filename: req.file.filename,
+                originalName: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size
+            },
+            ocrResult: fileProcessing,
+            analysis: documentAnalysis.success ? documentAnalysis.analysis : null,
+            extractedContent: fileProcessing.extractedText
+        });
+
+    } catch (error) {
+        console.error('File upload error:', error);
+        res.status(500).json({ success: false, error: 'Failed to process uploaded file' });
+    }
+});
+
+// Answer enhancement endpoint
+router.post('/enhance-answer', async (req, res) => {
+    try {
+        const { question, answer, context } = req.body;
+
+        if (!question || !answer) {
+            return res.status(400).json({ success: false, error: 'Question and answer are required' });
+        }
+
+        const enhancement = await aiService.enhanceAnswer(question, answer, context);
+        
+        res.json({ success: true, ...enhancement });
+
+    } catch (error) {
+        console.error('Answer enhancement error:', error);
+        res.status(500).json({ success: false, error: 'Failed to enhance answer' });
+    }
+});
+
+// Smart questions generation based on uploaded files
+router.post('/generate-smart-questions', async (req, res) => {
+    try {
+        const { uploadedFiles, context, currentSection } = req.body;
+
+        if (!uploadedFiles || uploadedFiles.length === 0) {
+            return res.status(400).json({ success: false, error: 'No uploaded files provided' });
+        }
+
+        const smartQuestions = await aiService.generateSmartQuestions(uploadedFiles, context, currentSection);
+        
+        res.json({ success: true, ...smartQuestions });
+
+    } catch (error) {
+        console.error('Smart question generation error:', error);
+        res.status(500).json({ success: false, error: 'Failed to generate smart questions' });
+    }
+});
+
 // Endpoint to get the initial state or next question
 router.post('/next-step', async (req, res) => {
     try {

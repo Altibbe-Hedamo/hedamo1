@@ -1,8 +1,44 @@
 const fetch = require('node-fetch');
 const { generateAndSaveReport } = require('./reportGeneratorService');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBuAt4y6edPg5KBw1vRFdiZoXbEZCiIWBI';
 const GEMINI_MODEL = 'gemini-1.5-pro';
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads/questionnaire');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `${uniqueSuffix}-${file.originalname}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/jpg',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only images, PDFs, and Word documents are allowed.'), false);
+    }
+  }
+});
 
 // Data points per section based on the NestJS controller
 const DATA_POINTS = {
@@ -99,6 +135,191 @@ const MAX_FOLLOWUPS = 3;
 class AIQuestionnaireService {
   constructor() {
     this.sessionState = sessionState;
+    this.upload = upload;
+  }
+
+  // OCR and Document Analysis using Gemini Vision
+  async processUploadedFile(filePath, mimeType) {
+    try {
+      if (mimeType.startsWith('image/')) {
+        return await this.performOCR(filePath);
+      } else if (mimeType === 'application/pdf') {
+        return await this.extractPDFContent(filePath);
+      } else {
+        return await this.extractDocumentContent(filePath);
+      }
+    } catch (error) {
+      console.error('File processing error:', error);
+      return { success: false, error: 'Failed to process uploaded file' };
+    }
+  }
+
+  // OCR using Gemini Vision API
+  async performOCR(imagePath) {
+    try {
+      const imageData = fs.readFileSync(imagePath);
+      const base64Image = imageData.toString('base64');
+      
+      const prompt = `
+        Please extract all text content from this image. Focus on:
+        1. Any certificates, compliance documents, or official papers
+        2. Product labels, ingredient lists, or specifications
+        3. Quality certifications or test results
+        4. Any relevant product information
+        
+        Provide the extracted text in a structured format and identify the type of document if possible.
+      `;
+
+      const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: 'image/jpeg',
+                  data: base64Image
+                }
+              }
+            ]
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+        })
+      });
+
+      const extractedText = response.candidates[0].content.parts[0].text;
+      return { success: true, extractedText, documentType: 'image' };
+    } catch (error) {
+      console.error('OCR processing error:', error);
+      return { success: false, error: 'Failed to process image' };
+    }
+  }
+
+  // Enhanced answer processing with AI suggestions
+  async enhanceAnswer(question, currentAnswer, context) {
+    try {
+      const enhancementPrompt = `
+        You are an AI assistant helping to improve and validate answers in a product transparency questionnaire.
+        
+        Question: "${question}"
+        Current Answer: "${currentAnswer}"
+        Product Context: ${JSON.stringify(context)}
+        
+        Please:
+        1. Validate if the answer is complete and relevant
+        2. Suggest improvements or additional details if needed
+        3. Identify any missing information that would be valuable
+        4. Flag any potential inconsistencies or concerns
+        
+        Respond in JSON format:
+        {
+          "isComplete": true/false,
+          "suggestions": ["suggestion1", "suggestion2"],
+          "missingInfo": ["missing1", "missing2"],
+          "concerns": ["concern1", "concern2"],
+          "enhancedAnswer": "improved version if applicable"
+        }
+      `;
+
+      const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: enhancementPrompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 500 }
+        })
+      });
+
+      const enhancementResult = JSON.parse(this.stripCodeBlock(response.candidates[0].content.parts[0].text));
+      return { success: true, enhancement: enhancementResult };
+    } catch (error) {
+      console.error('Answer enhancement error:', error);
+      return { success: false, error: 'Failed to enhance answer' };
+    }
+  }
+
+  // Analyze uploaded documents for relevant information
+  async analyzeDocumentForDataPoints(filePath, mimeType, currentSection, currentDataPoint) {
+    try {
+      const fileContent = await this.processUploadedFile(filePath, mimeType);
+      if (!fileContent.success) return fileContent;
+
+      const analysisPrompt = `
+        Analyze the following document content for information relevant to "${currentSection}: ${currentDataPoint}".
+        
+        Document Content: ${fileContent.extractedText}
+        
+        Extract any information that would help answer questions about:
+        - ${currentDataPoint}
+        - Related quality standards or certifications
+        - Compliance information
+        - Technical specifications
+        
+        Provide a structured response with relevant information found.
+      `;
+
+      const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: analysisPrompt }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 800 }
+        })
+      });
+
+      const analysis = response.candidates[0].content.parts[0].text;
+      return { success: true, analysis, originalContent: fileContent.extractedText };
+    } catch (error) {
+      console.error('Document analysis error:', error);
+      return { success: false, error: 'Failed to analyze document' };
+    }
+  }
+
+  // Smart question generation based on uploaded files
+  async generateSmartQuestions(uploadedFiles, context, currentSection) {
+    try {
+      let documentContext = '';
+      
+      for (const file of uploadedFiles) {
+        const fileAnalysis = await this.analyzeDocumentForDataPoints(file.path, file.mimetype, currentSection, 'general');
+        if (fileAnalysis.success) {
+          documentContext += `\nDocument: ${file.originalname}\nContent: ${fileAnalysis.analysis}\n`;
+        }
+      }
+
+      const smartQuestionPrompt = `
+        Based on the uploaded documents and current questionnaire context, generate more targeted and specific questions for the "${currentSection}" section.
+        
+        Product Context: ${JSON.stringify(context)}
+        Document Context: ${documentContext}
+        Current Section: ${currentSection}
+        
+        Generate 3-5 smart questions that:
+        1. Build on information found in the documents
+        2. Ask for clarification or additional details
+        3. Verify consistency with provided documentation
+        4. Explore areas not covered in the documents
+        
+        Return as JSON array of questions with explanations.
+      `;
+
+      const response = await this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: smartQuestionPrompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 1000 }
+        })
+      });
+
+      const smartQuestions = JSON.parse(this.stripCodeBlock(response.candidates[0].content.parts[0].text));
+      return { success: true, questions: smartQuestions };
+    } catch (error) {
+      console.error('Smart question generation error:', error);
+      return { success: false, error: 'Failed to generate smart questions' };
+    }
   }
 
   stripCodeBlock(text) {
