@@ -10,8 +10,6 @@ import ReportsSection from '../../pages/Admin/ReportsSection';
 import PaymentsSection from '../../pages/Admin/PaymentsSection';
 import CompaniesSection from '../../pages/Admin/CompaniesSection';
 import IntakeFormSection from '../../pages/Admin/IntakeFormSection';
-import HapSection from '../../pages/Admin/HapSection';
-import HrbSection from '../../pages/Admin/HrbSection';
 import InvoicesSection from '../../pages/Admin/InvoicesSection';
 import LedgerSection from '../../pages/Admin/LedgerSection';
 import AdminCommunicationCenter from '../../pages/Admin/AdminCommunicationCenter';
@@ -75,16 +73,6 @@ const AdminDashboardRoutes = () => {
           <Route
             path="/users/users"
             element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
-          />
-          
-          <Route
-            path="/hap"
-            element={<ProtectedRoute><HapSection /></ProtectedRoute>}
-          />
-          
-          <Route
-            path="/hrb"
-            element={<ProtectedRoute><HrbSection /></ProtectedRoute>}
           />
           
           <Route

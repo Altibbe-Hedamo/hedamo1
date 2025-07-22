@@ -24,7 +24,7 @@ async function applyMigration() {
       ALTER TABLE users 
       DROP CONSTRAINT IF EXISTS users_signup_type_check,
       ADD CONSTRAINT users_signup_type_check 
-      CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'hap'));
+      CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr'));
     `;
 
     console.log('Applying migration...');

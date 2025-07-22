@@ -34,47 +34,7 @@ async function checkUsers() {
       return;
     }
 
-    // Get all users
-    const usersQuery = `
-      SELECT 
-        id,
-        email,
-        phone,
-        signup_type,
-        password,
-        status,
-        created_at,
-        updated_at
-      FROM users
-      ORDER BY created_at DESC;
-    `;
-    
-    console.log('Executing query to fetch users...');
-    const usersResult = await client.query(usersQuery);
-    
-    console.log('Users in database:');
-    console.log('==================');
-    console.log(`Total users: ${usersResult.rows.length}\n`);
-
-    if (usersResult.rows.length === 0) {
-      console.log('No users found in the database');
-      return;
-    }
-
-    usersResult.rows.forEach((user, index) => {
-      console.log(`User ${index + 1}:`);
-      console.log('------------------');
-      console.log(`ID: ${user.id}`);
-      console.log(`Name: ${user.name}`);
-      console.log(`Email: ${user.email}`);
-      console.log(`Phone: ${user.phone}`);
-      console.log('password', user.password);
-      console.log(`Signup Type: ${user.signup_type}`);
-      console.log(`Status: ${user.status}`);
-      console.log(`Created At: ${user.created_at}`);
-      console.log(`Updated At: ${user.updated_at}`);
-      console.log('\n');
-    });
+    // Remove all code that queries or logs HRB users. This script should not reference HRB at all.
 
   } catch (error) {
     console.error('Error checking users:', error);

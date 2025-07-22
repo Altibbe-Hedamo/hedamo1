@@ -34,7 +34,7 @@ router.get('/', authenticateToken, checkAccess(['admin']), async (req, res) => {
     const params = [];
 
     if (signup_type) {
-      query += ` AND signup_type = $1`;
+      query += ` AND LOWER(signup_type) = LOWER($1)`;
       params.push(signup_type);
     }
 

@@ -25,8 +25,6 @@ const Sidebar: React.FC = () => {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin-dashboard/dashboard' },
     { name: 'Users', icon: Users, path: '/admin-dashboard/users' },
     { name: 'HVP', icon: Users, path: '/admin-dashboard/hvp' },
-    { name: 'HAP', icon: Shield, path: '/admin-dashboard/hap' },
-    { name: 'HRB', icon: ClipboardCheck, path: '/admin-dashboard/hrb' },
     { name: 'Companies', icon: Building2, path: '/admin-dashboard/companies' },
     { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
     { name: 'Intake Form', icon: FileText, path: '/admin-dashboard/intake-form' },

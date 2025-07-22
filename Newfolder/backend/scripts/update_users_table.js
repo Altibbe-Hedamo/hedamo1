@@ -46,7 +46,7 @@ async function updateUsersTable() {
     `);
     console.log('Created indexes');
 
-    // Update signup_type check constraint
+    // Only allow agent, admin, client, employee, hr, and channel_partner in signup_type constraint. Remove any HAP/HRB references.
     await client.query(`
       DO $$ 
       BEGIN
@@ -60,7 +60,7 @@ async function updateUsersTable() {
 
         -- Add new constraint
         ALTER TABLE users ADD CONSTRAINT users_signup_type_check 
-        CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'hap', 'channel_partner'));
+        CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'channel_partner'));
       END $$;
     `);
     console.log('Updated signup_type constraint');

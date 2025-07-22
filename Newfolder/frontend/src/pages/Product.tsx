@@ -1,252 +1,175 @@
-import React, { useEffect, useState, useContext } from 'react';
-import api from '../config/axios';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiSearch, FiPackage, FiHeart } from 'react-icons/fi';
-import { AuthContext } from '../context/AuthContext';
-import { toast } from 'react-toastify';
+import Footer from '../components/Footer';
+import hedamoLogo from '/hedamo-logo.webp';
+import CategoryMasonry from './CategoryMasonry';
 
-interface Product {
-  id: number;
-  name: string;
-  image_url?: string;
-  company_name: string;
-  category_name?: string;
-  price?: number;
-  description?: string;
-}
+// Example icons as SVG strings (could be replaced with imports or components)
+const categoryIcons: Record<string, React.ReactNode> = {
+  Agriculture: (
+    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2M16 11V7a4 4 0 00-8 0v4M12 17v.01" /></svg>
+  ),
+  'Meat & Poultry': (
+    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7" /></svg>
+  ),
+  Dairy: (
+    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+  ),
+  Seafood: (
+    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8S2 12 2 12z" /></svg>
+  ),
+  'Processed Foods': (
+    <svg className="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
+  ),
+  Textiles: (
+    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z" /></svg>
+  ),
+  Cosmetics: (
+    <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+  ),
+  Collectives: (
+    <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+  ),
+  'Pet Food': (
+    <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+  ),
+};
 
-const foodImages = [
-  'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=800&q=60'
+const categories = [
+  {
+    name: 'Agriculture',
+    image:
+      'https://i.pinimg.com/1200x/9a/43/f5/9a43f5309d7614968fe6d71eed159520.jpg', // Wheat field
+    description: 'Fresh produce and grains from local farms.',
+  },
+  {
+    name: 'Meat & Poultry',
+    image:
+      'https://i.pinimg.com/1200x/38/32/e1/3832e166dfcfb30285b238bb6c70f314.jpg', // Raw meat
+    description: 'Quality meats and poultry products.',
+  },
+  {
+    name: 'Dairy',
+    image:
+      'https://i.pinimg.com/1200x/5b/3a/a9/5b3aa90dae83e5f7ca7d28ac757ef670.jpg', // Milk/cheese
+    description: 'Milk, cheese, and other dairy essentials.',
+  },
+  {
+    name: 'Seafood',
+    image:
+      'https://i.pinimg.com/1200x/55/f7/45/55f7450fff3f2eb1cd3f1470c175e3d3.jpg', // Fish
+    description: 'Fresh and frozen seafood varieties.',
+  },
+  {
+    name: 'Processed Foods',
+    image:
+      'https://i.pinimg.com/736x/7f/20/07/7f20079e5956da8a3299ebd20fb8e016.jpg', // Packaged food
+    description: 'Convenient and ready-to-eat foods.',
+  },
+  {
+    name: 'Textiles',
+    image:
+      'https://i.pinimg.com/1200x/4e/fa/f9/4efaf9972a120c416092913a9865e1a4.jpg', // Fabric
+    description: 'Fabrics and textile products.',
+  },
+  {
+    name: 'Cosmetics',
+    image:
+      'https://i.pinimg.com/736x/5f/15/de/5f15dedfe2733c320590e180341c8989.jpg', // Makeup
+    description: 'Beauty and personal care items.',
+  },
+  {
+    name: 'Collectives',
+    image:
+      'https://i.pinimg.com/1200x/12/19/69/12196926a53d97e72656dc43fa5a5512.jpg', // Group/community
+    description: 'Community-driven and cooperative products.',
+  },
+  {
+    name: 'Pet Food',
+    image:
+      'https://i.pinimg.com/736x/b1/07/2c/b1072cabc0dbdfbe76415f5cbc72d4a0.jpg', // Bowl of pet food with dog
+    description: 'Nutritious food for your pets.',
+  },
 ];
 
-const cosmeticsImages = [
-  'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1512496015851-a90137ba0a43?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=60'
-];
-
-const clothingImages = [
-  'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1581655353564-df123a9082df?auto=format&fit=crop&w=800&q=60',
-  'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=800&q=60'
-];
-
-const defaultImage = 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&q=60';
-
-function getDeterministicImage(category: string | undefined, id: number) {
-  if (!category) return defaultImage;
-  const cat = category.toLowerCase();
-  if (cat.includes('food')) {
-    return foodImages[id % foodImages.length];
+const getColumnCount = () => {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth < 640) return 1; // mobile
+    if (window.innerWidth < 1024) return 2; // tablet
+    return 3; // desktop
   }
-  if (cat.includes('clothing')) {
-    return clothingImages[id % clothingImages.length];
-  }
-  if (cat.includes('cosmetics')) {
-    return cosmeticsImages[id % cosmeticsImages.length];
-  }
-  return defaultImage;
-}
+  return 3;
+};
 
-const ProductsPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const { isAuthenticated } = useContext(AuthContext);
-  const [wishlist, setWishlist] = useState<Set<number>>(new Set());
+const ProductSkeleton = () => (
+  <div className="mb-4 break-inside-avoid shadow-xl rounded-2xl overflow-hidden bg-gray-200 animate-pulse min-h-[180px] h-[220px] border border-gray-100"></div>
+);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const productPromise = api.get<{ success: boolean; products: Product[] }>('/api/products/public');
-        const wishlistPromise = isAuthenticated ? api.get<{ success: boolean; wishlist: number[] }>('/api/wishlist') : Promise.resolve(null);
-        
-        const [productResponse, wishlistResponse] = await Promise.all([productPromise, wishlistPromise]);
+const ProductPage: React.FC = () => {
+  const [columns, setColumns] = React.useState(getColumnCount());
+  const [loading, setLoading] = React.useState(true);
 
-        if (productResponse.data.success) {
-          setProducts(productResponse.data.products);
-          setFilteredProducts(productResponse.data.products);
-        } else {
-          throw new Error('Failed to fetch products');
-        }
-
-        if (wishlistResponse?.data.success) {
-          setWishlist(new Set(wishlistResponse.data.wishlist));
-        }
-
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'An unknown error occurred.');
-      } finally {
-        setLoading(false);
-      }
+  React.useEffect(() => {
+    const handleResize = () => {
+      setColumns(getColumnCount());
     };
-    fetchAllData();
-  }, [isAuthenticated]);
+    window.addEventListener('resize', handleResize);
+    // Simulate loading
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
-  const handleToggleWishlist = async (e: React.MouseEvent, productId: number) => {
-    e.preventDefault(); // Prevent navigating when clicking the heart
-    e.stopPropagation();
+  // Split categories into columns for masonry effect
+  const masonryColumns = Array.from({ length: columns }, () => [] as typeof categories);
+  categories.forEach((cat, idx) => {
+    masonryColumns[idx % columns].push(cat);
+  });
 
-    if (!isAuthenticated) {
-      toast.error("Please log in to manage your wishlist.");
-      return;
-    }
-
-    const isWishlisted = wishlist.has(productId);
-    const originalWishlist = new Set(wishlist);
-
-    // Optimistic UI update
-    const updatedWishlist = new Set(originalWishlist);
-    if (isWishlisted) {
-      updatedWishlist.delete(productId);
-    } else {
-      updatedWishlist.add(productId);
-    }
-    setWishlist(updatedWishlist);
-
-    try {
-      if (isWishlisted) {
-        await api.post('/api/wishlist/remove', { productId });
-        toast.success("Removed from wishlist!");
-      } else {
-        await api.post('/api/wishlist/add', { productId });
-        toast.success("Added to wishlist!");
-      }
-    } catch (error) {
-      // Revert UI on error
-      setWishlist(originalWishlist);
-      toast.error("Failed to update wishlist. Please try again.");
-    }
+  // Custom heights for Meat & Poultry, Processed Foods, Collectives
+  const getCardHeight = (catName: string, idx: number) => {
+    if (catName === 'Meat & Poultry') return 320;
+    if (catName === 'Processed Foods') return 80; // even shorter
+    if (catName === 'Collectives') return 260; // slightly shorter
+    return idx % 2 === 0 ? 220 : 320;
   };
 
-  useEffect(() => {
-    const lowercasedQuery = searchQuery.toLowerCase();
-    const filtered = products.filter((product) => {
-      const nameMatch = product.name.toLowerCase().includes(lowercasedQuery);
-      const companyMatch = product.company_name.toLowerCase().includes(lowercasedQuery);
-      const categoryMatch = product.category_name?.toLowerCase().includes(lowercasedQuery) || false;
-      return nameMatch || companyMatch || categoryMatch;
-    });
-    setFilteredProducts(filtered);
-  }, [searchQuery, products]);
-
-  const LoadingSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-md shadow-sm animate-pulse border border-gray-100">
-          <div className="h-40 bg-gray-100 rounded-t-md"></div>
-          <div className="p-3">
-            <div className="h-3 bg-gray-200 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-gray-300 rounded w-full mb-3"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
-            <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6">
-        {/* Modern Search Bar at the Top */}
-        <div className="w-full max-w-lg mx-auto mb-8">
-          <div className="relative">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search products, companies, or categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-full bg-white border border-gray-200 shadow focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-base placeholder-gray-400 transition-all duration-200 outline-none"
-              style={{ boxShadow: '0 2px 12px 0 rgba(60,72,88,0.06)' }}
-            />
+    <div className="min-h-screen bg-gray-50 flex flex-col" style={{ fontFamily: 'Inter, Manrope, Noto Sans, sans-serif' }}>
+      {/* Hedamo Navbar */}
+      <header className="bg-white shadow-sm p-5 flex justify-between items-center sticky top-0 z-50">
+        <div className="flex items-center">
+          <Link to="/" className="hover:text-green-600 transition-colors flex items-center">
+            <img src={hedamoLogo} alt="Hedamo Logo" className="h-8 w-auto mr-2 ml-4" />
+          </Link>
           </div>
+        <div className="hidden md:flex items-center space-x-6">
+          <Link to="/" className="text-gray-700 hover:text-green-600 transition-colors font-medium">Home</Link>
+          <Link to="/about" className="text-gray-700 hover:text-green-600 transition-colors font-medium">About</Link>
+          <Link to="/products" className="text-gray-700 hover:text-green-600 transition-colors font-medium">Products</Link>
+          <Link to="/contact" className="text-gray-700 hover:text-green-600 transition-colors font-medium">Contact</Link>
+          <Link to="/login" className="text-gray-700 hover:text-green-600 transition-colors font-medium">Login</Link>
+          <Link to="/signup" className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Sign Up</Link>
         </div>
-
-        {loading ? (
-          <LoadingSkeleton />
-        ) : error ? (
-          <div className="text-center py-16">
-            <FiPackage className="mx-auto h-10 w-10 text-gray-300" />
-            <h3 className="mt-4 text-base font-medium text-gray-700">No Products Found</h3>
-            <p className="mt-2 text-gray-400 text-sm">
-              {searchQuery
-                ? 'No products match your search.'
-                : 'Products will appear here once they are added.'}
-            </p>
+      </header>
+      <main className="flex-1 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-8 py-10">
+        {/* Breadcrumb */}
+        <nav className="flex items-center text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-green-600">Home</Link>
+          <span className="mx-2">/</span>
+          <span className="text-green-700 font-semibold">Products</span>
+        </nav>
+        <div className="flex flex-wrap justify-between gap-3 mb-8">
+          <p className="text-gray-800 text-3xl font-bold leading-tight min-w-72">Shop by Category</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => {
-              const isWishlisted = wishlist.has(product.id);
-              return (
-                <Link to={`/products/${product.id}`} key={product.id} className="group block">
-                  <div className="bg-white rounded-md shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 overflow-hidden h-full flex flex-col border border-gray-100">
-                    <div className="relative h-40">
-                      <img
-                        src={product.image_url || getDeterministicImage(product.category_name, product.id)}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={e => {
-                          if (e.currentTarget.src !== defaultImage) {
-                            e.currentTarget.src = defaultImage;
-                          }
-                        }}
-                      />
-                      {isAuthenticated && (
-                         <button
-                           onClick={(e) => handleToggleWishlist(e, product.id)}
-                           className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 ${
-                            isWishlisted
-                              ? 'bg-red-500 text-white'
-                              : 'bg-white/70 text-gray-700 backdrop-blur-sm hover:bg-white'
-                           }`}
-                           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                         >
-                           <FiHeart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
-                         </button>
-                      )}
-                    </div>
-                    <div className="p-3 flex-1 flex flex-col">
-                      <div>
-                        {product.category_name && (
-                          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500 mb-1">
-                            {product.category_name}
-                          </p>
-                        )}
-                        <h2 className="text-base font-semibold text-gray-800 h-10 line-clamp-2" title={product.name}>
-                          {product.name}
-                        </h2>
-                      </div>
-                      <div className="mt-auto">
-                        <p className="text-xs text-gray-500 mt-2">
-                          By <span className="font-medium text-gray-700">{product.company_name}</span>
-                        </p>
-                        <div className="text-lg font-bold text-gray-900 mt-2">
-                          {product.price ? (
-                            <span>${parseFloat(String(product.price)).toFixed(2)}</span>
-                          ) : (
-                            <span className="text-xs font-medium text-gray-400">Price not available</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
+        {/* Masonry layout using CSS columns */}
+        <CategoryMasonry />
+      </main>
+      <Footer />
     </div>
   );
 };
 
-export default ProductsPage;
+export default ProductPage;

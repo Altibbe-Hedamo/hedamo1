@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 import Home from './pages/Home';
@@ -28,9 +28,9 @@ import ProducersHowItWorks from './pages/ProducersHowItWorks';
 import QRReportsHowItWorks from './pages/QRReportsHowItWorks';
 import JobApplicationPage from './pages/JobApplicationPage';
 import Process from './pages/Process';
-import HapPortal from './pages/HapPortal';
-import CreateCompany from './pages/HAP/CreateCompany';
-import ManageCompany from './pages/HAP/ManageCompany';
+// import HapPortal from './pages/HapPortal';
+// import CreateCompany from './pages/HAP/CreateCompany';
+// import ManageCompany from './pages/HAP/ManageCompany';
 import KYCVerification from './pages/Agent/KYCVerification';
 import ChannelPartnerPortal from './pages/ChannelPartner/ChannelPartnerPortal';
 import UserProfile from './pages/UserProfile';
@@ -41,6 +41,12 @@ import Directories from './pages/Directories';
 import LoadingSpinner from './pages/common/LoadingSpinner';
 import CompanyPortal from './pages/Company/CompanyPortal';
 import IntakeFormPage from './pages/Company/IntakeFormPage';
+// import HrbPortal from './pages/HrbPortal';
+// import HRBPortalRoutes from './pages/HRB/HRBPortalRoutes';
+import Product1 from './pages/Product1';
+import AgricultureCategory from './pages/categories/agriculture';
+import ExploreHoneyVarieties from './pages/categories/agriculture/ExploreHoneyVarieties';
+import HoneyVarietyDetail from './pages/categories/agriculture/HoneyVarietyDetail';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
@@ -56,13 +62,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   // Don't show the main navbar on any portal or dashboard pages
   const portalPaths = [
-    '/hap-portal',
+    // '/hap-portal',
     '/agent-dashboard',
     '/admin-dashboard',
     '/hr-dashboard',
     '/channel-partner-portal',
     '/company-portal',
-    '/user-profile'
+    '/user-profile',
+    // '/hrb-portal' // Hide Navbar on HRB portal
   ];
   const showNavbar = !portalPaths.some(path => location.pathname.startsWith(path));
 
@@ -87,6 +94,34 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+const NotFoundCategory = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <h1 className="text-3xl font-bold text-red-700 mb-4">Category Not Found</h1>
+    <p className="text-gray-700">The category you are looking for does not exist.</p>
+  </div>
+);
+
+function kebabToFolderName(kebab: string) {
+  // Convert kebab-case to folder name (e.g., 'meat-&-poultry' -> 'meat & poultry')
+  return kebab.replace(/-/g, ' ');
+}
+
+function DynamicCategoryPage() {
+  const { categoryName } = useParams();
+  let CategoryComponent;
+  try {
+    // Try to import the category page using the kebab-case param
+    CategoryComponent = React.lazy(() => import(`./pages/categories/${categoryName}/index.tsx`));
+  } catch (e) {
+    return <NotFoundCategory />;
+  }
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CategoryComponent />
+    </Suspense>
+  );
+}
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -109,7 +144,7 @@ const AppRoutes: React.FC = () => {
           <Contact />
         </PublicRoute>
       } />
-      <Route
+      {/* <Route
         path="/hap-portal/*"
         element={
           <ProtectedRoute>
@@ -132,12 +167,13 @@ const AppRoutes: React.FC = () => {
             <ManageCompany />
           </ProtectedRoute>
         }
-      />
+      /> */}
       <Route path="/buy-certificate" element={<BuyCertificate />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       <Route path="/products" element={<ProductsPage />} />
+      <Route path="/product1" element={<Product1 />} />
       <Route path="/careers" element={<CareerPage />} />
       <Route path="/services" element={<Services />} />
       <Route path="/qr-reports" element={<QRReports />} />
@@ -148,6 +184,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/qr-reports/how-it-works" element={<QRReportsHowItWorks />} />
       <Route path="/job-application" element={<JobApplicationPage />} />
       <Route path="/process" element={<Process />} />
+      <Route path="/category/:categoryName" element={<DynamicCategoryPage />} />
+      <Route path="/honey-varieties/:slug" element={<HoneyVarietyDetail />} />
+      <Route path="/agriculture/honey-varieties" element={<Suspense fallback={<div>Loading...</div>}><ExploreHoneyVarieties /></Suspense>} />
       <Route
         path="/user-profile/*"
         element={
@@ -218,6 +257,14 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      {/* <Route
+        path="/hrb-portal/*"
+        element={
+          <ProtectedRoute>
+            <HRBPortalRoutes />
+          </ProtectedRoute>
+        }
+      /> */}
     </Routes>
   );
 };

@@ -260,11 +260,9 @@ const UsersSection: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading agents...</p>
-        </div>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading agents...</p>
       </div>
     );
   }
@@ -287,224 +285,173 @@ const UsersSection: React.FC = () => {
     );
   }
 
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Agent Management</h2>
-        </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800">Agent Management</h2>
+      </div>
+      {/* Responsive grid for cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Agents Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center mb-4">
-                <User className="h-5 w-5 mr-2 text-blue-500" />
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-w-0">
+          <div className="flex flex-wrap items-center mb-4">
+            <User className="h-5 w-5 mr-2 text-blue-500" />
             <h3 className="text-lg font-semibold">Agents</h3>
-              </div>
-              <div className="space-y-4">
+          </div>
+          <div className="space-y-4">
             {agents.map(agent => {
-              console.log('Rendering agent:', agent);
               const showButtons = agent.status === 'pending';
               return (
                 <div key={agent.id} className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium">{agent.full_name}</p>
-                        <p className="text-sm text-gray-500">{agent.email_address}</p>
-                      <p className="text-xs text-gray-400">
-                        Joined: {new Date(agent.created_at).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Experience: {agent.years_of_experience || 'N/A'}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        LinkedIn: {agent.linkedin_url ? (
-                          <a href={agent.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                            View Profile
-                          </a>
-                        ) : (
-                          'Not Available'
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {agent.hasProfile ? 'Profile ID' : 'User ID'}: {agent.id}
-                      </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          agent.status === 'approved'
-                            ? 'bg-green-100 text-green-800'
-                            : agent.status === 'rejected'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {agent.status}
-                      </span>
+                  <div className="flex flex-wrap justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium break-words">{agent.full_name}</p>
+                      <p className="text-sm text-gray-500 break-words">{agent.email_address}</p>
+                      <p className="text-xs text-gray-400">Joined: {new Date(agent.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400">Experience: {agent.years_of_experience || 'N/A'}</p>
+                      <p className="text-xs text-gray-400">LinkedIn: {agent.linkedin_url ? (
+                        <a href={agent.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Profile</a>
+                      ) : ('Not Available')}</p>
+                      <p className="text-xs text-gray-400">{agent.hasProfile ? 'Profile ID' : 'User ID'}: {agent.id}</p>
                     </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      agent.status === 'approved'
+                        ? 'bg-green-100 text-green-800'
+                        : agent.status === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>{agent.status}</span>
+                  </div>
                   {showButtons && (
-                    <div className="flex space-x-2 mt-3">
-                        <button
-                          onClick={() => handleVerify(agent.id, 'approved')}
+                    <div className="flex flex-wrap space-x-2 mt-3">
+                      <button
+                        onClick={() => handleVerify(agent.id, 'approved')}
                         className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
                         disabled={loading}
-                        >
-                          Approve
-                        </button>
-                        <button
+                      >
+                        Approve
+                      </button>
+                      <button
                         onClick={() => handleVerify(agent.id, 'rejected')}
                         className="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300 transition-colors"
                         disabled={loading}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
               );
             })}
             {agents.length === 0 && (
               <p className="text-gray-500">No agents found.</p>
-                )}
-              </div>
-            </div>
-
+            )}
+          </div>
+        </div>
         {/* Companies Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center mb-4">
-                <Building className="h-5 w-5 mr-2 text-blue-500" />
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-w-0">
+          <div className="flex flex-wrap items-center mb-4">
+            <Building className="h-5 w-5 mr-2 text-blue-500" />
             <h3 className="text-lg font-semibold">Companies</h3>
-              </div>
-              <div className="space-y-4">
-            {agents.map(agent => 
+          </div>
+          <div className="space-y-4">
+            {agents.map(agent =>
               agent.companies.map(company => (
-                    <div
-                      key={company.company_id}
-                      className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{company.company_name}</p>
-                      <p className="text-sm text-gray-500">Agent: {agent.full_name}</p>
-                      <p className="text-xs text-gray-400">
-                        Created: {new Date(company.created_at).toLocaleDateString()}
-                      </p>
-                        </div>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            company.company_status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : company.company_status === 'under_review'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {company.company_status}
-                        </span>
-                      </div>
-                      {company.company_status === 'pending' && (
-                        <div className="flex space-x-2 mt-2">
-                          <button
-                            onClick={() => handleApproveCompany(company.company_id, agent.id)}
-                            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReviewCompany(company.company_id, agent.id)}
-                            className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
-                          >
-                            Review
-                          </button>
-                        </div>
-                      )}
+                <div key={company.company_id} className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+                  <div className="flex flex-wrap justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium break-words">{company.company_name}</p>
+                      <p className="text-sm text-gray-500 break-words">Agent: {agent.full_name}</p>
+                      <p className="text-xs text-gray-400">Created: {new Date(company.created_at).toLocaleDateString()}</p>
                     </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      company.company_status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : company.company_status === 'under_review'
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>{company.company_status}</span>
+                  </div>
+                  {company.company_status === 'pending' && (
+                    <div className="flex flex-wrap space-x-2 mt-2">
+                      <button
+                        onClick={() => handleApproveCompany(company.company_id, agent.id)}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReviewCompany(company.company_id, agent.id)}
+                        className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
+                      >
+                        Review
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))
             )}
             {agents.every(agent => agent.companies.length === 0) && (
               <p className="text-gray-500">No companies found.</p>
-                )}
-              </div>
-            </div>
-
+            )}
+          </div>
+        </div>
         {/* Products Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center mb-4">
-                <Package className="h-5 w-5 mr-2 text-blue-500" />
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-w-0">
+          <div className="flex flex-wrap items-center mb-4">
+            <Package className="h-5 w-5 mr-2 text-blue-500" />
             <h3 className="text-lg font-semibold">Products</h3>
-              </div>
-              <div className="space-y-4">
-            {agents.map(agent => 
-              agent.companies.map(company => 
+          </div>
+          <div className="space-y-4">
+            {agents.map(agent =>
+              agent.companies.map(company =>
                 company.products.map(product => (
-                    <div
-                      key={product.product_id}
-                      className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{product.product_name}</p>
-                        <p className="text-sm text-gray-500">
-                          Company: {company.company_name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          Agent: {agent.full_name}
-                        </p>
-                        </div>
-                      <div className="flex flex-col items-end">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full mb-1 ${
-                            product.product_status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : product.product_status === 'info_requested'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {product.product_status}
-                        </span>
+                  <div key={product.product_id} className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+                    <div className="flex flex-wrap justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <p className="font-medium break-words">{product.product_name}</p>
+                        <p className="text-sm text-gray-500 break-words">Company: {company.company_name}</p>
+                        <p className="text-xs text-gray-400">Agent: {agent.full_name}</p>
+                      </div>
+                      <div className="flex flex-col items-end min-w-0">
+                        <span className={`px-2 py-1 text-xs rounded-full mb-1 ${
+                          product.product_status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : product.product_status === 'info_requested'
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>{product.product_status}</span>
                         {product.report_status && (
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              product.report_status === 'completed'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {product.report_status}
-                          </span>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            product.report_status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>{product.report_status}</span>
                         )}
                       </div>
-                      </div>
-                      {product.product_status === 'pending' && (
-                        <div className="flex space-x-2 mt-2">
-                          <button
-                            onClick={() => handleVerifyProduct(product.product_id, agent.id)}
-                            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                          >
-                            Verify
-                          </button>
-                          <button
-                            onClick={() => handleRequestProductInfo(product.product_id, agent.id)}
-                            className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
-                          >
-                            Request Info
-                          </button>
-                        </div>
-                      )}
                     </div>
+                    {product.product_status === 'pending' && (
+                      <div className="flex flex-wrap space-x-2 mt-2">
+                        <button
+                          onClick={() => handleRequestProductInfo(product.product_id, agent.id)}
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                        >
+                          Request Info
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))
               )
             )}
-            {agents.every(agent => 
-              agent.companies.every(company => company.products.length === 0)
-            ) && (
+            {agents.every(agent => agent.companies.every(company => company.products.length === 0)) && (
               <p className="text-gray-500">No products found.</p>
-                )}
-              </div>
-            </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default UsersSection;

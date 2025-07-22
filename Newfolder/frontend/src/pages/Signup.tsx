@@ -271,7 +271,7 @@ const Signup: React.FC = () => {
       }
 
       // Validate password for agents
-      if (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'company') {
+      if (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') {
         if (!formData.password || !formData.confirmPassword) {
           setError('Please enter and confirm your password');
           setIsSubmitting(false);
@@ -360,8 +360,8 @@ const Signup: React.FC = () => {
         referred_by: referralCode,
         csrf_token: csrfToken,
         signup_type: formData.signupType === 'company' ? 'employee' : formData.signupType,
-        password: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.password : undefined,
-        otp: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.otp : undefined,
+        password: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.password : undefined,
+        otp: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.otp : undefined,
         linkedin_url: formData.signupType === 'agent' ? formData.linkedinUrl : undefined,
         pincode: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.pincode : undefined,
         city: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.city : undefined,
@@ -421,11 +421,9 @@ const Signup: React.FC = () => {
               navigate('/kyc-verification', { replace: true });
             } else if (redirectType === 'channel_partner') {
               navigate('/channel-partner-portal', { replace: true });
-            } else if (redirectType === 'hap') {
+            } else {
               navigate('/login', { replace: true });
-          } else {
-              navigate('/login', { replace: true });
-          }
+            }
           });
         } else {
           const errorMessage = response.data.error || 'Failed to register user';
@@ -533,7 +531,7 @@ const Signup: React.FC = () => {
                     required
                     className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   />
-                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && !otpSent && (
+                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && !otpSent && (
                     <button
                       type="button"
                       onClick={handleSendOtp}
@@ -583,13 +581,11 @@ const Signup: React.FC = () => {
                 <option value="user">Individual User</option>
                 <option value="company">Business/Company</option>
                 <option value="agent">Agent/Representative</option>
-                <option value="hap">HAP</option>
-                <option value="hrb">HRB</option>
                 <option value="channel_partner">Channel Partner</option>
               </select>
             </div>
 
-            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && (
+            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && (
               <>
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">

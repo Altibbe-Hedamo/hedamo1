@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import heroBackground from '/homepage.webp';
 import Footer from '../components/Footer';
 import React from 'react'; // Added for React.useState
+import CategoryMasonry from './CategoryMasonry';
 
 function Home() {
   // (removed unused API_URL)
@@ -63,55 +64,7 @@ function Home() {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Link
-              to="/products?cat=food"
-              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
-            >
-              <div className="aspect-square relative">
-                <img
-                  src="/product/food.webp"
-                  alt="Plant-Based Food"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Plant-Based Food</h3>
-              </div>
-            </Link>
-
-            <Link
-              to="/products?cat=cloth"
-              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
-            >
-              <div className="aspect-square relative">
-                <img
-                  src="/product/clothing.webp"
-                  alt="Organic Clothing"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Organic Clothing</h3>
-              </div>
-            </Link>
-
-            <Link
-              to="/products?cat=cosmetics"
-              className="group overflow-hidden hover:shadow-lg transition-shadow rounded-lg border border-gray-200"
-            >
-              <div className="aspect-square relative">
-                <img
-                  src="/product/cosmetics.webp"
-                  alt="Natural Cosmetics"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Natural Cosmetics</h3>
-              </div>
-            </Link>
-          </div>
+          <CategoryMasonry />
         </div>
       </section>
 
