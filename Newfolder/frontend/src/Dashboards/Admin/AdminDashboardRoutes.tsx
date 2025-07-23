@@ -16,6 +16,7 @@ import AdminCommunicationCenter from '../../pages/Admin/AdminCommunicationCenter
 import UsersPage from '../../pages/Admin/UsersPage';
 import LegalDocumentPage from '../../pages/Admin/LegalDocumentPage';
 import HelpLinePage from '../../pages/Admin/HelpLinePage';
+import SLPPage from '../../pages/Admin/SLPPage';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
 
@@ -114,7 +115,6 @@ const AdminDashboardRoutes = () => {
             path="/communication"
             element={<ProtectedRoute><AdminCommunicationCenter /></ProtectedRoute>}
           />
-          
           <Route path="*" element={<Navigate to="/admin-dashboard/dashboard" replace />} />
         </Routes>
       </div>

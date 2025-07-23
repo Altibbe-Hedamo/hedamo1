@@ -307,12 +307,13 @@ const UsersSection: React.FC = () => {
                     <div className="min-w-0">
                       <p className="font-medium break-words">{agent.full_name}</p>
                       <p className="text-sm text-gray-500 break-words">{agent.email_address}</p>
-                      <p className="text-xs text-gray-400">Joined: {new Date(agent.created_at).toLocaleDateString()}</p>
-                      <p className="text-xs text-gray-400">Experience: {agent.years_of_experience || 'N/A'}</p>
+                      <p className="text-xs text-gray-400">Attached: {new Date(agent.created_at).toLocaleDateString()}</p>
+                      {/* Company Names */}
+                      <p className="text-xs text-gray-400">Company: {agent.companies.length > 0 ? agent.companies.map(c => c.company_name).join(', ') : 'N/A'}</p>
                       <p className="text-xs text-gray-400">LinkedIn: {agent.linkedin_url ? (
                         <a href={agent.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Profile</a>
                       ) : ('Not Available')}</p>
-                      <p className="text-xs text-gray-400">{agent.hasProfile ? 'Profile ID' : 'User ID'}: {agent.id}</p>
+                      <p className="text-xs text-gray-400">{agent.hasProfile ? 'Emp ID' : 'Emp ID'}: {agent.id}</p>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       agent.status === 'approved'

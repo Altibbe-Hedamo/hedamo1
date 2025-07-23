@@ -47,6 +47,8 @@ import Product1 from './pages/Product1';
 import AgricultureCategory from './pages/categories/agriculture';
 import ExploreHoneyVarieties from './pages/categories/agriculture/ExploreHoneyVarieties';
 import HoneyVarietyDetail from './pages/categories/agriculture/HoneyVarietyDetail';
+import SocialFeed from './pages/SocialFeed';
+import SLPPage from './pages/Admin/SLPPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
@@ -184,6 +186,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/qr-reports/how-it-works" element={<QRReportsHowItWorks />} />
       <Route path="/job-application" element={<JobApplicationPage />} />
       <Route path="/process" element={<Process />} />
+      <Route path="/social-feed" element={<SocialFeed />} />
+      <Route path="/Slp" element={<SLPPage />} />
       <Route path="/category/:categoryName" element={<DynamicCategoryPage />} />
       <Route path="/honey-varieties/:slug" element={<HoneyVarietyDetail />} />
       <Route path="/agriculture/honey-varieties" element={<Suspense fallback={<div>Loading...</div>}><ExploreHoneyVarieties /></Suspense>} />

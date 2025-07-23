@@ -5419,6 +5419,8 @@ app.use('/api/report', reportRoutes);
 app.use('/api/company/intake', companyIntakeRoutes);
 
 // ... existing code ...
+const reviewsRouter = require('./routes/reviews');
+app.use('/api/reviews', reviewsRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
@@ -5437,3 +5439,6 @@ app.get('/agent/verification-status', (req, res) => {
 // app.post('/api/save-aadhar-details', ...);
 // app.post('/api/save-pan-details', ...);
 // app.post('/api/save-bank-details', ...);
+
+
+
