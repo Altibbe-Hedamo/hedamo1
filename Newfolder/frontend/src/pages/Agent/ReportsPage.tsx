@@ -77,7 +77,7 @@ const ReportsPage: React.FC = () => {
     }
   };
 
-  const canSubmit = profileStatus === 'approved';
+  const canSubmit = profileStatus === 'active';
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">

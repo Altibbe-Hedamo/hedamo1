@@ -16,7 +16,7 @@ export interface User {
   photo: string;
   image?: string;
   workLocation: string;
-  kycStatus: 'pending' | 'approved' | 'rejected' | null;
+  kycStatus: 'pending' | 'active' | 'rejected' | null;
   govIdName: string;
   govIdNumber: string;
 }

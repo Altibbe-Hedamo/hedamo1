@@ -24,7 +24,8 @@ const Sidebar: React.FC = () => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin-dashboard/dashboard' },
     { name: 'Users', icon: Users, path: '/admin-dashboard/users' },
-    { name: 'SLP/Employees', icon: Users, path: '/admin-dashboard/hvp' },
+    { name: 'SLP', icon: Users, path: '/admin-dashboard/slp' },
+    { name: 'SLP Rules', icon: ClipboardCheck, path: '/admin-dashboard/slp-rules' },
     { name: 'Companies', icon: Building2, path: '/admin-dashboard/companies' },
     { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
     { name: 'Intake Form', icon: FileText, path: '/admin-dashboard/intake-form' },

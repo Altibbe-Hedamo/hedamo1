@@ -34,7 +34,9 @@ const Login: React.FC = () => {
       if (response.data.success) {
         login(response.data.user, response.data.token);
         if (response.data.user.type === 'agent' || response.data.user.signup_type === 'agent') {
-          if (response.data.user.kyc_status === 'pending') {
+          if (response.data.user.status !== 'active') {
+            setError('Your account is pending approval. Please wait until admin approves your registration.');
+          } else if (response.data.user.kyc_status === 'pending') {
             navigate('/kyc-verification');
           } else if (response.data.user.kyc_status === 'active') {
             navigate('/agent-dashboard');

@@ -105,7 +105,7 @@ const UsersSection: React.FC = () => {
     fetchAgents();
   }, []);
 
-  const handleVerify = async (agentId: number, status: 'approved' | 'rejected', rejectionReason?: string) => {
+  const handleVerify = async (agentId: number, status: 'active' | 'rejected', rejectionReason?: string) => {
     console.log('Attempting to approve/reject agent:', { agentId, status, rejectionReason });
     console.log('Current token:', sessionStorage.getItem('token') ? 'Present' : 'Missing');
     console.log('Current agents state:', agents);
@@ -316,7 +316,7 @@ const UsersSection: React.FC = () => {
                       <p className="text-xs text-gray-400">{agent.hasProfile ? 'Emp ID' : 'Emp ID'}: {agent.id}</p>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      agent.status === 'approved'
+                      agent.status === 'active'
                         ? 'bg-green-100 text-green-800'
                         : agent.status === 'rejected'
                         ? 'bg-red-100 text-red-800'
@@ -326,7 +326,7 @@ const UsersSection: React.FC = () => {
                   {showButtons && (
                     <div className="flex flex-wrap space-x-2 mt-3">
                       <button
-                        onClick={() => handleVerify(agent.id, 'approved')}
+                        onClick={() => handleVerify(agent.id, 'active')}
                         className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
                         disabled={loading}
                       >

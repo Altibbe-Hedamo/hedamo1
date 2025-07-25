@@ -73,7 +73,7 @@ const ManageProduct: React.FC = () => {
     navigate('/agent-dashboard/create-product');
   };
 
-  const canEdit = profileStatus === 'approved';
+  const canEdit = profileStatus === 'active';
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">

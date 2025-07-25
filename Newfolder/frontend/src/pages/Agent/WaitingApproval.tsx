@@ -18,7 +18,7 @@ const WaitingApproval: React.FC = () => {
         </h1>
         <p className="text-gray-600 mb-6">
           {profileStatus === 'pending'
-            ? 'Your profile is currently under review by the admin. You will be notified once it is approved.'
+            ? 'Your profile is currently under review by the admin. You will be notified once it is active.'
             : 'Your profile has been rejected by the admin. Please update your profile and resubmit for approval.'}
         </p>
         <div className="space-y-4">

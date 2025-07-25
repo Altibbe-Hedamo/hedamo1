@@ -1783,7 +1783,7 @@ app.post('/api/admin/profiles/:id/approve', authenticateToken, checkAccess(['adm
       console.log('Updating user status for user:', userId);
       const userUpdateResult = await client.query(
         'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, status',
-        [status === 'approved' ? 'active' : 'inactive', userId]
+        [status === 'active' ? 'active' : 'inactive', userId]
       );
       console.log('User update result:', userUpdateResult.rows[0]);
 
@@ -1817,11 +1817,11 @@ app.post('/api/admin/profiles/:id/approve', authenticateToken, checkAccess(['adm
           await transporter.sendMail({
             from: `"Your App" <${process.env.EMAIL_USER}>`,
             to: userEmail,
-            subject: `Your Profile Has Been ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+            subject: `Your Profile Has Been ${status === 'active' ? 'Approved' : 'Rejected'}`,
             html: `
               <h2>Profile Status Update</h2>
               <p>Dear ${userName},</p>
-              <p>Your profile has been ${status === 'approved' ? 'approved' : 'rejected'} by the admin.</p>
+              <p>Your profile has been ${status === 'active' ? 'approved' : 'rejected'} by the admin.</p>
               ${status === 'rejected' && rejectionReason ? 
                 `<p>Reason for rejection: ${rejectionReason}</p>` : ''}
               <p>Please log in to your dashboard for more details.</p>
@@ -3926,7 +3926,7 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
     `;
     
     // Accept both 'approved' and 'active' as meaning 'active' in the DB
-    const newStatus = (status === 'approved' || status === 'active') ? 'active' : 'pending';
+    const newStatus = (status === 'active' || status === 'active') ? 'active' : 'pending';
     console.log('Executing user update query:', {
       query: updateQuery,
       params: [newStatus, userId],

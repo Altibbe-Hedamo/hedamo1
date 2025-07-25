@@ -17,6 +17,7 @@ import UsersPage from '../../pages/Admin/UsersPage';
 import LegalDocumentPage from '../../pages/Admin/LegalDocumentPage';
 import HelpLinePage from '../../pages/Admin/HelpLinePage';
 import SLPPage from '../../pages/Admin/SLPPage';
+import SLPRulesPage from '../../pages/Admin/SLPRulesPage';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
 
@@ -60,6 +61,10 @@ const AdminDashboardRoutes = () => {
           
           <Route
             path="/hvp"
+            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
+          />
+          <Route
+            path="/slp"
             element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
           
@@ -114,6 +119,11 @@ const AdminDashboardRoutes = () => {
           <Route
             path="/communication"
             element={<ProtectedRoute><AdminCommunicationCenter /></ProtectedRoute>}
+          />
+
+          <Route
+            path="/slp-rules"
+            element={<ProtectedRoute><SLPRulesPage /></ProtectedRoute>}
           />
           <Route path="*" element={<Navigate to="/admin-dashboard/dashboard" replace />} />
         </Routes>

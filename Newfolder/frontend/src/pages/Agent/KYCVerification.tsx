@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import api from '../../config/axios';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 declare global {
   interface Window {
@@ -22,6 +23,7 @@ interface FormData {
 }
 
 const KYCVerification: React.FC = () => {
+  const { user, isLoading } = useContext(AuthContext);
   const [currentStep, setCurrentStep] = useState<'aadhar' | 'pan' | 'bank' | 'payment'>('aadhar');
   const [formData, setFormData] = useState<FormData>({
     aadharNumber: '',
@@ -40,6 +42,12 @@ const KYCVerification: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [planType, setPlanType] = useState<'trial' | 'full'>('trial');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && user && user.type === 'agent' && user.status !== 'active') {
+      navigate('/agent-dashboard/waiting-approval');
+    }
+  }, [user, isLoading, navigate]);
 
   useEffect(() => {
     // Load Razorpay script

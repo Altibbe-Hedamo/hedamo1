@@ -44,7 +44,7 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const handleApproveReject = async (userId: number, status: 'approved' | 'rejected') => {
+  const handleApproveReject = async (userId: number, status: 'active' | 'rejected') => {
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
@@ -86,7 +86,7 @@ const UsersPage: React.FC = () => {
     );
   }
 
-  // Filter users for HRB tab to only show approved
+  // Filter users for HRB tab to only show active
   const displayedUsers = users;
 
   return (
