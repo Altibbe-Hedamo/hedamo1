@@ -28,7 +28,7 @@ CREATE TABLE users (
   last_name VARCHAR(100),
   email VARCHAR(255) UNIQUE NOT NULL,
   phone VARCHAR(20),
-  signup_type VARCHAR(50) NOT NULL CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'hap')),
+  signup_type VARCHAR(50) NOT NULL CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'channel_partner', 'hap', 'hrb', 'slp')),
   hashed_email VARCHAR(255),
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active')),
   password VARCHAR(255),
@@ -125,7 +125,7 @@ CREATE TABLE profiles (
   resume_path TEXT NOT NULL,
   other_documents TEXT,
   completion_percentage INTEGER NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'rejected')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

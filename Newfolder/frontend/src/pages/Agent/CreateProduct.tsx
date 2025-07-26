@@ -131,7 +131,7 @@ const CreateProduct: React.FC = () => {
     }
   };
 
-  if (error === 'You need an approved company to create a product.') {
+  if (error === 'You need an active company to create a product.') {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Create Product</h1>

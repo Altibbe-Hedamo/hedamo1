@@ -24,9 +24,8 @@ const Sidebar: React.FC = () => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin-dashboard/dashboard' },
     { name: 'Users', icon: Users, path: '/admin-dashboard/users' },
-    { name: 'HVP', icon: Users, path: '/admin-dashboard/hvp' },
-    { name: 'HAP', icon: Shield, path: '/admin-dashboard/hap' },
-    { name: 'HRB', icon: ClipboardCheck, path: '/admin-dashboard/hrb' },
+    { name: 'SLP', icon: Users, path: '/admin-dashboard/slp' },
+    { name: 'SLP Rules', icon: ClipboardCheck, path: '/admin-dashboard/slp-rules' },
     { name: 'Companies', icon: Building2, path: '/admin-dashboard/companies' },
     { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
     { name: 'Intake Form', icon: FileText, path: '/admin-dashboard/intake-form' },
@@ -38,12 +37,15 @@ const Sidebar: React.FC = () => {
     { name: 'Legal Document', icon: FaFileContract, path: '/admin-dashboard/legal-document' },
     { name: 'Help Line', icon: FaHeadset, path: '/admin-dashboard/help-line' },
   ];
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
+  let portalTitle = 'Admin Portal';
+  if (user?.type === 'principaladmin') portalTitle = 'Principal Admin Portal';
+  else if (user?.type === 'serviceadmin') portalTitle = 'Service Admin Portal';
 
   return (
     <div className="fixed left-0 top-0 z-20 h-min-screen w-64 bg-[#1e293b] text-white flex flex-col relative">
       <div className="p-6 flex items-center border-b border-gray-700">
-        <h1 className="text-xl font-bold">Admin Portal</h1>
+        <h1 className="text-xl font-bold">{portalTitle}</h1>
       </div>
       <div className="p-4 border-b border-gray-700">
         <button

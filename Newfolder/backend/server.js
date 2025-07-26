@@ -16,7 +16,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-  origin: (process.env.FRONTEND_URL || 'https://hedamo1-1.onrender.com').replace(/\/$/, ''),
+  origin: ['http://localhost:5173', 'https://hedamo1-1.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -118,10 +118,7 @@ pool.connect((err, client, release) => {
 // Ensure accepted_products table exists
 const ensureAcceptedProductsTable = async () => {
   try {
-    console.log('🔍 Checking if accepted_products table exists...');
-    
     const client = await pool.connect();
-    
     // Check if table exists
     const tableCheck = await client.query(`
       SELECT table_name 
@@ -130,9 +127,7 @@ const ensureAcceptedProductsTable = async () => {
       AND table_name = 'accepted_products'
     `);
     
-    if (tableCheck.rows.length === 0) {
-      console.log('⚠️ accepted_products table not found, creating it...');
-      
+    if (tableCheck.rows.length === 0) {      
       // Create the table
       const createTableSQL = `
         CREATE TABLE IF NOT EXISTS accepted_products (
@@ -158,7 +153,6 @@ const ensureAcceptedProductsTable = async () => {
       `;
       
       await client.query(createTableSQL);
-      console.log('✅ accepted_products table created successfully!');
     } else {
       console.log('✅ accepted_products table already exists');
     }
@@ -167,15 +161,12 @@ const ensureAcceptedProductsTable = async () => {
   } catch (error) {
     console.error('❌ Error ensuring accepted_products table:', error);
     // Don't exit the process, just log the error
-    console.log('⚠️ Server will continue without accepted_products table');
   }
 };
 
 // Ensure intake_conversations table exists
 const ensureIntakeConversationsTable = async () => {
-  try {
-    console.log('🔍 Checking if intake_conversations table exists...');
-    
+  try {    
     const client = await pool.connect();
     
     // Check if table exists
@@ -186,9 +177,7 @@ const ensureIntakeConversationsTable = async () => {
       AND table_name = 'intake_conversations'
     `);
     
-    if (tableCheck.rows.length === 0) {
-      console.log('⚠️ intake_conversations table not found, creating it...');
-      
+    if (tableCheck.rows.length === 0) {      
       // Create the table
       const createTableSQL = `
         CREATE TABLE IF NOT EXISTS intake_conversations (
@@ -230,14 +219,12 @@ const ensureIntakeConversationsTable = async () => {
       `;
       
       await client.query(createTableSQL);
-      console.log('✅ intake_conversations table created successfully!');
     } else {
       console.log('✅ intake_conversations table already exists');
     }
     
     client.release();
   } catch (error) {
-    console.error('❌ Error ensuring intake_conversations table:', error);
     console.log('⚠️ Server will continue without intake_conversations table');
   }
 };
@@ -310,8 +297,6 @@ const verifyCsrfToken = (req, res, next) => {
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-
-  console.log(`authenticateToken: ${req.method} ${req.url} - Token: ${token ? 'Present' : 'Missing'}`);
   if (!token) {
     return res.status(401).json({ success: false, message: 'No token provided' });
   }
@@ -326,7 +311,6 @@ const authenticateToken = (req, res, next) => {
       id: parseInt(decoded.id, 10),
       signup_type: decoded.signup_type,
     };
-    console.log(`authenticateToken: User set: ${JSON.stringify(req.user)}`);
     next();
   } catch (err) {
     console.error(`authenticateToken: Token verification failed for ${req.method} ${req.url}:`, err.message);
@@ -338,7 +322,6 @@ module.exports.authenticateToken = authenticateToken;
 
 // Role-based access control
 const checkAccess = (requiredRoles) => (req, res, next) => {
-  console.log('checkAccess: User:', req.user, 'Required roles:', requiredRoles);
   if (!req.user || !req.user.signup_type) {
     console.error('checkAccess: Missing user or signup_type');
     return res.status(401).json({ success: false, message: 'User not authenticated' });
@@ -428,17 +411,14 @@ app.post('/api/send-otp', async (req, res) => {
   let client;
 
   try {
-    console.log('Send OTP request received:', { email });
     
     if (!email) {
-      console.log('Email is missing in request');
       return res.status(400).json({ success: false, error: 'Email is required' });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.log('Invalid email format:', email);
       return res.status(400).json({ success: false, error: 'Invalid email format' });
     }
 
@@ -456,12 +436,9 @@ app.post('/api/send-otp', async (req, res) => {
     }
 
     client = await pool.connect();
-    console.log('Database connection established');
-
     // Check if user exists
     const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userResult.rows.length > 0) {
-      console.log('User already exists:', email);
       client.release();
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
@@ -470,19 +447,13 @@ app.post('/api/send-otp', async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    console.log('Generated OTP:', { otp, expiry: otpExpiry });
-
     // Store OTP
     await client.query(
       'INSERT INTO otps (email, otp, expiry) VALUES ($1, $2, $3)',
       [email, otp, otpExpiry]
     );
-    console.log('OTP stored in database');
-
     // Send OTP email
-    try {
-      console.log('Preparing to send OTP email to:', email);
-      
+    try {      
       const mailOptions = {
         from: {
           name: 'Your App',
@@ -605,15 +576,14 @@ app.post('/api/set-password', async (req, res) => {
 // Login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Login attempt:', { email });
   try {
     const client = await pool.connect();
-    // Modify query to allow pending status for agents and hap users
+    // Query to find user by email with appropriate status conditions
     const user = await client.query(
-      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5, $6) AND status = $7))',
-      [email, 'active', 'agent', 'hap', 'channel_partner', 'employee', 'pending']
+      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5, $6, $7, $8, $9, $10) AND status = $11))',
+      [email, 'active', 'agent', 'channel_partner', 'employee', 'client', 'admin', 'slp', 'hap', 'hrb', 'pending']
     );
-    console.log('User found:', user.rows.length > 0);
+    
     console.log('User details:', {
       id: user.rows[0]?.id,
       email: user.rows[0]?.email,
@@ -627,15 +597,11 @@ app.post('/api/login', async (req, res) => {
     }
 
     const passwordMatch = await bcrypt.compare(password, user.rows[0].password);
-    console.log('Password match:', passwordMatch);
     if (!passwordMatch) {
       client.release();
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
-
     // Log the user's signup_type before token generation
-    console.log('User signup_type:', user.rows[0].signup_type);
-
     const token = jwt.sign(
       { 
         id: user.rows[0].id, 
@@ -644,8 +610,6 @@ app.post('/api/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    console.log('Token generated with signup_type:', user.rows[0].signup_type);
-
     // Prepare response data
     let userResponse = {
       id: user.rows[0].id,
@@ -663,8 +627,6 @@ app.post('/api/login', async (req, res) => {
       user: userResponse,
       token
     };
-    console.log('Sending response:', responseData);
-
     client.release();
     res.json(responseData);
   } catch (error) {
@@ -824,13 +786,11 @@ app.post('/api/change-year', authenticateToken, checkAccess(['admin', 'employee'
   }
   res.json({ success: true, year });
 });
-
 // Update Profile
 app.post('/api/update-profile', authenticateToken, upload.single('profile_image'), async (req, res) => {
   const { first_name, last_name, email, phone } = req.body;
   const userId = req.user.id;
   const image = req.file ? req.file.filename : null;
-
   try {
     const client = await pool.connect();
     const emailCheck = await client.query(
@@ -841,7 +801,6 @@ app.post('/api/update-profile', authenticateToken, upload.single('profile_image'
       client.release();
       return res.status(400).json({ success: false, error: 'Email already in use' });
     }
-
     const phoneCheck = await client.query(
       'SELECT id FROM users WHERE phone = $1 AND id != $2',
       [phone, userId]
@@ -862,7 +821,6 @@ app.post('/api/update-profile', authenticateToken, upload.single('profile_image'
         [first_name, last_name, email, phone, userId]
       );
     }
-
     client.release();
     res.json({ success: true });
   } catch (err) {
@@ -870,7 +828,6 @@ app.post('/api/update-profile', authenticateToken, upload.single('profile_image'
     res.status(500).json({ success: false, error: 'Failed to update profile' });
   }
 });
-
 // Get User Profile
 app.get('/api/user-profile', authenticateToken, async (req, res) => {
   const userId = req.user.id;
@@ -881,13 +838,11 @@ app.get('/api/user-profile', authenticateToken, async (req, res) => {
       'SELECT id, first_name, last_name, email, phone, image, signup_type FROM users WHERE id = $1',
       [userId]
     );
-
     if (userResult.rows.length === 0) {
       client.release();
       console.log('User not found for userId:', userId);
       return res.status(404).json({ success: false, error: 'User not found' });
     }
-
     const favResult = await client.query(
       `SELECT p.id, p.name, i.file AS image, c.name AS company_name, c.current_market,
               cat.name AS category_name
@@ -899,7 +854,6 @@ app.get('/api/user-profile', authenticateToken, async (req, res) => {
        WHERE uf.user_id = $1 AND uf.item_type = 'product' AND p.status = 'active'`,
       [userId]
     );
-
     client.release();
     console.log('User profile fetched:', {
       id: userResult.rows[0].id,
@@ -920,7 +874,6 @@ app.get('/api/user-profile', authenticateToken, async (req, res) => {
       favorites: favResult.rows,
     });
   } catch (err) {
-    console.error('Fetch profile error for userId:', userId, 'Error:', err);
     res.status(500).json({ success: false, error: 'Failed to fetch user data' });
   }
 });
@@ -937,13 +890,10 @@ app.get('/api/agent-profile', authenticateToken, checkAccess(['agent']), async (
       'WHERE u.id = $1',
       [userId]
     );
-
     client.release();
-
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Agent not found' });
     }
-
     res.json({
       success: true,
       user: {
@@ -968,7 +918,7 @@ app.get('/api/agent-profile', authenticateToken, checkAccess(['agent']), async (
 app.post(
   '/api/profiles',
   authenticateToken,
-  checkAccess(['agent', 'hap', 'admin', 'employee', 'client']),
+  checkAccess(['agent', 'admin', 'employee', 'client']),
   upload.fields([
     { name: 'photo', maxCount: 1 },
     { name: 'selfie', maxCount: 1 },
@@ -978,17 +928,10 @@ app.post(
     { name: 'other_documents', maxCount: 5 },
   ]),
   async (req, res) => {
-    console.log('POST /api/profiles called by user:', req.user);
-    console.log('Form data:', req.body);
-    console.log('Files:', req.files);
     try {
       // If admin is creating the profile, use the user_id from the request body
       const userId = req.user.signup_type === 'admin' ? req.body.userId : req.user.id;
-      console.log('User ID:', userId);
-
       const existingProfile = await pool.query('SELECT id FROM profiles WHERE user_id = $1', [userId]);
-      console.log('Existing profile check:', existingProfile.rows);
-      
       if (existingProfile.rows.length > 0) {
         // User already has a profile, return success with existing profile info
         return res.status(200).json({
@@ -1009,21 +952,14 @@ app.post(
         'regionsCovered', 'languagesSpoken', 'devicesAvailable', 'internetQuality',
         'digitalToolComfort', 'acceptCodeOfConduct', 'trainingWillingness',
       ];
-
-      console.log('Checking required fields...');
-      const missingFields = requiredFields.filter((field) => !req.body[field]);
-      console.log('Missing fields:', missingFields);
-      
+      const missingFields = requiredFields.filter((field) => !req.body[field]);      
       if (missingFields.length > 0) {
         return res.status(400).json({
           success: false,
           message: `Missing required fields: ${missingFields.join(', ')}`,
         });
       }
-
-      const mobileNumber = req.body.mobileNumber;
-      console.log('Mobile number:', mobileNumber);
-      
+      const mobileNumber = req.body.mobileNumber;      
       const mobileRegex = /^\+?[1-9]\d{1,14}$/;
       if (!mobileRegex.test(mobileNumber)) {
         return res.status(400).json({
@@ -1031,9 +967,7 @@ app.post(
           message: 'Invalid mobile number. Must start with a non-zero digit or + followed by digits (e.g., +1234567890).',
         });
       }
-
-      console.log('Creating profile data object...');
-      const profileData = {
+            const profileData = {
         user_id: userId,
         full_name: req.body.fullName,
         date_of_birth: req.body.dateOfBirth,
@@ -1077,11 +1011,7 @@ app.post(
         completion_percentage: 0,
         status: 'pending',
       };
-
-      console.log('Profile data created:', profileData);
       profileData.completion_percentage = calculateCompletionPercentage(profileData);
-      console.log('Completion percentage calculated:', profileData.completion_percentage);
-
       const query = `
         INSERT INTO profiles (
           user_id, full_name, date_of_birth, gender, mobile_number, email_address, current_address, permanent_address,
@@ -1098,7 +1028,6 @@ app.post(
           $40, $41, $42
         ) RETURNING id
       `;
-
       const values = [
         profileData.user_id,
         profileData.full_name,
@@ -1143,11 +1072,7 @@ app.post(
         profileData.completion_percentage,
         profileData.status,
       ];
-
-      console.log('Executing profile insert query...');
       const result = await pool.query(query, values);
-      console.log('Profile insert result:', result.rows[0]);
-
       try {
         const adminEmails = await pool.query('SELECT email FROM users WHERE signup_type = $1', ['admin']);
         await transporter.sendMail({
@@ -1182,9 +1107,7 @@ app.post(
 
 
 // Get Agent Profile by User
-app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client', 'employee', 'hap']), async (req, res) => {
-  console.log(`GET /api/profiles/user - req.user: ${JSON.stringify(req.user)}`);
-  
+app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 'client', 'employee']), async (req, res) => {  
   try {
     if (!req.user || !req.user.id) {
       console.error('Missing req.user or req.user.id');
@@ -1202,21 +1125,16 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
         message: 'Invalid user ID',
       });
     }
-
     // Fetch user profile
     const profileQuery = 'SELECT * FROM profiles WHERE user_id = $1';
     const profileResult = await pool.query(profileQuery, [userId]);
-
     if (profileResult.rows.length === 0) {
-      console.log(`No profile found for user ID: ${userId}`);
       return res.status(404).json({
         success: false,
         message: 'Profile not found',
       });
     }
-
     const profile = profileResult.rows[0];
-    
     // Map database field names to frontend field names
     const mappedProfile = {
       id: profile.id,
@@ -1265,12 +1183,8 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
       ifsc_code: profile.ifsc_code,
       completion_percentage: profile.completion_percentage
     };
-
-    console.log('Mapped profile data:', mappedProfile);
-
     // Return the profile data directly (not nested)
     res.status(200).json(mappedProfile);
-
   } catch (error) {
     console.error(`Error fetching profile for user_id=${req.user?.id}:`, error);
     res.status(500).json({
@@ -1279,11 +1193,8 @@ app.get('/api/profiles/user', authenticateToken, checkAccess(['agent', 'admin', 
     });
   }
 });
-
-
-
 // Update Profile by User (for HAP and Agent Edit Profile) - MUST BE BEFORE /:id route
-app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee', 'client', 'hap']), async (req, res) => {
+app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee', 'client']), async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -1350,12 +1261,8 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
       other_documents: currentProfile.other_documents,
       status: 'pending', // Reset to pending when updated
     };
-
     // Calculate completion percentage
     updateData.completion_percentage = calculateCompletionPercentage(updateData);
-
-    console.log('Update data prepared:', updateData);
-
     const query = `
       UPDATE profiles SET
         full_name = $1, date_of_birth = $2, gender = $3, mobile_number = $4, email_address = $5,
@@ -1373,7 +1280,6 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
       WHERE user_id = $42
       RETURNING id
     `;
-
     const values = [
       updateData.full_name,
       updateData.date_of_birth,
@@ -1418,19 +1324,13 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
       updateData.id_number,
       userId
     ];
-
-    console.log('Executing update query for user:', userId);
     const result = await pool.query(query, values);
-
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Profile not found',
       });
     }
-
-    console.log('Profile updated successfully for user:', userId);
-
     res.status(200).json({
       success: true,
       profileId: result.rows[0].id,
@@ -1453,17 +1353,15 @@ app.put('/api/profiles/user', authenticateToken, checkAccess(['agent', 'employee
     });
   }
 });
-
 // Update Profile (Simplified for Company/Employee users)
 app.put(
   '/api/profiles/:id',
   authenticateToken,
-  checkAccess(['agent', 'employee', 'client', 'hap']),
+  checkAccess(['agent', 'employee', 'client']),
   async (req, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
-
       console.log('Profile update request:', {
         profileId: id,
         userId: userId,
@@ -1523,13 +1421,9 @@ app.put(
         resume_path: currentProfile.resume_path,
         other_documents: currentProfile.other_documents,
         status: 'pending', // Reset to pending when updated
-      };
-
+      }
       // Calculate completion percentage
       updateData.completion_percentage = calculateCompletionPercentage(updateData);
-
-      console.log('Update data prepared:', updateData);
-
       const query = `
         UPDATE profiles SET
           full_name = $1, date_of_birth = $2, gender = $3, mobile_number = $4, email_address = $5,
@@ -1547,7 +1441,6 @@ app.put(
         WHERE id = $41 AND user_id = $42
         RETURNING id
       `;
-
       const values = [
         updateData.full_name,
         updateData.date_of_birth,
@@ -1592,19 +1485,13 @@ app.put(
         id,
         userId
       ];
-
-      console.log('Executing update query with values:', values);
       const result = await pool.query(query, values);
-
       if (result.rows.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Profile not found or you do not have permission to edit it',
         });
       }
-
-      console.log('Profile updated successfully:', result.rows[0]);
-
       res.status(200).json({
         success: true,
         profileId: result.rows[0].id,
@@ -1621,14 +1508,12 @@ app.put(
     }
   }
 );
-
 // Get Agent Profile by ID
-app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee', 'client', 'hap']), async (req, res) => {
+app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee', 'client']), async (req, res) => {
   try {
     const { id } = req.params;
     const profileId = parseInt(id, 10);
     const userId = parseInt(req.user.id, 10);
-
     if (isNaN(profileId) || isNaN(userId)) {
       console.error(`Invalid profile ID: ${id} or user ID: ${req.user.id}`);
       return res.status(400).json({
@@ -1636,19 +1521,16 @@ app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee'
         message: 'Invalid profile ID or user ID',
       });
     }
-
     const query = `
       SELECT * FROM profiles WHERE id = $1 AND user_id = $2
     `;
     const result = await pool.query(query, [profileId, userId]);
-
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Profile not found or you do not have permission to view it',
       });
     }
-
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -1658,20 +1540,15 @@ app.get('/api/profiles/:id', authenticateToken, checkAccess(['agent', 'employee'
     });
   }
 });
-
 // Log all requests for debugging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - Headers: ${JSON.stringify(req.headers)}`);
   next();
 });
-
 // Get Pending Profiles (Admin)
 app.get('/api/admin/profiles', authenticateToken, checkAccess(['admin']), async (req, res) => {
   let client;
   try {
-    console.log('Fetching admin profiles...');
-    client = await pool.connect();
-    
+    client = await pool.connect();    
     // First, get all agent and HAP users with their profiles
     const usersQuery = `
       SELECT 
@@ -1692,14 +1569,13 @@ app.get('/api/admin/profiles', authenticateToken, checkAccess(['admin']), async 
         p.years_of_experience
       FROM users u
       LEFT JOIN profiles p ON p.user_id = u.id
-      WHERE u.signup_type IN ('agent', 'hap')
+      WHERE u.signup_type IN ('agent')
       ORDER BY COALESCE(p.created_at, u.created_at) DESC
-    `;
-    
-    console.log('Executing users query...');
+    `;  
     const usersResult = await client.query(usersQuery);
-    console.log(`Found ${usersResult.rows.length} users`);
-
+    // Log all users with signup_type 'hrb'
+    const hrbUsers = usersResult.rows.filter(row => row.signup_type === 'hrb');
+    const pendingHrbUsers = hrbUsers.filter(row => row.user_status === 'pending');
     if (usersResult.rows.length === 0) {
       return res.json({
         success: true,
@@ -1907,7 +1783,7 @@ app.post('/api/admin/profiles/:id/approve', authenticateToken, checkAccess(['adm
       console.log('Updating user status for user:', userId);
       const userUpdateResult = await client.query(
         'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, status',
-        [status === 'approved' ? 'active' : 'inactive', userId]
+        [status === 'active' ? 'active' : 'inactive', userId]
       );
       console.log('User update result:', userUpdateResult.rows[0]);
 
@@ -1941,11 +1817,11 @@ app.post('/api/admin/profiles/:id/approve', authenticateToken, checkAccess(['adm
           await transporter.sendMail({
             from: `"Your App" <${process.env.EMAIL_USER}>`,
             to: userEmail,
-            subject: `Your Profile Has Been ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+            subject: `Your Profile Has Been ${status === 'active' ? 'Approved' : 'Rejected'}`,
             html: `
               <h2>Profile Status Update</h2>
               <p>Dear ${userName},</p>
-              <p>Your profile has been ${status === 'approved' ? 'approved' : 'rejected'} by the admin.</p>
+              <p>Your profile has been ${status === 'active' ? 'approved' : 'rejected'} by the admin.</p>
               ${status === 'rejected' && rejectionReason ? 
                 `<p>Reason for rejection: ${rejectionReason}</p>` : ''}
               <p>Please log in to your dashboard for more details.</p>
@@ -4009,11 +3885,11 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
     });
   }
 
-  if (!status || !['approved', 'rejected'].includes(status)) {
+  if (!status || !['approved', 'active', 'rejected'].includes(status)) {
     console.error('Invalid status:', { status });
     return res.status(400).json({ 
       success: false, 
-      error: 'Invalid status. Must be either "approved" or "rejected"' 
+      error: 'Invalid status. Must be either "active", "approved", or "rejected"' 
     });
   }
 
@@ -4026,18 +3902,18 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
     // Start transaction
     await client.query('BEGIN');
 
-    // Verify user exists and is either an agent or HAP
-    console.log('Verifying user exists and is an agent or HAP...');
+    // Verify user exists and is an allowed user type
+    console.log('Verifying user exists and is an allowed user type...');
     const verifyQuery = `
       SELECT id, status, signup_type, email, first_name, last_name
       FROM users
-      WHERE id = $1 AND signup_type IN ('agent', 'hap')
+      WHERE id = $1 AND signup_type IN ('agent', 'channel_partner', 'employee', 'client', 'slp', 'hap', 'hrb')
     `;
     const verifyResult = await client.query(verifyQuery, [userId]);
     console.log('User verification result:', verifyResult.rows[0]);
 
     if (verifyResult.rows.length === 0) {
-      throw new Error('User not found or is not an agent/HAP');
+      throw new Error('User not found or is not an allowed user type (agent/channel_partner/employee/client/slp/hap/hrb)');
     }
 
     // Update user status
@@ -4049,7 +3925,8 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
       RETURNING id, status, signup_type, email, first_name, last_name
     `;
     
-    const newStatus = status === 'approved' ? 'active' : 'pending';
+    // Accept both 'approved' and 'active' as meaning 'active' in the DB
+    const newStatus = (status === 'active' || status === 'active') ? 'active' : 'pending';
     console.log('Executing user update query:', {
       query: updateQuery,
       params: [newStatus, userId],
@@ -4090,11 +3967,11 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
       await transporter.sendMail({
         from: `"Your App" <${process.env.EMAIL_USER}>`,
         to: user.email,
-        subject: `Your Account Has Been ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+        subject: `Your Account Has Been ${status === 'rejected' ? 'Rejected' : 'Approved'}`,
         html: `
           <h2>Account Status Update</h2>
           <p>Dear ${userName},</p>
-          <p>Your account has been ${status === 'approved' ? 'approved' : 'rejected'} by the admin.</p>
+          <p>Your account has been ${status === 'rejected' ? 'rejected' : 'approved'} by the admin.</p>
           ${status === 'rejected' && rejectionReason ? 
             `<p>Reason for rejection: ${rejectionReason}</p>` : ''}
           <p>Please log in to your dashboard for more details.</p>
@@ -4247,8 +4124,8 @@ app.get('/api/admin/products-invoices', authenticateToken, checkAccess(['admin']
 
 // Import routes
 const agentAnnouncementsRouter = require('./routes/agent/announcements');
-const hapAnnouncementsRouter = require('./routes/hap/announcements');
-const hapProfileRouter = require('./routes/hap/profile');
+// const hapAnnouncementsRouter = require('./routes/hap/announcements');
+// const hapProfileRouter = require('./routes/hap/profile');
 
 // ... existing code ...
 
@@ -4256,8 +4133,8 @@ const hapProfileRouter = require('./routes/hap/profile');
 app.use('/api/agent/announcements', agentAnnouncementsRouter);
 
 // HAP routes
-app.use('/api/hap/announcements', hapAnnouncementsRouter);
-app.use('/api/profiles', hapProfileRouter);
+// app.use('/api/hap/announcements', hapAnnouncementsRouter);
+// app.use('/api/profiles', hapProfileRouter);
 
 // ... existing code ...
 
@@ -4466,16 +4343,16 @@ app.post('/api/signup', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    // For agents, hap users, users, channel partners, and employees, verify password
-    if (signup_type === 'agent' || signup_type === 'hap' || signup_type === 'user' || signup_type === 'channel_partner' || signup_type === 'employee') {
-      console.log('Processing agent/hap/user/channel partner/employee registration');
+    // For agents, channel partners, employees, and SLPs, verify password
+    if (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'employee' || signup_type === 'slp') {
+      console.log('Processing agent/channel_partner/employee/slp registration');
       if (!password || !otp) {
-        console.log('Missing password or OTP for agent/hap/user/channel partner/employee');
+        console.log('Missing password or OTP for agent/channel_partner/employee/slp');
         client.release();
         return res.status(400).json({ success: false, error: 'Password and OTP are required for registration' });
       }
 
-      // Verify OTP for agents, hap users, users, channel partners, and employees
+      // Verify OTP for agents, channel partners, employees, and SLPs
       const otpResult = await client.query(
         'SELECT * FROM otps WHERE email = $1 AND otp = $2 AND expiry > NOW() AND used = FALSE ORDER BY created_at DESC LIMIT 1',
         [email, otp]
@@ -4532,15 +4409,15 @@ app.post('/api/signup', async (req, res) => {
         [
           first_name, middle_name, last_name, email, phone, dbSignupType,
           hashedPassword, userStatus,
-          signup_type === 'agent' ? linkedin_url : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? pincode : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? city : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? state : null,
-          signup_type === 'agent' ? referral_id : null,
-          signup_type === 'agent' ? experience_years : null,
-          signup_type === 'channel_partner' ? company_name : null,
-          signup_type === 'channel_partner' ? website : null,
-          signup_type === 'channel_partner' ? address : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? linkedin_url : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? pincode : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? city : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? state : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? referral_id : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? experience_years : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? company_name : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? website : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? address : null,
           referralCode,
           referred_by
         ]
@@ -5542,6 +5419,8 @@ app.use('/api/report', reportRoutes);
 app.use('/api/company/intake', companyIntakeRoutes);
 
 // ... existing code ...
+const reviewsRouter = require('./routes/reviews');
+app.use('/api/reviews', reviewsRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
@@ -5560,3 +5439,6 @@ app.get('/agent/verification-status', (req, res) => {
 // app.post('/api/save-aadhar-details', ...);
 // app.post('/api/save-pan-details', ...);
 // app.post('/api/save-bank-details', ...);
+
+
+

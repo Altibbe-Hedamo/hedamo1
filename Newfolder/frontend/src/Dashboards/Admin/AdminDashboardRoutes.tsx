@@ -10,14 +10,14 @@ import ReportsSection from '../../pages/Admin/ReportsSection';
 import PaymentsSection from '../../pages/Admin/PaymentsSection';
 import CompaniesSection from '../../pages/Admin/CompaniesSection';
 import IntakeFormSection from '../../pages/Admin/IntakeFormSection';
-import HapSection from '../../pages/Admin/HapSection';
-import HrbSection from '../../pages/Admin/HrbSection';
 import InvoicesSection from '../../pages/Admin/InvoicesSection';
 import LedgerSection from '../../pages/Admin/LedgerSection';
 import AdminCommunicationCenter from '../../pages/Admin/AdminCommunicationCenter';
 import UsersPage from '../../pages/Admin/UsersPage';
 import LegalDocumentPage from '../../pages/Admin/LegalDocumentPage';
 import HelpLinePage from '../../pages/Admin/HelpLinePage';
+import SLPPage from '../../pages/Admin/SLPPage';
+import SLPRulesPage from '../../pages/Admin/SLPRulesPage';
 import type { JSX } from 'react';
 import LoadingSpinner from '../../pages/common/LoadingSpinner';
 
@@ -63,6 +63,10 @@ const AdminDashboardRoutes = () => {
             path="/hvp"
             element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
           />
+          <Route
+            path="/slp"
+            element={<ProtectedRoute><SLPPage /></ProtectedRoute>}
+          />
           
           <Route
             path="/users/agents"
@@ -75,16 +79,6 @@ const AdminDashboardRoutes = () => {
           <Route
             path="/users/users"
             element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
-          />
-          
-          <Route
-            path="/hap"
-            element={<ProtectedRoute><HapSection /></ProtectedRoute>}
-          />
-          
-          <Route
-            path="/hrb"
-            element={<ProtectedRoute><HrbSection /></ProtectedRoute>}
           />
           
           <Route
@@ -126,7 +120,11 @@ const AdminDashboardRoutes = () => {
             path="/communication"
             element={<ProtectedRoute><AdminCommunicationCenter /></ProtectedRoute>}
           />
-          
+
+          <Route
+            path="/slp-rules"
+            element={<ProtectedRoute><SLPRulesPage /></ProtectedRoute>}
+          />
           <Route path="*" element={<Navigate to="/admin-dashboard/dashboard" replace />} />
         </Routes>
       </div>

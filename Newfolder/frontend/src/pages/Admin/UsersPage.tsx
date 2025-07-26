@@ -16,56 +16,58 @@ const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('client');
+
+  const fetchUsers = async (type: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        setError('Authentication error');
+        setLoading(false);
+        return;
+      }
+      const response = await api.get('/api/admin/users', {
+        params: { signup_type: type },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        // Filter to only show approved users (status = 'active')
+        const approvedUsers = response.data.users.filter((user: User) => user.status === 'active');
+        setUsers(approvedUsers || []);
+      } else {
+        setError(response.data.error || 'Failed to fetch users');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveReject = async (userId: number, status: 'active' | 'rejected') => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        setError('Authentication error');
+        return;
+      }
+      await api.post(`/api/admin/users/${userId}/approve`, {
+        status,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refresh the list
+      fetchUsers(selectedType);
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to update user status');
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const token = sessionStorage.getItem('token');
-        console.log('Token:', token ? 'Present' : 'Missing'); // Debug log
-
-        if (!token) {
-          setError('Authentication error');
-          setLoading(false);
-          return;
-        }
-
-        console.log('Making API request to /api/admin/users'); // Debug log
-        const response = await api.get('/api/admin/users', {
-          params: {
-            signup_type: 'client'
-          }
-        });
-
-        console.log('API Response:', response.data); // Debug log
-
-        if (response.data.success) {
-          setUsers(response.data.users || []);
-          setError(null);
-        } else {
-          console.error('API Error:', response.data.error); // Debug log
-          setError(response.data.error || 'Failed to fetch users');
-        }
-      } catch (err: any) {
-        console.error('Error details:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
-        
-        if (err.response?.status === 401) {
-          setError('Session expired. Please log in again.');
-        } else if (err.response?.status === 403) {
-          setError('You do not have permission to view users.');
-        } else {
-          setError(err.response?.data?.error || err.message || 'Failed to fetch users');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
+    fetchUsers(selectedType);
+  }, [selectedType]);
 
   if (loading) {
     return (
@@ -86,11 +88,20 @@ const UsersPage: React.FC = () => {
     );
   }
 
+  // Filter users for HRB tab to only show active
+  const displayedUsers = users;
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Users</h1>
-      
-      {users.length === 0 ? (
+      <div className="mb-4 flex space-x-2">
+        <button onClick={() => setSelectedType('client')} className={`px-4 py-2 rounded ${selectedType === 'client' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Clients</button>
+        <button onClick={() => setSelectedType('agent')} className={`px-4 py-2 rounded ${selectedType === 'agent' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Agents</button>
+        <button onClick={() => setSelectedType('channel_partner')} className={`px-4 py-2 rounded ${selectedType === 'channel_partner' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Channel Partners</button>
+        <button onClick={() => setSelectedType('slp')} className={`px-4 py-2 rounded ${selectedType === 'slp' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>SLPs</button>
+        <button onClick={() => setSelectedType('company')} className={`px-4 py-2 rounded ${selectedType === 'company' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Companies</button>
+      </div>
+      {displayedUsers.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500">No users found as of now.</p>
         </div>
@@ -106,7 +117,7 @@ const UsersPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {displayedUsers.map((user) => (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">

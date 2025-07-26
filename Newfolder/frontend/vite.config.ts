@@ -18,5 +18,10 @@ export default defineConfig({
     outDir: 'dist',
     copyPublicDir: true
   },
-  base: '/'
+  base: '/',
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3001'
+    }
+  }
 })

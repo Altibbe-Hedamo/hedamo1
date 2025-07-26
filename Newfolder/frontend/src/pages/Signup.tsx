@@ -270,8 +270,8 @@ const Signup: React.FC = () => {
         return;
       }
 
-      // Validate password for agents
-      if (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'company') {
+      // Validate password for agents, channel partners, companies, and SLPs
+      if (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') {
         if (!formData.password || !formData.confirmPassword) {
           setError('Please enter and confirm your password');
           setIsSubmitting(false);
@@ -360,17 +360,17 @@ const Signup: React.FC = () => {
         referred_by: referralCode,
         csrf_token: csrfToken,
         signup_type: formData.signupType === 'company' ? 'employee' : formData.signupType,
-        password: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.password : undefined,
-        otp: (formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') ? formData.otp : undefined,
-        linkedin_url: formData.signupType === 'agent' ? formData.linkedinUrl : undefined,
-        pincode: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.pincode : undefined,
-        city: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.city : undefined,
-        state: (formData.signupType === 'agent' || formData.signupType === 'channel_partner') ? formData.state : undefined,
-        referral_id: formData.signupType === 'agent' ? formData.referralId : undefined,
-        experience_years: formData.signupType === 'agent' ? formData.experienceYears : undefined,
-        company_name: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.companyName : undefined,
-        website: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.website : undefined,
-        address: formData.signupType === 'channel_partner' || formData.signupType === 'company' ? formData.address : undefined,
+        password: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') ? formData.password : undefined,
+        otp: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') ? formData.otp : undefined,
+        linkedin_url: (formData.signupType === 'agent' || formData.signupType === 'slp') ? formData.linkedinUrl : undefined,
+        pincode: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'slp') ? formData.pincode : undefined,
+        city: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'slp') ? formData.city : undefined,
+        state: (formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'slp') ? formData.state : undefined,
+        referral_id: (formData.signupType === 'agent' || formData.signupType === 'slp') ? formData.referralId : undefined,
+        experience_years: (formData.signupType === 'agent' || formData.signupType === 'slp') ? formData.experienceYears : undefined,
+        company_name: (formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') ? formData.companyName : undefined,
+        website: (formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') ? formData.website : undefined,
+        address: (formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') ? formData.address : undefined,
       };
 
       console.log('Sending signup request with data:', signupData);
@@ -389,7 +389,7 @@ const Signup: React.FC = () => {
 
         if (response.data.success) {
           const redirectType = response.data.user?.signupType || formData.signupType;
-          setSuccess(response.data.message || 'Registration successful');
+          setSuccess('Registration successful! Please check your email and log in to continue.');
           setFormData({
             name: '',
             email: '',
@@ -417,15 +417,9 @@ const Signup: React.FC = () => {
           
           // Defer navigation to next tick to ensure AuthContext state updates
           Promise.resolve().then(() => {
-            if (redirectType === 'agent') {
-              navigate('/kyc-verification', { replace: true });
-            } else if (redirectType === 'channel_partner') {
-              navigate('/channel-partner-portal', { replace: true });
-            } else if (redirectType === 'hap') {
-              navigate('/login', { replace: true });
-          } else {
-              navigate('/login', { replace: true });
-          }
+            // For all user types, redirect to login after registration
+            // The login page will handle the approval check and show appropriate messages
+            navigate('/login', { replace: true });
           });
         } else {
           const errorMessage = response.data.error || 'Failed to register user';
@@ -533,7 +527,7 @@ const Signup: React.FC = () => {
                     required
                     className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   />
-                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && !otpSent && (
+                  {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') && !otpSent && (
                     <button
                       type="button"
                       onClick={handleSendOtp}
@@ -583,13 +577,12 @@ const Signup: React.FC = () => {
                 <option value="user">Individual User</option>
                 <option value="company">Business/Company</option>
                 <option value="agent">Agent/Representative</option>
-                <option value="hap">HAP</option>
-                <option value="hrb">HRB</option>
                 <option value="channel_partner">Channel Partner</option>
+                <option value="slp">Service Partner (SLP)</option>
               </select>
             </div>
 
-            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'hap' || formData.signupType === 'channel_partner' || formData.signupType === 'company') && (
+            {(formData.signupType === 'user' || formData.signupType === 'agent' || formData.signupType === 'channel_partner' || formData.signupType === 'company' || formData.signupType === 'slp') && (
               <>
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
@@ -651,7 +644,7 @@ const Signup: React.FC = () => {
               </>
             )}
 
-            {formData.signupType === 'channel_partner' && (
+            {(formData.signupType === 'channel_partner' || formData.signupType === 'slp') && (
               <>
                 <div>
                   <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
@@ -855,6 +848,60 @@ const Signup: React.FC = () => {
                       placeholder="Enter years of experience"
                       min="0"
                       max="50"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {formData.signupType === 'slp' && (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700">
+                    LinkedIn Profile URL
+                  </label>
+                  <input
+                    type="url"
+                    id="linkedinUrl"
+                    name="linkedinUrl"
+                    value={formData.linkedinUrl}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                    placeholder="https://linkedin.com/in/your-profile"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="referralId" className="block text-sm font-medium text-gray-700">
+                      Referral ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="referralId"
+                      name="referralId"
+                      value={formData.referralId}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Enter referral ID if any"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="experienceYears" className="block text-sm font-medium text-gray-700">
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      id="experienceYears"
+                      name="experienceYears"
+                      value={formData.experienceYears}
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Enter years of experience"
+                      min="0"
+                      max="50"
+                      required
                     />
                   </div>
                 </div>

@@ -33,45 +33,32 @@ const Login: React.FC = () => {
 
       if (response.data.success) {
         login(response.data.user, response.data.token);
-        if (response.data.user.type === 'hap' || response.data.user.signup_type === 'hap') {
-          if (response.data.user.status === 'active') {
-            navigate('/hap-portal');
-          } else if (response.data.user.status === 'pending') {
-            setError("Wait until admin's approval");
-          } else {
-            setError('Unknown status for HAP user');
-          }
-        } else if (response.data.user.type === 'channel_partner' || response.data.user.signup_type === 'channel_partner') {
-          navigate('/channel-partner-portal');
-        } else if (response.data.user.type === 'agent' || response.data.user.signup_type === 'agent') {
-          if (response.data.user.kyc_status === 'pending') {
+        if (response.data.user.type === 'agent' || response.data.user.signup_type === 'agent') {
+          if (response.data.user.status !== 'active') {
+            setError('Your account is pending approval. Please wait until admin approves your registration.');
+          } else if (response.data.user.kyc_status === 'pending') {
             navigate('/kyc-verification');
           } else if (response.data.user.kyc_status === 'active') {
             navigate('/agent-dashboard');
           } else {
             setError('Unknown KYC status for agent');
           }
-        } else {
-          switch (response.data.user.type) {
-            case 'user':
-            case 'client':
-              navigate('/user-profile');
-              break;
-            case 'company':
-              navigate('/client-dashboard');
-              break;
-            case 'admin':
-              navigate('/admin-dashboard');
-              break;
-            case 'employee':
-              navigate('/company-portal');
-              break;
-            case 'hr':
-              navigate('/hr-dashboard');
-              break;
-            default:
-              setError('Unknown user type');
+        } else if (response.data.user.type === 'channel_partner' || response.data.user.signup_type === 'channel_partner') {
+          navigate('/channel-partner-portal');
+        } else if (response.data.user.type === 'company' || response.data.user.signup_type === 'company') {
+          navigate('/client-dashboard');
+        } else if (response.data.user.type === 'user' || response.data.user.signup_type === 'user') {
+          navigate('/user-profile');
+        } else if (response.data.user.type === 'admin' || response.data.user.signup_type === 'admin') {
+          navigate('/admin-dashboard');
+        } else if (response.data.user.type === 'slp' || response.data.user.signup_type === 'slp') {
+          if (response.data.user.status !== 'active') {
+            setError('Your account is pending approval. Please wait until admin approves your registration.');
+          } else {
+            navigate('/slp-portal');
           }
+        } else {
+          setError('Unknown user type');
         }
       } else {
         setError(response.data.error || 'Login failed');

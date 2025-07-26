@@ -29,7 +29,7 @@ async function updateSignupType() {
     await client.query(`
       ALTER TABLE users 
       ADD CONSTRAINT users_signup_type_check 
-      CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'hap', 'channel_partner'))
+      CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'channel_partner'))
     `);
 
     // Commit transaction

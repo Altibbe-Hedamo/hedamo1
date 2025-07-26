@@ -71,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
   };
 
   const userType = authUser?.type || 'agent';
-  const basePath = userType === 'hap' ? '/hap-portal' : '/agent-dashboard';
+  const basePath = '/agent-dashboard';
   const items = sidebarItems || getDefaultSidebarItems(userType);
 
   const companySubItems = [
@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
         <h1 className="text-xl font-bold flex items-center">
           <FaHome className="mr-2 text-blue-300" />
           <span className="bg-gradient-to-r from-blue-300 to-green-300 bg-clip-text text-transparent">
-            {header || (userType === 'hap' ? 'HAP Portal' : 'Agent Portal')}
+            {header || 'Agent Portal'}
           </span>
         </h1>
         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" aria-label="Active Now"></div>
@@ -327,9 +327,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, setActiveSection, isSi
           </div>
           <div>
             <p className="text-sm font-medium">
-              {user ? `${user.first_name} ${user.last_name}` : `${userType === 'hap' ? 'HAP' : 'Agent'} User`}
+              {user ? `${user.first_name} ${user.last_name}` : 'Agent User'}
             </p>
-            <p className="text-xs text-gray-400">{userType === 'hap' ? 'HAP' : 'Agent'}</p>
+            <p className="text-xs text-gray-400">Agent</p>
           </div>
         </div>
       </div>

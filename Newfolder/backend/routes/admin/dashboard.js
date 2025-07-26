@@ -1,16 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { Pool } = require('pg');
+const pool = require('../../db'); // Use shared pool
 const authenticateToken = require('../../middleware/auth').authenticateToken;
 const checkAccess = require('../../middleware/auth').checkAccess;
-
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'myapp_db',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: parseInt(process.env.DB_PORT || '5432'),
-});
 
 // GET /api/dashboard
 router.get('/', authenticateToken, checkAccess(['admin']), async (req, res) => {

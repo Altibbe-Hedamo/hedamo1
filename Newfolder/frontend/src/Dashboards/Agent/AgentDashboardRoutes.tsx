@@ -39,8 +39,16 @@ const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
 };
 
 const AgentDashboardRoutes = () => {
-  useContext(AuthContext);
+  const { user, isLoading } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState<string>('');
+
+  if (!isLoading && user && user.type === 'agent' && user.status !== 'active') {
+    // Only allow access to waiting approval page
+    if (window.location.pathname !== '/agent-dashboard/waiting-approval') {
+      window.location.href = '/agent-dashboard/waiting-approval';
+      return null;
+    }
+  }
 
   return (
     <div className="flex bg-gray-50 min-h-screen">

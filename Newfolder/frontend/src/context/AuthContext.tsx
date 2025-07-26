@@ -32,6 +32,10 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  // TEMP: For layout preview only
+  useEffect(() => {
+    setUser({ type: 'serviceadmin', name: 'Test Service Admin' } as User);
+  }, []);
   const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('token'));
   const [profileStatus, setProfileStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
