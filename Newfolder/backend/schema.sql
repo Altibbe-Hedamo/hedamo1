@@ -28,7 +28,7 @@ CREATE TABLE users (
   last_name VARCHAR(100),
   email VARCHAR(255) UNIQUE NOT NULL,
   phone VARCHAR(20),
-  signup_type VARCHAR(50) NOT NULL CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'channel_partner')),
+  signup_type VARCHAR(50) NOT NULL CHECK (signup_type IN ('agent', 'admin', 'client', 'employee', 'hr', 'channel_partner', 'hap', 'hrb', 'slp')),
   hashed_email VARCHAR(255),
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active')),
   password VARCHAR(255),

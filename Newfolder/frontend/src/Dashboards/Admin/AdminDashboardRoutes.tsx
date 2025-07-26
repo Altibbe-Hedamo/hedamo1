@@ -65,7 +65,7 @@ const AdminDashboardRoutes = () => {
           />
           <Route
             path="/slp"
-            element={<ProtectedRoute><UsersSection /></ProtectedRoute>}
+            element={<ProtectedRoute><SLPPage /></ProtectedRoute>}
           />
           
           <Route

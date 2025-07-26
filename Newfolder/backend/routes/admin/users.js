@@ -27,7 +27,9 @@ router.get('/', authenticateToken, checkAccess(['admin']), async (req, res) => {
     client = await pool.connect();
     
     let query = `
-      SELECT id, first_name, last_name, email, phone, signup_type, status, created_at
+      SELECT id, first_name, last_name, email, phone, signup_type, status, created_at,
+             linkedin_url, pincode, city, state, referral_id, experience_years, 
+             company_name, website, address
       FROM users
       WHERE 1=1
     `;

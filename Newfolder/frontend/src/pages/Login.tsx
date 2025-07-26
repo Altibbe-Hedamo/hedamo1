@@ -51,6 +51,12 @@ const Login: React.FC = () => {
           navigate('/user-profile');
         } else if (response.data.user.type === 'admin' || response.data.user.signup_type === 'admin') {
           navigate('/admin-dashboard');
+        } else if (response.data.user.type === 'slp' || response.data.user.signup_type === 'slp') {
+          if (response.data.user.status !== 'active') {
+            setError('Your account is pending approval. Please wait until admin approves your registration.');
+          } else {
+            navigate('/slp-portal');
+          }
         } else {
           setError('Unknown user type');
         }

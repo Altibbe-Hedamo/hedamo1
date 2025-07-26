@@ -49,6 +49,7 @@ import ExploreHoneyVarieties from './pages/categories/agriculture/ExploreHoneyVa
 import HoneyVarietyDetail from './pages/categories/agriculture/HoneyVarietyDetail';
 import SocialFeed from './pages/SocialFeed';
 import SLPPage from './pages/Admin/SLPPage';
+import SLPPortal from './pages/SLPPortal';
 import PrincipalAdminDashboardRoutes from './Dashboards/PrincipalAdmin/PrincipalAdminDashboardRoutes';
 import ServiceAdminDashboardRoutes from './Dashboards/ServiceAdmin/ServiceAdminDashboardRoutes';
 
@@ -190,6 +191,14 @@ const AppRoutes: React.FC = () => {
       <Route path="/process" element={<Process />} />
       <Route path="/social-feed" element={<SocialFeed />} />
       <Route path="/Slp" element={<SLPPage />} />
+      <Route
+        path="/slp-portal"
+        element={
+          <ProtectedRoute>
+            <SLPPortal />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/category/:categoryName" element={<DynamicCategoryPage />} />
       <Route path="/honey-varieties/:slug" element={<HoneyVarietyDetail />} />
       <Route path="/agriculture/honey-varieties" element={<Suspense fallback={<div>Loading...</div>}><ExploreHoneyVarieties /></Suspense>} />

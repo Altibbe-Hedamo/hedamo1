@@ -578,10 +578,10 @@ app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const client = await pool.connect();
-    // Modify query to allow pending status for agents and hap users
+    // Query to find user by email with appropriate status conditions
     const user = await client.query(
-      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5, $6, $7) AND status = $8))',
-      [email, 'active', 'agent', 'channel_partner', 'employee', 'client', 'admin', 'pending']
+      'SELECT * FROM users WHERE email = $1 AND (status = $2 OR (signup_type IN ($3, $4, $5, $6, $7, $8, $9, $10) AND status = $11))',
+      [email, 'active', 'agent', 'channel_partner', 'employee', 'client', 'admin', 'slp', 'hap', 'hrb', 'pending']
     );
     
     console.log('User details:', {
@@ -3902,18 +3902,18 @@ app.post('/api/admin/users/:id/approve', authenticateToken, checkAccess(['admin'
     // Start transaction
     await client.query('BEGIN');
 
-    // Verify user exists and is either an agent or HAP
-   // console.log('Verifying user exists and is an agent or HAP...');
+    // Verify user exists and is an allowed user type
+    console.log('Verifying user exists and is an allowed user type...');
     const verifyQuery = `
       SELECT id, status, signup_type, email, first_name, last_name
       FROM users
-      WHERE id = $1 AND signup_type IN ('agent', 'channel_partner', 'employee', 'client')
+      WHERE id = $1 AND signup_type IN ('agent', 'channel_partner', 'employee', 'client', 'slp', 'hap', 'hrb')
     `;
     const verifyResult = await client.query(verifyQuery, [userId]);
     console.log('User verification result:', verifyResult.rows[0]);
 
     if (verifyResult.rows.length === 0) {
-      throw new Error('User not found or is not an agent/channel_partner/employee/client');
+      throw new Error('User not found or is not an allowed user type (agent/channel_partner/employee/client/slp/hap/hrb)');
     }
 
     // Update user status
@@ -4343,16 +4343,16 @@ app.post('/api/signup', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    // For agents, hap users, users, channel partners, and employees, verify password
-    if (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'employee') {
-      console.log('Processing agent/channel_partner/employee registration');
+    // For agents, channel partners, employees, and SLPs, verify password
+    if (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'employee' || signup_type === 'slp') {
+      console.log('Processing agent/channel_partner/employee/slp registration');
       if (!password || !otp) {
-        console.log('Missing password or OTP for agent/channel_partner/employee');
+        console.log('Missing password or OTP for agent/channel_partner/employee/slp');
         client.release();
         return res.status(400).json({ success: false, error: 'Password and OTP are required for registration' });
       }
 
-      // Verify OTP for agents, channel partners, and employees
+      // Verify OTP for agents, channel partners, employees, and SLPs
       const otpResult = await client.query(
         'SELECT * FROM otps WHERE email = $1 AND otp = $2 AND expiry > NOW() AND used = FALSE ORDER BY created_at DESC LIMIT 1',
         [email, otp]
@@ -4409,15 +4409,15 @@ app.post('/api/signup', async (req, res) => {
         [
           first_name, middle_name, last_name, email, phone, dbSignupType,
           hashedPassword, userStatus,
-          signup_type === 'agent' ? linkedin_url : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? pincode : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? city : null,
-          (signup_type === 'agent' || signup_type === 'channel_partner') ? state : null,
-          signup_type === 'agent' ? referral_id : null,
-          signup_type === 'agent' ? experience_years : null,
-          signup_type === 'channel_partner' ? company_name : null,
-          signup_type === 'channel_partner' ? website : null,
-          signup_type === 'channel_partner' ? address : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? linkedin_url : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? pincode : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? city : null,
+          (signup_type === 'agent' || signup_type === 'channel_partner' || signup_type === 'slp') ? state : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? referral_id : null,
+          (signup_type === 'agent' || signup_type === 'slp') ? experience_years : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? company_name : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? website : null,
+          (signup_type === 'channel_partner' || signup_type === 'slp') ? address : null,
           referralCode,
           referred_by
         ]

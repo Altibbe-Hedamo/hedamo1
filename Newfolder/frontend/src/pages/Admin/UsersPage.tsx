@@ -33,7 +33,9 @@ const UsersPage: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
-        setUsers(response.data.users || []);
+        // Filter to only show approved users (status = 'active')
+        const approvedUsers = response.data.users.filter((user: User) => user.status === 'active');
+        setUsers(approvedUsers || []);
       } else {
         setError(response.data.error || 'Failed to fetch users');
       }
@@ -96,6 +98,7 @@ const UsersPage: React.FC = () => {
         <button onClick={() => setSelectedType('client')} className={`px-4 py-2 rounded ${selectedType === 'client' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Clients</button>
         <button onClick={() => setSelectedType('agent')} className={`px-4 py-2 rounded ${selectedType === 'agent' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Agents</button>
         <button onClick={() => setSelectedType('channel_partner')} className={`px-4 py-2 rounded ${selectedType === 'channel_partner' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Channel Partners</button>
+        <button onClick={() => setSelectedType('slp')} className={`px-4 py-2 rounded ${selectedType === 'slp' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>SLPs</button>
         <button onClick={() => setSelectedType('company')} className={`px-4 py-2 rounded ${selectedType === 'company' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>Companies</button>
       </div>
       {displayedUsers.length === 0 ? (
