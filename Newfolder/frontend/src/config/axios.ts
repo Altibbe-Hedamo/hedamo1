@@ -65,7 +65,7 @@ api.interceptors.response.use(
       console.warn('Unauthorized request, clearing token and redirecting to login');
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('hedamo_user');
-      window.location.href = '/login';
+      // window.location.href = '/login'; // Temporarily disabled for layout preview
     }
     return Promise.reject(error);
   }

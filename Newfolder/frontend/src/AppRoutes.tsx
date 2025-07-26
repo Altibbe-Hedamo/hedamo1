@@ -49,6 +49,8 @@ import ExploreHoneyVarieties from './pages/categories/agriculture/ExploreHoneyVa
 import HoneyVarietyDetail from './pages/categories/agriculture/HoneyVarietyDetail';
 import SocialFeed from './pages/SocialFeed';
 import SLPPage from './pages/Admin/SLPPage';
+import PrincipalAdminDashboardRoutes from './Dashboards/PrincipalAdmin/PrincipalAdminDashboardRoutes';
+import ServiceAdminDashboardRoutes from './Dashboards/ServiceAdmin/ServiceAdminDashboardRoutes';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
@@ -229,6 +231,16 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/principal-admin-dashboard/*"
+        element={<PrincipalAdminDashboardRoutes />}
+      />
+      <Route
+        path="/service-admin-dashboard/*"
+        element={<ServiceAdminDashboardRoutes />}
+      />
+      <Route path="/test-principal-admin/*" element={<PrincipalAdminDashboardRoutes />} />
+      <Route path="/test-service-admin/*" element={<ServiceAdminDashboardRoutes />} />
       <Route
         path="/hr-dashboard/*"
         element={
